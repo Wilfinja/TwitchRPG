@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>TwitchLib.Api.Core.Interfaces</name>
+    </assembly>
+    <members>
+        <member name="T:TwitchLib.Api.Core.Interfaces.IApiSettings">
+            <summary>
+            Interface for Api Settings
+            </summary>
+        </member>
+        <member name="P:TwitchLib.Api.Core.Interfaces.IApiSettings.AccessToken">
+            <summary>
+            Access token
+            </summary>
+        </member>
+        <member name="P:TwitchLib.Api.Core.Interfaces.IApiSettings.Secret">
+            <summary>
+            Client Secret
+            </summary>
+        </member>
+        <member name="P:TwitchLib.Api.Core.Interfaces.IApiSettings.ClientId">
+            <summary>
+            Client Id
+            </summary>
+        </member>
+        <member name="P:TwitchLib.Api.Core.Interfaces.IApiSettings.SkipDynamicScopeValidation">
+            <summary>
+            Skip Dynamic Scope Validation boolean
+            </summary>
+        </member>
+        <member name="P:TwitchLib.Api.Core.Interfaces.IApiSettings.SkipAutoServerTokenGeneration">
+            <summary>
+            Skip Auto Server Token Generation boolean
+            </summary>
+        </member>
+        <member name="P:TwitchLib.Api.Core.Interfaces.IApiSettings.Scopes">
+            <summary>
+            Scopes
+            </summary>
+        </member>
+        <member name="E:TwitchLib.Api.Core.Interfaces.IApiSettings.PropertyChanged">
+            <summary>
+            Event that fires when a property changed
+            </summary>
+        </member>
+        <member name="T:TwitchLib.Api.Core.Interfaces.IAwaitableConstraint">
+            <summary>
+            Interface for Awaitable Constraint
+            </summary>
+        </member>
+        <member name="T:TwitchLib.Api.Core.Interfaces.IFollow">
+            <summary>
+            Interface for a follow
+            </summary>
+        </member>
+        <member name="P:TwitchLib.Api.Core.Interfaces.IFollow.CreatedAt">
+            <summary>
+            Created at date and time
+            </summary>
+        </member>
+        <member name="P:TwitchLib.Api.Core.Interfaces.IFollow.Notifications">
+            <summary>
+            Notifications boolean
+            </summary>
+        </member>
+        <member name="P:TwitchLib.Api.Core.Interfaces.IFollow.User">
+            <summary>
+            User interface
+            </summary>
+        </member>
+        <member name="T:TwitchLib.Api.Core.Interfaces.IFollows">
+            <summary>
+            Interface for follows
+            </summary>
+        </member>
+        <member name="P:TwitchLib.Api.Core.Interfaces.IFollows.Total">
+            <summary>
+            Total follows
+            </summary>
+        </member>
+        <member name="P:TwitchLib.Api.Core.Interfaces.IFollows.Cursor">
+            <summary>
+            Cursor
+            </summary>
+        </member>
+        <member name="P:TwitchLib.Api.Core.Interfaces.IFollows.Follows">
+            <summary>
+            Follows interface
+            </summary>
+        </member>
+        <member name="T:TwitchLib.Api.Core.Interfaces.IHttpCallHandler">
+            <summary>
+            Interface for HTTP call handler
+            </summary>
+        </member>
+        <member name="T:TwitchLib.Api.Core.Interfaces.IRateLimiter">
+            <summary>
+            Interface for rate limiter
+            </summary>
+        </member>
+        <member name="T:TwitchLib.Api.Core.Interfaces.ITime">
+            <summary>
+            Interface for time
+            </summary>
+        </member>
+        <member name="T:TwitchLib.Api.Core.Interfaces.IUser">
+            <summary>
+            Interface for a user
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>TwitchLib.Client.Models</id>
+    <version>4.0.1</version>
+    <authors>swiftyspiffy, Prom3theu5, Syzuna, LuckyNoS7evin</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>twitchlib.png</icon>
+    <projectUrl>https://github.com/TwitchLib/TwitchLib.Client</projectUrl>
+    <description>Project contains all of the models used in TwitchLib.Client.</description>
+    <releaseNotes>a lot of changes</releaseNotes>
+    <copyright>Copyright 2025</copyright>
+    <tags>twitch library irc chat c# csharp api events net</tags>
+    <repository type="Git" url="https://github.com/TwitchLib/TwitchLib.Client" commit="143216305a9c33d2aa1faf39f4f1304832a81306" />
+    <dependencies>
+      <group targetFramework="net8.0">
+        <dependency id="TwitchLib.Client.Enums" version="4.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net9.0">
+        <dependency id="TwitchLib.Client.Enums" version="4.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net10.0">
+        <dependency id="TwitchLib.Client.Enums" version="4.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="TwitchLib.Client.Enums" version="4.0.1" exclude="Build,Analyzers" />
+        <dependency id="System.Memory" version="4.6.3" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.1">
+        <dependency id="TwitchLib.Client.Enums" version="4.0.1" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

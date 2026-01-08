@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>TwitchLib.Communication</id>
+    <version>2.0.1</version>
+    <authors>swiftyspiffy, Prom3theu5, Syzuna, LuckyNoS7evin</authors>
+    <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
+    <projectUrl>https://github.com/TwitchLib/TwitchLib.Communication</projectUrl>
+    <iconUrl>https://cdn.syzuna-programs.de/images/twitchlib.png</iconUrl>
+    <description>Connection library used throughout TwitchLib to replace third party depedencies.</description>
+    <releaseNotes>Fix disposing issue, updated dependecies and framework version</releaseNotes>
+    <copyright>Copyright 2024</copyright>
+    <tags>twitch twitchlib library irc chat c# csharp api events pubsub net standard 2.0</tags>
+    <repository type="Git" url="https://github.com/TwitchLib/TwitchLib.Communication" commit="d1904be8e8425cd4e35079a6a8024fe8b920fc58" />
+    <dependencies>
+      <group targetFramework="net6.0">
+        <dependency id="Microsoft.Extensions.Logging.Abstractions" version="8.0.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net7.0">
+        <dependency id="Microsoft.Extensions.Logging.Abstractions" version="8.0.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net8.0">
+        <dependency id="Microsoft.Extensions.Logging.Abstractions" version="8.0.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="Microsoft.Extensions.Logging.Abstractions" version="8.0.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.1">
+        <dependency id="Microsoft.Extensions.Logging.Abstractions" version="8.0.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

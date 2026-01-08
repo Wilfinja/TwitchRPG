@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>TwitchLib.Api.Core.Models</name>
+    </assembly>
+    <members>
+        <member name="T:TwitchLib.Api.Core.Models.RequestModel">
+            <summary>
+            Request Model
+            </summary>
+        </member>
+    </members>
+</doc>

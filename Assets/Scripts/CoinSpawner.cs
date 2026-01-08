@@ -12,8 +12,8 @@ public class CoinSpawner : MonoBehaviour
     [SerializeField] private GameObject purpleGemPrefab;
 
     [Header("Spawn Area")]
-    [SerializeField] private float spawnWidth = 19.2f; // Width in world units
-    [SerializeField] private float spawnHeight = 12f;  // Y spawn position above screen
+    [SerializeField] private float spawnWidth = 19.2f;
+    [SerializeField] private float spawnHeight = 12f;
     [SerializeField] private Transform spawnParent;
 
     [Header("Coin Behavior")]
@@ -76,31 +76,38 @@ public class CoinSpawner : MonoBehaviour
         Vector3 spawnPos = new Vector3(randomX, spawnHeight, 0f);
 
         GameObject prefab;
+        Coin.CoinType type;
 
         switch (coinType)
         {
             case 1:
                 prefab = goldenCoinPrefab;
+                type = Coin.CoinType.Golden;
                 break;
 
             case 2:
                 prefab = blueGemPrefab;
+                type = Coin.CoinType.BlueGem;
                 break;
 
             case 3:
                 prefab = greenGemprefab;
+                type = Coin.CoinType.GreenGem;
                 break;
 
             case 4:
                 prefab = redGemPrefab;
+                type = Coin.CoinType.RedGem;
                 break;
 
             case 5:
                 prefab = purpleGemPrefab;
+                type = Coin.CoinType.PurpleGem;
                 break;
 
             default:
                 prefab = coinPrefab;
+                type = Coin.CoinType.Normal;
                 break;
         }
 
@@ -109,6 +116,9 @@ public class CoinSpawner : MonoBehaviour
         Coin coin = coinGO.GetComponent<Coin>();
         if (coin == null)
             coin = coinGO.AddComponent<Coin>();
+
+        // Set coin type
+        coin.SetCoinType(type);
 
         // Random initial force
         float forceX = Random.Range(minHorizontalForce, maxHorizontalForce);

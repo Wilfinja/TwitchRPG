@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>TwitchLib.Api.Core.Enums</id>
+    <version>3.10.2</version>
+    <authors>swiftyspiffy, Prom3theu5, Syzuna, LuckyNoS7evin</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>twitchlib.png</icon>
+    <projectUrl>https://github.com/TwitchLib/TwitchLib.Api</projectUrl>
+    <description>Project containing the enums of TwitchLib.Api</description>
+    <releaseNotes>a lot of changes</releaseNotes>
+    <copyright>Copyright 2025</copyright>
+    <tags>twitch library chat c# csharp api events pubsub net</tags>
+    <repository type="Git" url="https://github.com/TwitchLib/TwitchLib.Api" commit="d5fd3b986141771ea1897a36fd728d43f002d15e" />
+    <dependencies>
+      <group targetFramework="net8.0">
+        <dependency id="Newtonsoft.Json" version="13.0.4" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net9.0">
+        <dependency id="Newtonsoft.Json" version="13.0.4" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="Newtonsoft.Json" version="13.0.4" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>
