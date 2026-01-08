@@ -171,36 +171,29 @@ public class TwitchOverlayManager : MonoBehaviour
                 string username = e.ChatMessage.Username;
                 bool isBroadcaster = e.ChatMessage.IsBroadcaster;
 
-                // Try RPG commands first
-                string rpgResponse = rpgCommands.HandleRPGCommand(command, userId, username, args);
-                if (rpgResponse != null)
+                // WRAP EVERYTHING IN THE DISPATCHER! 
+                UnityMainThreadDispatcher.Instance().Enqueue(() =>
                 {
-                    Debug.Log($"[TwitchOverlay] RPG Response: {rpgResponse}");
-
-                    // USE MAIN THREAD DISPATCHER!
-                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                    // Try RPG commands first
+                    string rpgResponse = rpgCommands.HandleRPGCommand(command, userId, username, args);
+                    if (rpgResponse != null)
                     {
+                        Debug.Log($"[TwitchOverlay] RPG Response: {rpgResponse}");
                         OnScreenNotification.Instance.ShowInfo(rpgResponse);
-                    });
+                        return;
+                    }
 
-                    return Task.CompletedTask;
-                }
-
-                // Try admin commands  
-                if (isBroadcaster)
-                {
-                    string adminResponse = rpgCommands.HandleAdminCommand(command, args, true);
-                    if (adminResponse != null)
+                    // Try admin commands  
+                    if (isBroadcaster)
                     {
-                        // USE MAIN THREAD DISPATCHER!
-                        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                        string adminResponse = rpgCommands.HandleAdminCommand(command, args, true);
+                        if (adminResponse != null)
                         {
                             OnScreenNotification.Instance.ShowSuccess(adminResponse);
-                        });
-
-                        return Task.CompletedTask;
+                            return;
+                        }
                     }
-                }
+                });
             }
         }
         catch (Exception ex)

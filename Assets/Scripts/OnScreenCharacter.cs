@@ -40,6 +40,7 @@ public class OnScreenCharacter : MonoBehaviour
     [Header("UI References")]
     [SerializeField] private TMP_Text nameLabel;
     [SerializeField] private TMP_Text levelLabel;
+    [SerializeField] private GameObject nameContainer;
 
     private void Awake()
     {
@@ -265,6 +266,12 @@ public class OnScreenCharacter : MonoBehaviour
         Vector3 scale = transform.localScale;
         scale.x *= -1;
         transform.localScale = scale;
+
+        Vector3 nameScale = nameContainer.transform.localScale;
+
+        nameScale.x *= -1;
+
+        nameContainer.transform.localScale = nameScale;
     }
 
     private void UpdateUI()
