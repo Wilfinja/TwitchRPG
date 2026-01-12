@@ -174,7 +174,7 @@ GameObject:
   m_Component:
   - component: {fileID: 310242710}
   - component: {fileID: 310242709}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Left Screen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -460,7 +460,7 @@ MonoBehaviour:
   greenGemprefab: {fileID: 7290568447636963890, guid: d85f2f35a621c894cbee6032e31bdd58, type: 3}
   blueGemPrefab: {fileID: 5769832422213337037, guid: 848fb2426b7f547418d1dfc02a0c259e, type: 3}
   purpleGemPrefab: {fileID: 2929610785478134322, guid: 19528f13f95837e42a8a84e970d73cb1, type: 3}
-  spawnWidth: 19.2
+  spawnWidth: 39
   spawnHeight: 12
   spawnParent: {fileID: 1074731430}
   coinLifetime: 6
@@ -829,7 +829,7 @@ MonoBehaviour:
   rangerPrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
   spawnYPosition: 0
   spawnSpacing: 1.5
-  idleRangeX: 39
+  idleRangeX: 8
   characterParent: {fileID: 635347820}
   screenLeftBound: -9.5
   screenRightBound: 9.5
@@ -943,7 +943,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1394863332}
   - component: {fileID: 1394863331}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Right Screen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1021,7 +1021,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1450981386}
   - component: {fileID: 1450981385}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Bottom Screen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1202,7 +1202,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -300, y: 938}
+  m_AnchoredPosition: {x: -328, y: 948}
   m_SizeDelta: {x: 600, y: 500}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2036186957
@@ -1390,6 +1390,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2130528496}
+  - component: {fileID: 2130528497}
   m_Layer: 0
   m_Name: ExperienceManager
   m_TagString: Untagged
@@ -1412,6 +1413,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2130528497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2130528495}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bee243f56a10e8543bac9f3a4e4fd6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ExperienceManager
+  xpPerLevel: 150
+  maxLevel: 50
+  statPointsPerLevel: 2
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

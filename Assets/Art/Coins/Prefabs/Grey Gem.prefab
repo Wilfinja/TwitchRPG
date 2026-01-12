@@ -13,6 +13,10 @@ PrefabInstance:
       value: Grey Gem
       objectReference: {fileID: 0}
     - target: {fileID: -2253911629886400664, guid: 214a26583e3fe454083fbe1acfc7927d, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: -2253911629886400664, guid: 214a26583e3fe454083fbe1acfc7927d, type: 3}
       propertyPath: m_TagString
       value: Coin
       objectReference: {fileID: 0}

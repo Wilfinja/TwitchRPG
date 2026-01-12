@@ -117,18 +117,18 @@ public class RPGItem
     public string description;
     public ItemType itemType;
     public ItemRarity rarity;
-    public int requiredLevel;
+    public int requiredLevel;  // Optional: 0 = no requirement
     public int price;
 
-    // Stat bonuses
-    public int strengthBonus;
-    public int constitutionBonus;
-    public int dexterityBonus;
-    public int willpowerBonus;
-    public int charismaBonus;
-    public int intelligenceBonus;
+    // PERCENTAGE-BASED STAT BONUSES (0.0 to 1.0 = 0% to 100%)
+    [Range(0f, 1f)] public float strengthBonusPercent;
+    [Range(0f, 1f)] public float constitutionBonusPercent;
+    [Range(0f, 1f)] public float dexterityBonusPercent;
+    [Range(0f, 1f)] public float willpowerBonusPercent;
+    [Range(0f, 1f)] public float charismaBonusPercent;
+    [Range(0f, 1f)] public float intelligenceBonusPercent;
 
-    // Combat properties
+    // FLAT COMBAT BONUSES (for predictable combat balance)
     public int damageBonus;
     public int defenseBonus;
     public int healAmount;
@@ -144,6 +144,21 @@ public class RPGItem
         itemId = Guid.NewGuid().ToString();
         allowedClasses = new List<CharacterClass>();
         properties = new Dictionary<string, string>();
+    }
+
+    // Helper method to get rarity multiplier
+    public static float GetRarityPercentageBonus(ItemRarity rarity)
+    {
+        switch (rarity)
+        {
+            case ItemRarity.Common: return 0.10f;      // 10%
+            case ItemRarity.Uncommon: return 0.20f;    // 20%
+            case ItemRarity.Rare: return 0.30f;        // 30%
+            case ItemRarity.Epic: return 0.40f;        // 40%
+            case ItemRarity.Legendary: return 0.50f;   // 50%
+            case ItemRarity.Unique: return 0.60f;      // 60% (special)
+            default: return 0.10f;
+        }
     }
 
     public Color GetRarityColor()
@@ -216,6 +231,7 @@ public class EquippedItems
 
     public CharacterStats CalculateTotalStats(CharacterStats baseStats)
     {
+        // Start with base stats
         CharacterStats total = new CharacterStats
         {
             strength = baseStats.strength,
@@ -229,21 +245,84 @@ public class EquippedItems
             unallocatedStatPoints = baseStats.unallocatedStatPoints
         };
 
+        // Collect all percentage bonuses (ADDITIVE)
+        float totalStrBonus = 0f;
+        float totalConBonus = 0f;
+        float totalDexBonus = 0f;
+        float totalWilBonus = 0f;
+        float totalChaBonus = 0f;
+        float totalIntBonus = 0f;
+
+        // Collect flat bonuses
+        int totalDamageBonus = 0;
+        int totalDefenseBonus = 0;
+
         RPGItem[] allItems = { head, chest, legs, arms, leftHand, rightHand, feet };
         foreach (var item in allItems)
         {
             if (item != null)
             {
-                total.strength += item.strengthBonus;
-                total.constitution += item.constitutionBonus;
-                total.dexterity += item.dexterityBonus;
-                total.willpower += item.willpowerBonus;
-                total.charisma += item.charismaBonus;
-                total.intelligence += item.intelligenceBonus;
+                // Add percentage bonuses
+                totalStrBonus += item.strengthBonusPercent;
+                totalConBonus += item.constitutionBonusPercent;
+                totalDexBonus += item.dexterityBonusPercent;
+                totalWilBonus += item.willpowerBonusPercent;
+                totalChaBonus += item.charismaBonusPercent;
+                totalIntBonus += item.intelligenceBonusPercent;
+
+                // Add flat bonuses
+                totalDamageBonus += item.damageBonus;
+                totalDefenseBonus += item.defenseBonus;
             }
         }
 
+        // Apply percentage bonuses to base stats (minimum +1 per stat if bonus > 0)
+        if (totalStrBonus > 0)
+            total.strength += Mathf.Max(1, Mathf.RoundToInt(baseStats.strength * totalStrBonus));
+
+        if (totalConBonus > 0)
+            total.constitution += Mathf.Max(1, Mathf.RoundToInt(baseStats.constitution * totalConBonus));
+
+        if (totalDexBonus > 0)
+            total.dexterity += Mathf.Max(1, Mathf.RoundToInt(baseStats.dexterity * totalDexBonus));
+
+        if (totalWilBonus > 0)
+            total.willpower += Mathf.Max(1, Mathf.RoundToInt(baseStats.willpower * totalWilBonus));
+
+        if (totalChaBonus > 0)
+            total.charisma += Mathf.Max(1, Mathf.RoundToInt(baseStats.charisma * totalChaBonus));
+
+        if (totalIntBonus > 0)
+            total.intelligence += Mathf.Max(1, Mathf.RoundToInt(baseStats.intelligence * totalIntBonus));
+
+        // Recalculate health with new constitution
         total.RecalculateHealth();
+
+        return total;
+    }
+
+    // NEW: Get total combat bonuses
+    public int GetTotalDamageBonus()
+    {
+        int total = 0;
+        RPGItem[] allItems = { head, chest, legs, arms, leftHand, rightHand, feet };
+        foreach (var item in allItems)
+        {
+            if (item != null)
+                total += item.damageBonus;
+        }
+        return total;
+    }
+
+    public int GetTotalDefenseBonus()
+    {
+        int total = 0;
+        RPGItem[] allItems = { head, chest, legs, arms, leftHand, rightHand, feet };
+        foreach (var item in allItems)
+        {
+            if (item != null)
+                total += item.defenseBonus;
+        }
         return total;
     }
 }

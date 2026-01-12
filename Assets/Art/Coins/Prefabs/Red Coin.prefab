@@ -13,6 +13,10 @@ PrefabInstance:
       value: Red Coin
       objectReference: {fileID: 0}
     - target: {fileID: -2253911629886400664, guid: 6593d222b2e59ef45ae5e422b6fb16e9, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: -2253911629886400664, guid: 6593d222b2e59ef45ae5e422b6fb16e9, type: 3}
       propertyPath: m_TagString
       value: Coin
       objectReference: {fileID: 0}

@@ -13,6 +13,10 @@ PrefabInstance:
       value: Gold Coin
       objectReference: {fileID: 0}
     - target: {fileID: -2253911629886400664, guid: 5c4e80093b7fb314a929e03d60e73f02, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: -2253911629886400664, guid: 5c4e80093b7fb314a929e03d60e73f02, type: 3}
       propertyPath: m_TagString
       value: Coin
       objectReference: {fileID: 0}
