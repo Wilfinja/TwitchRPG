@@ -9,8 +9,9 @@ public class OnScreenNotification : MonoBehaviour
     [Header("UI References")]
     [SerializeField] private GameObject notificationPrefab;
     [SerializeField] private Transform notificationContainer;
-    [SerializeField] private float notificationDuration = 5f;
+    [SerializeField] private float notificationDuration = 8f; // Increased for stats
     [SerializeField] private float fadeTime = 0.5f;
+    [SerializeField] private float shopDisplayDuration = 14f;
 
     private Queue<string> messageQueue = new Queue<string>();
     private bool isShowingMessage = false;
@@ -36,10 +37,15 @@ public class OnScreenNotification : MonoBehaviour
             return;
         }
         _instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        Debug.Log("[Notification] System initialized");
     }
 
     public void ShowNotification(string message, Color? color = null)
     {
+        Debug.Log($"[Notification] Queuing message: {message.Substring(0, Mathf.Min(50, message.Length))}...");
+
         messageQueue.Enqueue(message);
 
         if (!isShowingMessage)
@@ -75,9 +81,22 @@ public class OnScreenNotification : MonoBehaviour
 
     private IEnumerator DisplayMessage(string message)
     {
-        GameObject notification = Instantiate(notificationPrefab, notificationContainer);
+        if (notificationPrefab == null)
+        {
+            Debug.LogError("[Notification] notificationPrefab is NULL!");
+            yield break;
+        }
 
-        // Try TextMeshPro first, fall back to regular Text
+        if (notificationContainer == null)
+        {
+            Debug.LogError("[Notification] notificationContainer is NULL!");
+            yield break;
+        }
+
+        GameObject notification = Instantiate(notificationPrefab, notificationContainer);
+        Debug.Log($"[Notification] Displaying: {message}");
+
+        // Try TextMeshPro first
         TextMeshProUGUI tmpText = notification.GetComponentInChildren<TextMeshProUGUI>();
         Text textComponent = null;
 
@@ -85,7 +104,14 @@ public class OnScreenNotification : MonoBehaviour
         {
             tmpText.text = message;
 
+            // IMPORTANT: Enable word wrapping and proper overflow for long messages
+            //tmpText.enableWordWrapping = true;
             tmpText.overflowMode = TextOverflowModes.Overflow;
+
+            // Increase font size slightly if needed
+            // tmpText.fontSize = 18;
+
+            Debug.Log("[Notification] Using TextMeshPro");
         }
         else
         {
@@ -96,9 +122,16 @@ public class OnScreenNotification : MonoBehaviour
                 textComponent.supportRichText = true;
                 textComponent.horizontalOverflow = HorizontalWrapMode.Wrap;
                 textComponent.verticalOverflow = VerticalWrapMode.Overflow;
+
+                Debug.Log("[Notification] Using legacy Text");
+            }
+            else
+            {
+                Debug.LogError("[Notification] No Text or TextMeshPro component found!");
             }
         }
 
+        // Get or add CanvasGroup for fading
         CanvasGroup canvasGroup = notification.GetComponent<CanvasGroup>();
         if (canvasGroup == null)
         {
@@ -115,8 +148,9 @@ public class OnScreenNotification : MonoBehaviour
         }
         canvasGroup.alpha = 1f;
 
-        // Wait
-        yield return new WaitForSeconds(notificationDuration);
+        // Wait (longer for shop messages)
+        float displayTime = message.Contains("DAILY SHOP") ? shopDisplayDuration : notificationDuration;
+        yield return new WaitForSeconds(displayTime);
 
         // Fade out
         elapsed = 0f;
@@ -128,23 +162,23 @@ public class OnScreenNotification : MonoBehaviour
         }
 
         Destroy(notification);
+        Debug.Log("[Notification] Message destroyed");
     }
 
     private Color GetRarityColor(ItemRarity rarity)
     {
         switch (rarity)
         {
-            case ItemRarity.Common: return new Color(0.6f, 0.6f, 0.6f); // Gray
-            case ItemRarity.Uncommon: return new Color(0.2f, 0.8f, 0.2f); // Green
-            case ItemRarity.Rare: return new Color(0.2f, 0.4f, 1f); // Blue
-            case ItemRarity.Epic: return new Color(0.64f, 0.21f, 0.93f); // Purple
-            case ItemRarity.Legendary: return new Color(1f, 0.5f, 0f); // Orange
-            case ItemRarity.Unique: return new Color(0f, 1f, 1f); // Cyan
+            case ItemRarity.Common: return new Color(0.6f, 0.6f, 0.6f);
+            case ItemRarity.Uncommon: return new Color(0.2f, 0.8f, 0.2f);
+            case ItemRarity.Rare: return new Color(0.2f, 0.4f, 1f);
+            case ItemRarity.Epic: return new Color(0.64f, 0.21f, 0.93f);
+            case ItemRarity.Legendary: return new Color(1f, 0.5f, 0f);
+            case ItemRarity.Unique: return new Color(0f, 1f, 1f);
             default: return Color.white;
         }
     }
 
-    // Quick access methods
     public void ShowSuccess(string message)
     {
         ShowNotification($"✓ {message}", Color.green);

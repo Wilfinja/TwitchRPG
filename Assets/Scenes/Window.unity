@@ -1366,6 +1366,7 @@ MonoBehaviour:
   notificationContainer: {fileID: 2036186956}
   notificationDuration: 5
   fadeTime: 0.5
+  shopDisplayDuration: 14
 --- !u!4 &2076462973
 Transform:
   m_ObjectHideFlags: 0

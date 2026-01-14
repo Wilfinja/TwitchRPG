@@ -3,11 +3,8 @@ using UnityEngine;
 
 public class HybridItemSystem : MonoBehaviour
 {
-    // ============================================
-    // HYBRID APPROACH: Hand-Crafted + Procedural
-    // ============================================
-
     [Header("Hand-Crafted Named Items")]
+    [SerializeField] private List<RPGItem> namedUniques = new List<RPGItem>();
     [SerializeField] private List<RPGItem> namedLegendaries = new List<RPGItem>();
     [SerializeField] private List<RPGItem> namedEpics = new List<RPGItem>();
     [SerializeField] private List<RPGItem> namedRares = new List<RPGItem>();
@@ -40,15 +37,9 @@ public class HybridItemSystem : MonoBehaviour
         InitializeNamedItems();
     }
 
-    // ============================================
-    // INITIALIZE HAND-CRAFTED ITEMS
-    // ============================================
     private void InitializeNamedItems()
     {
-        // You'll add your hand-crafted items here
-        // Can also load from JSON file or ScriptableObjects
-
-        // Example: Create a legendary item
+        // Hand-crafted items
         CustomShadowfang();
         CustomStaffOfTheArchmage();
         CustomDragonscalePlate();
@@ -56,7 +47,7 @@ public class HybridItemSystem : MonoBehaviour
     }
 
     // ============================================
-    // HAND-CRAFTED ITEM EXAMPLES
+    // HAND-CRAFTED ITEMS (FIXED PERCENTAGES)
     // ============================================
 
     private void CustomShadowfang()
@@ -67,19 +58,17 @@ public class HybridItemSystem : MonoBehaviour
             description = "A legendary dagger that strikes from the shadows.",
             itemType = ItemType.Weapon,
             rarity = ItemRarity.Legendary,
-            requiredLevel = 15,
-            price = 5000,
+            requiredLevel = 0,
+            price = 10000,
 
-            // Stats
-            strengthBonus = 5,
-            dexterityBonus = 25,
-            intelligenceBonus = 10,
+            // FIXED: Use 0.0-1.0 range (0.35 = 35%)
+            strengthBonusPercent = 0.35f,
+            dexterityBonusPercent = 0.25f,
+            intelligenceBonusPercent = 0.10f,
             damageBonus = 40,
 
-            // Class restriction
             allowedClasses = new List<CharacterClass> { CharacterClass.Rogue },
 
-            // Special properties
             properties = new Dictionary<string, string>
             {
                 { "CritChance", "+15%" },
@@ -99,11 +88,11 @@ public class HybridItemSystem : MonoBehaviour
             description = "Crackling with ancient magical power.",
             itemType = ItemType.Weapon,
             rarity = ItemRarity.Epic,
-            requiredLevel = 12,
+            requiredLevel = 0,
             price = 3500,
 
-            intelligenceBonus = 30,
-            willpowerBonus = 20,
+            intelligenceBonusPercent = 0.30f,
+            willpowerBonusPercent = 0.20f,
             damageBonus = 35,
 
             allowedClasses = new List<CharacterClass> { CharacterClass.Mage },
@@ -127,11 +116,11 @@ public class HybridItemSystem : MonoBehaviour
             description = "Forged from the scales of an ancient dragon.",
             itemType = ItemType.ChestArmor,
             rarity = ItemRarity.Legendary,
-            requiredLevel = 18,
+            requiredLevel = 0,
             price = 6000,
 
-            strengthBonus = 10,
-            constitutionBonus = 35,
+            strengthBonusPercent = 0.10f,
+            constitutionBonusPercent = 0.35f,
             defenseBonus = 50,
 
             allowedClasses = new List<CharacterClass> { CharacterClass.Fighter },
@@ -148,50 +137,50 @@ public class HybridItemSystem : MonoBehaviour
     }
 
     // ============================================
-    // GET ITEMS FOR SHOP
+    // GENERATE SHOP INVENTORY (FIXED FOR YOUR SPECS)
     // ============================================
 
-    public List<RPGItem> GenerateShopInventory(int shopSize = 10, int shopLevel = 1)
+    public List<RPGItem> GenerateShopInventory(int shopSize = 10)
     {
         List<RPGItem> shopItems = new List<RPGItem>();
 
-        // 1. Maybe add 1 legendary (10% chance)
-        if (Random.value < 0.10f && namedLegendaries.Count > 0)
-        {
-            RPGItem legendary = GetRandomFromList(namedLegendaries);
-            shopItems.Add(legendary);
-        }
+        // NO LEGENDARIES OR UNIQUES IN SHOP!
+        // They come from admin/expeditions only
 
-        // 2. Maybe add 1-2 epics (30% chance each)
-        int epicCount = Random.value < 0.30f ? 1 : 0;
-        if (Random.value < 0.30f) epicCount++;
-
-        for (int i = 0; i < epicCount && namedEpics.Count > 0; i++)
+        // 1. Maybe add 1 Epic (5% chance) if we have any
+        if (Random.value < 0.05f && namedEpics.Count > 0)
         {
             RPGItem epic = GetRandomFromList(namedEpics);
-            if (!shopItems.Contains(epic))
-            {
-                shopItems.Add(epic);
-            }
+            shopItems.Add(epic);
         }
 
-        // 3. Add 2-3 named rares
+        // 2. Add 2-3 Rares (20-30% of shop)
         int rareCount = Random.Range(2, 4);
-        for (int i = 0; i < rareCount && namedRares.Count > 0; i++)
+        for (int i = 0; i < rareCount; i++)
         {
-            RPGItem rare = GetRandomFromList(namedRares);
-            if (!shopItems.Contains(rare))
+            if (namedRares.Count > 0)
             {
-                shopItems.Add(rare);
+                RPGItem rare = GetRandomFromList(namedRares);
+                if (!shopItems.Contains(rare))
+                {
+                    shopItems.Add(rare);
+                }
+            }
+            else if (enableProceduralGeneration)
+            {
+                // Generate procedural rare if no hand-crafted ones
+                shopItems.Add(GenerateProceduralItem(ItemRarity.Rare));
             }
         }
 
-        // 4. Fill rest with procedural common/uncommon items
+        // 3. Fill rest with procedural Common/Uncommon items
         if (enableProceduralGeneration)
         {
             while (shopItems.Count < shopSize)
             {
-                RPGItem procedural = GenerateProceduralItem(shopLevel);
+                // 60% Common, 40% Uncommon
+                ItemRarity rarity = Random.value < 0.6f ? ItemRarity.Common : ItemRarity.Uncommon;
+                RPGItem procedural = GenerateProceduralItem(rarity);
                 shopItems.Add(procedural);
             }
         }
@@ -200,74 +189,81 @@ public class HybridItemSystem : MonoBehaviour
     }
 
     // ============================================
-    // PROCEDURAL GENERATION
+    // PROCEDURAL GENERATION (FIXED PERCENTAGES)
     // ============================================
 
-    private RPGItem GenerateProceduralItem(int level)
+    private RPGItem GenerateProceduralItem(ItemRarity rarity)
     {
-        // Randomly choose item type
         ItemType type = GetRandomItemType();
 
-        // Common/Uncommon only for procedural
-        ItemRarity rarity = Random.value < 0.7f ? ItemRarity.Common : ItemRarity.Uncommon;
-
-        // Generate based on type
         switch (type)
         {
             case ItemType.Weapon:
-                return GenerateProceduralWeapon(level, rarity);
+                return GenerateProceduralWeapon(rarity);
             case ItemType.Helmet:
             case ItemType.ChestArmor:
             case ItemType.LegArmor:
             case ItemType.ArmArmor:
             case ItemType.Boots:
-                return GenerateProceduralArmor(type, level, rarity);
+                return GenerateProceduralArmor(type, rarity);
             default:
-                return GenerateProceduralWeapon(level, rarity);
+                return GenerateProceduralWeapon(rarity);
         }
     }
 
-    private RPGItem GenerateProceduralWeapon(int level, ItemRarity rarity)
+    private RPGItem GenerateProceduralWeapon(ItemRarity rarity)
     {
         RPGItem weapon = new RPGItem();
 
-        // Template name: Material + Weapon Type
         string material = GetRandomMaterial(rarity);
         string weaponType = GetRandomWeaponType();
         weapon.itemName = $"{material} {weaponType}";
-
         weapon.description = $"A {rarity.ToString().ToLower()} quality {weaponType.ToLower()}.";
         weapon.itemType = ItemType.Weapon;
         weapon.rarity = rarity;
-        weapon.requiredLevel = level;
-        weapon.price = CalculatePrice(rarity, level);
+        weapon.requiredLevel = 0;
+        weapon.price = CalculatePrice(rarity);
 
-        // Randomized stats based on rarity
-        float rarityMult = GetRarityMultiplier(rarity);
-        weapon.strengthBonus = Random.Range(2, 6) * (int)rarityMult;
-        weapon.dexterityBonus = Random.Range(1, 4) * (int)rarityMult;
-        weapon.damageBonus = Random.Range(5, 12) * (int)rarityMult;
+        // Use standard rarity percentages
+        float basePercent = RPGItem.GetRarityPercentageBonus(rarity);
+
+        // Weapons focus on STR or DEX
+        if (Random.value < 0.5f)
+        {
+            weapon.strengthBonusPercent = basePercent;
+        }
+        else
+        {
+            weapon.dexterityBonusPercent = basePercent;
+        }
+
+        // Flat damage based on rarity
+        weapon.damageBonus = rarity == ItemRarity.Common ? Random.Range(3, 6) : Random.Range(8, 15);
 
         return weapon;
     }
 
-    private RPGItem GenerateProceduralArmor(ItemType armorType, int level, ItemRarity rarity)
+    private RPGItem GenerateProceduralArmor(ItemType armorType, ItemRarity rarity)
     {
         RPGItem armor = new RPGItem();
 
         string material = GetRandomMaterial(rarity);
         string armorName = GetArmorTypeName(armorType);
         armor.itemName = $"{material} {armorName}";
-
         armor.description = $"A {rarity.ToString().ToLower()} quality {armorName.ToLower()}.";
         armor.itemType = armorType;
         armor.rarity = rarity;
-        armor.requiredLevel = level;
-        armor.price = CalculatePrice(rarity, level);
+        armor.requiredLevel = 0;
+        armor.price = CalculatePrice(rarity);
 
-        float rarityMult = GetRarityMultiplier(rarity);
-        armor.constitutionBonus = Random.Range(3, 8) * (int)rarityMult;
-        armor.defenseBonus = Random.Range(5, 12) * (int)rarityMult;
+        // Use standard rarity percentages
+        float basePercent = RPGItem.GetRarityPercentageBonus(rarity);
+
+        // Armor focuses on CON
+        armor.constitutionBonusPercent = basePercent;
+
+        // Flat defense based on rarity
+        armor.defenseBonus = rarity == ItemRarity.Common ? Random.Range(3, 8) : Random.Range(10, 20);
 
         return armor;
     }
@@ -319,32 +315,19 @@ public class HybridItemSystem : MonoBehaviour
         return types[Random.Range(0, types.Length)];
     }
 
-    private float GetRarityMultiplier(ItemRarity rarity)
+    private int CalculatePrice(ItemRarity rarity)
     {
+        // Fixed prices per your specs
         switch (rarity)
         {
-            case ItemRarity.Common: return 1.0f;
-            case ItemRarity.Uncommon: return 1.5f;
-            case ItemRarity.Rare: return 2.0f;
-            case ItemRarity.Epic: return 3.0f;
-            case ItemRarity.Legendary: return 4.0f;
-            default: return 1.0f;
+            case ItemRarity.Common: return 50;
+            case ItemRarity.Uncommon: return 200;
+            case ItemRarity.Rare: return 800;
+            case ItemRarity.Epic: return 3000;
+            case ItemRarity.Legendary: return 10000;
+            case ItemRarity.Unique: return 15000;
+            default: return 50;
         }
-    }
-
-    private int CalculatePrice(ItemRarity rarity, int level)
-    {
-        int basePrice = 0;
-        switch (rarity)
-        {
-            case ItemRarity.Common: basePrice = 25; break;
-            case ItemRarity.Uncommon: basePrice = 100; break;
-            case ItemRarity.Rare: basePrice = 400; break;
-            case ItemRarity.Epic: basePrice = 1500; break;
-            case ItemRarity.Legendary: basePrice = 4000; break;
-        }
-
-        return (int)(basePrice * (1 + level * 0.3f));
     }
 
     private T GetRandomFromList<T>(List<T> list)
@@ -359,28 +342,26 @@ public class HybridItemSystem : MonoBehaviour
 
     public RPGItem GetNamedItem(string itemName)
     {
-        // Search all named item lists
+        // Search all lists
+        foreach (var item in namedUniques)
+            if (item.itemName.ToLower() == itemName.ToLower()) return item;
+
         foreach (var item in namedLegendaries)
-        {
-            if (item.itemName.ToLower() == itemName.ToLower())
-                return item;
-        }
+            if (item.itemName.ToLower() == itemName.ToLower()) return item;
+
         foreach (var item in namedEpics)
-        {
-            if (item.itemName.ToLower() == itemName.ToLower())
-                return item;
-        }
+            if (item.itemName.ToLower() == itemName.ToLower()) return item;
+
         foreach (var item in namedRares)
-        {
-            if (item.itemName.ToLower() == itemName.ToLower())
-                return item;
-        }
+            if (item.itemName.ToLower() == itemName.ToLower()) return item;
+
         return null;
     }
 
     public List<RPGItem> GetAllNamedItems()
     {
         List<RPGItem> all = new List<RPGItem>();
+        all.AddRange(namedUniques);
         all.AddRange(namedLegendaries);
         all.AddRange(namedEpics);
         all.AddRange(namedRares);

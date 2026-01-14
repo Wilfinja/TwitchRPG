@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -330,20 +331,86 @@ public class RPGChatCommands : MonoBehaviour
             return $"{viewer.username}: Choose a class first with !class";
         }
 
-        return $"🏪 SHOP - Coming Soon!\n" +
-               $"Your coins: 💰 {viewer.coins}\n" +
-               $"Random items refresh daily!\n" +
-               $"Legendary items only drop from combat.";
+        if (ShopManager.Instance == null)
+        {
+            return "Shop system is not available right now.";
+        }
+
+        // Get detailed shop display
+        return ShopManager.Instance.GetShopDisplay(viewer);
     }
 
     private string HandleBuyCommand(ViewerData viewer, string[] args)
     {
-        if (args.Length == 0)
+        if (viewer.characterClass == CharacterClass.None)
         {
-            return $"{viewer.username}: Usage: !buy <item name>";
+            return $"{viewer.username}: Choose a class first with !class";
         }
 
-        return $"{viewer.username}: Shop system coming soon!";
+        if (args.Length == 0)
+        {
+            return $"{viewer.username}: Usage: !buy <item name>\nExample: !buy iron sword";
+        }
+
+        if (ShopManager.Instance == null)
+        {
+            return "Shop system is not available right now.";
+        }
+
+        string itemName = string.Join(" ", args);
+
+        bool success = ShopManager.Instance.PurchaseItem(viewer.twitchUserId, itemName);
+
+        if (!success)
+        {
+            // Check why it failed
+            var shopItems = ShopManager.Instance.GetCurrentShopItems();
+            var item = shopItems.Find(i => i.itemName.ToLower() == itemName.ToLower());
+
+            if (item == null)
+            {
+                return $"{viewer.username}: '{itemName}' not found in shop. Use !shop to see available items.";
+            }
+            else if (!viewer.CanAfford(item.price))
+            {
+                return $"{viewer.username}: Not enough coins! {item.itemName} costs {item.price} coins. You have {viewer.coins}.";
+            }
+            else if (viewer.inventory.Count >= 50)
+            {
+                return $"{viewer.username}: Your inventory is full! (50/50)";
+            }
+            else
+            {
+                return $"{viewer.username}: Purchase failed. Please try again.";
+            }
+        }
+
+        // Success! Calculate what bonus they got
+        var purchasedItem = viewer.inventory[viewer.inventory.Count - 1]; // Last added item
+        string bonusText = "";
+
+        if (purchasedItem.strengthBonusPercent > 0)
+        {
+            int bonus = Mathf.Max(1, Mathf.RoundToInt(viewer.baseStats.strength * purchasedItem.strengthBonusPercent));
+            bonusText = $"+{bonus} STR";
+        }
+        else if (purchasedItem.dexterityBonusPercent > 0)
+        {
+            int bonus = Mathf.Max(1, Mathf.RoundToInt(viewer.baseStats.dexterity * purchasedItem.dexterityBonusPercent));
+            bonusText = $"+{bonus} DEX";
+        }
+        else if (purchasedItem.constitutionBonusPercent > 0)
+        {
+            int bonus = Mathf.Max(1, Mathf.RoundToInt(viewer.baseStats.constitution * purchasedItem.constitutionBonusPercent));
+            bonusText = $"+{bonus} CON";
+        }
+        else if (purchasedItem.intelligenceBonusPercent > 0)
+        {
+            int bonus = Mathf.Max(1, Mathf.RoundToInt(viewer.baseStats.intelligence * purchasedItem.intelligenceBonusPercent));
+            bonusText = $"+{bonus} INT";
+        }
+
+        return $"✅ {viewer.username} bought {purchasedItem.itemName}! ({bonusText})\nRemaining coins: {viewer.coins}";
     }
 
     private string HandleTradeCommand(ViewerData viewer, string[] args)
@@ -401,6 +468,13 @@ public class RPGChatCommands : MonoBehaviour
                 return "✓ RPG data saved!";
             case "rpghelpadmin":
                 return HandleAdminHelp();
+            case "rpgrefreshop":
+            case "rpgrefreshshop":
+                return HandleAdminRefreshShop();
+
+            case "rpggiveitem":
+                return HandleAdminGiveItem(args);
+
             default:
                 return null;
         }
@@ -607,6 +681,86 @@ public class RPGChatCommands : MonoBehaviour
                "!rpgunban @user - Unban user\n" +
                "!rpgkill @user - Kill player (30 min lockout)\n" +
                "!rpgreset @user - Reset character (DELETES PROGRESS!)";
+    }
+
+    private string HandleAdminRefreshShop()
+    {
+        if (ShopManager.Instance == null)
+        {
+            return "Shop system not available!";
+        }
+
+        ShopManager.Instance.RefreshShop();
+
+        TimeSpan timeUntilNext = ShopManager.Instance.GetTimeUntilRefresh();
+        return $"✓ Shop refreshed!\nNext refresh in {timeUntilNext.Hours}h {timeUntilNext.Minutes}m";
+    }
+
+    private string HandleAdminGiveItem(string[] args)
+    {
+        if (args.Length < 2)
+        {
+            return "Usage: !rpggiveitem @username <item name>\n" +
+                   "Example: !rpggiveitem @alice shadowfang";
+        }
+
+        string targetUsername = args[0].TrimStart('@').ToLower();
+        string itemName = string.Join(" ", args.Skip(1));
+
+        // Find viewer
+        ViewerData targetViewer = FindViewerByUsername(targetUsername);
+        if (targetViewer == null)
+        {
+            return $"Error: User '{targetUsername}' not found.";
+        }
+
+        // Find item in named items
+        if (HybridItemSystem.Instance == null)
+        {
+            return "Item system not available!";
+        }
+
+        RPGItem item = HybridItemSystem.Instance.GetNamedItem(itemName);
+        if (item == null)
+        {
+            return $"Error: Item '{itemName}' not found.\nTip: This only works with hand-crafted named items.";
+        }
+
+        // Check inventory space
+        if (targetViewer.inventory.Count >= 50)
+        {
+            return $"Error: {targetViewer.username}'s inventory is full!";
+        }
+
+        // Give item (create copy)
+        RPGItem giftedItem = new RPGItem
+        {
+            itemName = item.itemName,
+            description = item.description,
+            itemType = item.itemType,
+            rarity = item.rarity,
+            requiredLevel = item.requiredLevel,
+            price = item.price,
+
+            strengthBonusPercent = item.strengthBonusPercent,
+            constitutionBonusPercent = item.constitutionBonusPercent,
+            dexterityBonusPercent = item.dexterityBonusPercent,
+            willpowerBonusPercent = item.willpowerBonusPercent,
+            charismaBonusPercent = item.charismaBonusPercent,
+            intelligenceBonusPercent = item.intelligenceBonusPercent,
+
+            damageBonus = item.damageBonus,
+            defenseBonus = item.defenseBonus,
+            healAmount = item.healAmount,
+
+            allowedClasses = new List<CharacterClass>(item.allowedClasses),
+            properties = new Dictionary<string, string>(item.properties)
+        };
+
+        targetViewer.AddItem(giftedItem);
+        RPGManager.Instance.SaveGameData();
+
+        return $"✓ Gave {item.itemName} [{item.rarity}] to {targetViewer.username}!";
     }
 
     // HELPER METHOD: Find viewer by username (case-insensitive)
