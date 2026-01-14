@@ -34,8 +34,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.2, y: 0.358}
-  m_SizeDelta: {x: 0.29165, y: 0.11309}
+  m_AnchoredPosition: {x: 0.33601, y: 0.35871}
+  m_SizeDelta: {x: 0.56366, y: 0.11166}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &557991819776891169
 MeshRenderer:
@@ -488,8 +488,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.26, y: 0.35}
-  m_SizeDelta: {x: 0.58104, y: 0.1322}
+  m_AnchoredPosition: {x: -0.60216, y: 0.36145}
+  m_SizeDelta: {x: 1.26538, y: 0.10929}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &663954001804158010
 MeshRenderer:
@@ -624,12 +624,12 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0.01254335, w: -0.013024747}
+  m_margin: {x: -0.0014314651, y: 0, z: 0.01254335, w: -0.0030032173}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   _SortingLayer: 0
   _SortingLayerID: 0
   _SortingOrder: 0
   m_hasFontAssetChanged: 0
-  m_renderer: {fileID: 557991819776891169}
+  m_renderer: {fileID: 663954001804158010}
   m_maskType: 0

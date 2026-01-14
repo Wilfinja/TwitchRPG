@@ -47,7 +47,7 @@ public class RPGChatCommands : MonoBehaviour
                 return HandleCoinsCommand(viewer);
 
             case "shop":
-                return HandleShopCommand(viewer);
+                return HandleShopCommand(viewer, args);
 
             case "buy":
                 return HandleBuyCommand(viewer, args);
@@ -324,7 +324,7 @@ public class RPGChatCommands : MonoBehaviour
         return $"{viewer.username}: You have 💰 {viewer.coins} coins.";
     }
 
-    private string HandleShopCommand(ViewerData viewer)
+    private string HandleShopCommand(ViewerData viewer, string[] args)
     {
         if (viewer.characterClass == CharacterClass.None)
         {
@@ -336,8 +336,18 @@ public class RPGChatCommands : MonoBehaviour
             return "Shop system is not available right now.";
         }
 
-        // Get detailed shop display
-        return ShopManager.Instance.GetShopDisplay(viewer);
+        // Check if page number provided
+        int page = 1;
+        if (args.Length > 0)
+        {
+            if (int.TryParse(args[0], out int requestedPage))
+            {
+                page = Mathf.Clamp(requestedPage, 1, 4); // Pages 1-4 only
+            }
+        }
+
+        // Get the requested page
+        return ShopManager.Instance.GetShopPage(viewer, page);
     }
 
     private string HandleBuyCommand(ViewerData viewer, string[] args)
@@ -760,7 +770,7 @@ public class RPGChatCommands : MonoBehaviour
         targetViewer.AddItem(giftedItem);
         RPGManager.Instance.SaveGameData();
 
-        return $"✓ Gave {item.itemName} [{item.rarity}] to {targetViewer.username}!";
+        return $"Wilfinja Gave {item.itemName} [{item.rarity}] to {targetViewer.username}!";
     }
 
     // HELPER METHOD: Find viewer by username (case-insensitive)

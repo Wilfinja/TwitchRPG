@@ -38,11 +38,8 @@ public class ShopManager : MonoBehaviour
 
     private void Start()
     {
-        // Load last refresh time from save or default to now
         lastRefreshTime = DateTime.Now;
         nextRefreshTime = lastRefreshTime.AddHours(refreshIntervalHours);
-
-        // Generate initial shop
         RefreshShop();
     }
 
@@ -52,10 +49,8 @@ public class ShopManager : MonoBehaviour
         if (DateTime.Now >= nextRefreshTime)
         {
             RefreshShop();
-
-            // Notify everyone
             OnScreenNotification.Instance?.ShowSuccess(
-                "🏪 The shop has been refreshed!\nType !shop to see new items!"
+                "The shop has been refreshed!\nType !shop to see new items!"
             );
         }
     }
@@ -68,23 +63,45 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
-        // Generate new shop inventory
         currentShopItems = HybridItemSystem.Instance.GenerateShopInventory(shopSize);
-
-        // Update refresh times
         lastRefreshTime = DateTime.Now;
         nextRefreshTime = lastRefreshTime.AddHours(refreshIntervalHours);
 
         Debug.Log($"[Shop] Refreshed with {currentShopItems.Count} items. Next refresh: {nextRefreshTime}");
     }
 
-    public string GetShopDisplay(ViewerData viewer)
+    // ============================================
+    // PAGE SYSTEM
+    // ============================================
+
+    public string GetShopPage(ViewerData viewer, int page = 1)
     {
         if (currentShopItems.Count == 0)
         {
-            return "🏪 Shop is currently empty. Check back later!";
+            return "Shop is currently empty. Check back later!";
         }
 
+        switch (page)
+        {
+            case 1:
+                return GetPage1_Overview(viewer);
+            case 2:
+                return GetPage2_Commons(viewer);
+            case 3:
+                return GetPage3_Uncommons(viewer);
+            case 4:
+                return GetPage4_RaresAndEpics(viewer);
+            default:
+                return GetPage1_Overview(viewer);
+        }
+    }
+
+    // ============================================
+    // PAGE 1: OVERVIEW (Just Names)
+    // ============================================
+
+    private string GetPage1_Overview(ViewerData viewer)
+    {
         TimeSpan timeUntilRefresh = nextRefreshTime - DateTime.Now;
         string refreshTimer = $"{timeUntilRefresh.Hours}h {timeUntilRefresh.Minutes}m";
 
@@ -92,7 +109,7 @@ public class ShopManager : MonoBehaviour
         display += "           🏪 DAILY SHOP 🏪\n";
         display += $"   (Refreshes in {refreshTimer})\n";
         display += "════════════════════════════════════\n";
-        display += $"Your coins: 💰 {viewer.coins}\n\n";
+        display += $"Your coins: {viewer.coins}\n\n";
 
         // Group by rarity
         var epics = currentShopItems.FindAll(i => i.rarity == ItemRarity.Epic);
@@ -100,60 +117,174 @@ public class ShopManager : MonoBehaviour
         var uncommons = currentShopItems.FindAll(i => i.rarity == ItemRarity.Uncommon);
         var commons = currentShopItems.FindAll(i => i.rarity == ItemRarity.Common);
 
-        int itemNumber = 1;
-
-        // Display Epics
+        // Show Epics
         if (epics.Count > 0)
         {
             display += "[EPIC] 🔥\n";
             foreach (var item in epics)
             {
-                display += FormatShopItem(itemNumber++, item, viewer);
+                display += $"  • {item.itemName} ({item.price}c)\n";
             }
             display += "\n";
         }
 
-        // Display Rares
+        // Show Rares
         if (rares.Count > 0)
         {
             display += "[RARE] 💎\n";
             foreach (var item in rares)
             {
-                display += FormatShopItem(itemNumber++, item, viewer);
+                display += $"  • {item.itemName} ({item.price}c)\n";
             }
             display += "\n";
         }
 
-        // Display Uncommons
+        // Show Uncommons count
         if (uncommons.Count > 0)
         {
-            display += "[UNCOMMON] ⭐\n";
-            foreach (var item in uncommons)
-            {
-                display += FormatShopItem(itemNumber++, item, viewer);
-            }
-            display += "\n";
+            display += $"[UNCOMMON] ⭐ - {uncommons.Count} items\n";
+            display += "  Type !shop 3 to view\n\n";
         }
 
-        // Display Commons
+        // Show Commons count
         if (commons.Count > 0)
         {
-            display += "[COMMON] ◆\n";
-            foreach (var item in commons)
-            {
-                display += FormatShopItem(itemNumber++, item, viewer);
-            }
+            display += $"[COMMON] ◆ - {commons.Count} items\n";
+            display += "  Type !shop 2 to view\n\n";
         }
 
-        display += "\n════════════════════════════════════\n";
-        display += "Type: !buy <item name>\n";
-        display += "Example: !buy iron sword\n";
+        display += "════════════════════════════════════\n";
+        display += "!shop 2 = Commons | !shop 3 = Uncommons\n";
+        display += "!shop 4 = Rares/Epics\n";
+        display += "!buy <item name> to purchase\n";
         display += "════════════════════════════════════";
 
         return display;
     }
 
-    private string FormatShopItem(int number, RPGItem item, ViewerData viewer)
+    // ============================================
+    // PAGE 2: COMMONS (Detailed)
+    // ============================================
+
+    private string GetPage2_Commons(ViewerData viewer)
+    {
+        var commons = currentShopItems.FindAll(i => i.rarity == ItemRarity.Common);
+
+        if (commons.Count == 0)
+        {
+            return "════════════════════════════════════\n" +
+                   "  SHOP - COMMONS\n" +
+                   "════════════════════════════════════\n" +
+                   "No common items in stock!\n\n" +
+                   "Type !shop to return to overview\n" +
+                   "════════════════════════════════════";
+        }
+
+        string display = "════════════════════════════════════\n";
+        display += "        SHOP - COMMONS ◆\n";
+        display += "════════════════════════════════════\n";
+        display += $"Your coins: 💰 {viewer.coins}\n\n";
+
+        int num = 1;
+        foreach (var item in commons)
+        {
+            display += FormatDetailedItem(num++, item, viewer);
+            display += "\n";
+        }
+
+        display += "════════════════════════════════════\n";
+        display += "!buy <item name> to purchase\n";
+        display += "!shop = Return to overview\n";
+        display += "════════════════════════════════════";
+
+        return display;
+    }
+
+    // ============================================
+    // PAGE 3: UNCOMMONS (Detailed)
+    // ============================================
+
+    private string GetPage3_Uncommons(ViewerData viewer)
+    {
+        var uncommons = currentShopItems.FindAll(i => i.rarity == ItemRarity.Uncommon);
+
+        if (uncommons.Count == 0)
+        {
+            return "════════════════════════════════════\n" +
+                   "  SHOP - UNCOMMONS\n" +
+                   "════════════════════════════════════\n" +
+                   "No uncommon items in stock!\n\n" +
+                   "Type !shop to return to overview\n" +
+                   "════════════════════════════════════";
+        }
+
+        string display = "════════════════════════════════════\n";
+        display += "        SHOP - UNCOMMONS ⭐\n";
+        display += "════════════════════════════════════\n";
+        display += $"Your coins: {viewer.coins}\n\n";
+
+        int num = 1;
+        foreach (var item in uncommons)
+        {
+            display += FormatDetailedItem(num++, item, viewer);
+            display += "\n";
+        }
+
+        display += "════════════════════════════════════\n";
+        display += "!buy <item name> to purchase\n";
+        display += "!shop = Return to overview\n";
+        display += "════════════════════════════════════";
+
+        return display;
+    }
+
+    // ============================================
+    // PAGE 4: RARES & EPICS (Detailed)
+    // ============================================
+
+    private string GetPage4_RaresAndEpics(ViewerData viewer)
+    {
+        var rares = currentShopItems.FindAll(i => i.rarity == ItemRarity.Rare);
+        var epics = currentShopItems.FindAll(i => i.rarity == ItemRarity.Epic);
+        var combined = new List<RPGItem>();
+        combined.AddRange(epics);
+        combined.AddRange(rares);
+
+        if (combined.Count == 0)
+        {
+            return "════════════════════════════════════\n" +
+                   "  SHOP - RARES & EPICS\n" +
+                   "════════════════════════════════════\n" +
+                   "No rare or epic items in stock!\n\n" +
+                   "Type !shop to return to overview\n" +
+                   "════════════════════════════════════";
+        }
+
+        string display = "════════════════════════════════════\n";
+        display += "      SHOP - RARES & EPICS\n";
+        display += "════════════════════════════════════\n";
+        display += $"Your coins: 💰 {viewer.coins}\n\n";
+
+        int num = 1;
+        foreach (var item in combined)
+        {
+            display += FormatDetailedItem(num++, item, viewer);
+            display += "\n";
+        }
+
+        display += "════════════════════════════════════\n";
+        display += "!buy <item name> to purchase\n";
+        display += "!shop = Return to overview\n";
+        display += "════════════════════════════════════";
+
+        return display;
+    }
+
+    // ============================================
+    // FORMAT ITEM WITH DETAILS
+    // ============================================
+
+    private string FormatDetailedItem(int number, RPGItem item, ViewerData viewer)
     {
         string line = $"{number}. {item.itemName} - {item.price} coins\n";
 
@@ -183,7 +314,7 @@ public class ShopManager : MonoBehaviour
             line += "   " + string.Join(", ", bonuses) + "\n";
         }
 
-        // Show what that means for THIS viewer
+        // Show calculated bonus for THIS viewer
         CharacterStats viewerStats = viewer.baseStats;
         List<string> yourBonuses = new List<string>();
 
@@ -233,6 +364,10 @@ public class ShopManager : MonoBehaviour
         return line;
     }
 
+    // ============================================
+    // PURCHASE SYSTEM (Unchanged)
+    // ============================================
+
     public bool PurchaseItem(string userId, string itemName)
     {
         ViewerData viewer = RPGManager.Instance.GetViewer(userId);
@@ -247,25 +382,23 @@ public class ShopManager : MonoBehaviour
 
         if (item == null)
         {
-            return false; // Item not in shop
+            return false;
         }
 
-        // Check if can afford
         if (!viewer.CanAfford(item.price))
         {
-            return false; // Not enough coins
+            return false;
         }
 
-        // Check inventory space
         if (viewer.inventory.Count >= 50)
         {
-            return false; // Inventory full
+            return false;
         }
 
-        // Purchase successful!
+        // Purchase successful
         viewer.coins -= item.price;
 
-        // Create a copy of the item (new GUID)
+        // Create a copy
         RPGItem purchasedItem = new RPGItem
         {
             itemName = item.itemName,

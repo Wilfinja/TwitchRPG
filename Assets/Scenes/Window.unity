@@ -164,6 +164,70 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &306349605
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 306349607}
+  - component: {fileID: 306349606}
+  - component: {fileID: 306349608}
+  m_Layer: 0
+  m_Name: ShopManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &306349606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 306349605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65877ac2e2bc77640b0dc641f7521c62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShopManager
+  shopSize: 10
+  refreshIntervalHours: 24
+--- !u!4 &306349607
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 306349605}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 793.0933, y: 267.1205, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &306349608
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 306349605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52b685cda27c9284a886ef8441a48f63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HybridItemSystem
+  namedUniques: []
+  namedLegendaries: []
+  namedEpics: []
+  namedRares: []
+  enableProceduralGeneration: 1
 --- !u!1 &310242708
 GameObject:
   m_ObjectHideFlags: 0
@@ -646,7 +710,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 600, y: 500}
+  m_SizeDelta: {x: 846.802, y: 678.9315}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1013994385
 MonoBehaviour:
@@ -695,8 +759,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 24
+  m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -733,7 +797,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -246.67487, y: -1.6798172, z: 0, w: 2.1548157}
+  m_margin: {x: -128.6131, y: 1.4052047, z: 0, w: -0.93020624}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -1202,8 +1266,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -328, y: 948}
-  m_SizeDelta: {x: 600, y: 500}
+  m_AnchoredPosition: {x: -389, y: 1093}
+  m_SizeDelta: {x: 738.8262, y: 589.4658}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2036186957
 MonoBehaviour:
@@ -1364,9 +1428,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::OnScreenNotification
   notificationPrefab: {fileID: 1013994383}
   notificationContainer: {fileID: 2036186956}
-  notificationDuration: 5
+  notificationDuration: 10
   fadeTime: 0.5
-  shopDisplayDuration: 14
+  shopDisplayDuration: 15
 --- !u!4 &2076462973
 Transform:
   m_ObjectHideFlags: 0
@@ -1450,3 +1514,4 @@ SceneRoots:
   - {fileID: 1777433648}
   - {fileID: 245474491}
   - {fileID: 635347820}
+  - {fileID: 306349607}
