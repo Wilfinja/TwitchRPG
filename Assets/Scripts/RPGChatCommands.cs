@@ -166,9 +166,10 @@ public class RPGChatCommands : MonoBehaviour
             return $"{viewer.username}: You only have {viewer.baseStats.unallocatedStatPoints} unallocated points!";
         }
 
-        if (ExperienceManager.Instance.AllocateStatPoints(viewer.twitchUserId, statName, points))
+        if (ExperienceManager.Instance != null &&
+            ExperienceManager.Instance.AllocateStatPoints(viewer.twitchUserId, statName, points))
         {
-            return $"✓ {viewer.username}: Allocated {points} points to {statName.ToUpper()}!\n" +
+            return $"[OK] {viewer.username}: Allocated {points} points to {statName.ToUpper()}!\n" +
                    $"New total: {GetStatValue(viewer, statName)}\n" +
                    $"Remaining points: {viewer.baseStats.unallocatedStatPoints}";
         }
@@ -211,58 +212,96 @@ public class RPGChatCommands : MonoBehaviour
             return $"{viewer.username}: Choose a class first with !class";
         }
 
-        string result = $"═══ {viewer.username}'s Equipment ═══\n";
-        result += $"Head: {viewer.equipped.head?.itemName ?? "Empty"}\n";
-        result += $"Chest: {viewer.equipped.chest?.itemName ?? "Empty"}\n";
-        result += $"Arms: {viewer.equipped.arms?.itemName ?? "Empty"}\n";
-        result += $"Legs: {viewer.equipped.legs?.itemName ?? "Empty"}\n";
-        result += $"L.Hand: {viewer.equipped.leftHand?.itemName ?? "Empty"}\n";
-        result += $"R.Hand: {viewer.equipped.rightHand?.itemName ?? "Empty"}\n";
-        result += $"Feet: {viewer.equipped.feet?.itemName ?? "Empty"}\n";
+        string result = $"=== {viewer.username}'s Equipment ===\n";
+        result += $"[HEAD] {GetEquippedItemDisplay(viewer.equipped.head)}\n";
+        result += $"[CHEST] {GetEquippedItemDisplay(viewer.equipped.chest)}\n";
+        result += $"[ARMS] {GetEquippedItemDisplay(viewer.equipped.arms)}\n";
+        result += $"[LEGS] {GetEquippedItemDisplay(viewer.equipped.legs)}\n";
+        result += $"[MAINHAND] {GetEquippedItemDisplay(viewer.equipped.mainHand)}\n";
+        result += $"[OFFHAND] {GetEquippedItemDisplay(viewer.equipped.offHand)}\n";
+        result += $"[FEET] {GetEquippedItemDisplay(viewer.equipped.feet)}\n";
 
         if (viewer.inventory.Count > 0)
         {
-            result += $"\n📦 Inventory ({viewer.inventory.Count}/50):\n";
-            var itemGroups = viewer.inventory.GroupBy(i => i.itemName).Take(5);
-            foreach (var group in itemGroups)
+            result += $"\nInventory ({viewer.inventory.Count}/50):\n";
+
+            // Show up to 10 items with numbers
+            int displayCount = Mathf.Min(10, viewer.inventory.Count);
+            for (int i = 0; i < displayCount; i++)
             {
-                int count = group.Count();
-                string countStr = count > 1 ? $" x{count}" : "";
-                result += $"  • {group.First().itemName}{countStr}\n";
+                RPGItem item = viewer.inventory[i];
+                result += $"{i + 1}. {item.itemName} [{item.rarity}]\n";
             }
-            if (viewer.inventory.Count > 5)
+
+            if (viewer.inventory.Count > 10)
             {
-                result += $"  ... and {viewer.inventory.Count - 5} more items\n";
+                result += $"... and {viewer.inventory.Count - 10} more items\n";
             }
         }
         else
         {
-            result += "\n📦 Inventory: Empty";
+            result += "\nInventory: Empty\n";
         }
 
-        result += $"\n💰 Coins: {viewer.coins}";
+        result += $"\n[COINS] {viewer.coins}";
+        result += $"\nUse !equip <number or name> to equip items";
 
         return result;
+    }
+
+    private string GetEquippedItemDisplay(RPGItem item)
+    {
+        if (item == null) return "Empty";
+
+        List<string> bonuses = new List<string>();
+        if (item.strengthBonusPercent > 0) bonuses.Add($"+{item.strengthBonusPercent * 100:F0}% STR");
+        if (item.constitutionBonusPercent > 0) bonuses.Add($"+{item.constitutionBonusPercent * 100:F0}% CON");
+        if (item.dexterityBonusPercent > 0) bonuses.Add($"+{item.dexterityBonusPercent * 100:F0}% DEX");
+        if (item.willpowerBonusPercent > 0) bonuses.Add($"+{item.willpowerBonusPercent * 100:F0}% WIL");
+        if (item.charismaBonusPercent > 0) bonuses.Add($"+{item.charismaBonusPercent * 100:F0}% CHA");
+        if (item.intelligenceBonusPercent > 0) bonuses.Add($"+{item.intelligenceBonusPercent * 100:F0}% INT");
+        if (item.damageBonus > 0) bonuses.Add($"+{item.damageBonus} DMG");
+        if (item.defenseBonus > 0) bonuses.Add($"+{item.defenseBonus} DEF");
+
+        string bonusText = bonuses.Count > 0 ? $" ({string.Join(", ", bonuses)})" : "";
+        return $"{item.itemName}{bonusText}";
     }
 
     private string HandleEquipCommand(ViewerData viewer, string[] args)
     {
         if (args.Length == 0)
         {
-            return $"{viewer.username}: Usage: !equip <item name>";
+            return $"{viewer.username}: Usage: !equip <number or name>\nExample: !equip 1  OR  !equip iron sword";
         }
 
-        string itemName = string.Join(" ", args).ToLower();
-        RPGItem item = viewer.inventory.Find(i => i.itemName.ToLower() == itemName);
+        RPGItem item = null;
 
-        if (item == null)
+        // Try to parse as number first
+        if (int.TryParse(args[0], out int itemNumber))
         {
-            return $"{viewer.username}: Item '{itemName}' not found in inventory.";
+            // Equip by number (1-based index)
+            if (itemNumber < 1 || itemNumber > viewer.inventory.Count)
+            {
+                return $"{viewer.username}: Invalid item number. Use !inventory to see your items.";
+            }
+            item = viewer.inventory[itemNumber - 1];
+        }
+        else
+        {
+            // Equip by name
+            string itemName = string.Join(" ", args).ToLower();
+            item = viewer.inventory.Find(i => i.itemName.ToLower() == itemName);
+
+            if (item == null)
+            {
+                return $"{viewer.username}: Item '{itemName}' not found in inventory.";
+            }
         }
 
+        // Equip the item using RPGManager
         if (RPGManager.Instance.EquipItem(viewer.twitchUserId, item.itemId))
         {
-            return $"✓ {viewer.username}: Equipped {item.itemName}!";
+            return $"[OK] {viewer.username}: Equipped {item.itemName}!";
         }
 
         return $"{viewer.username}: Failed to equip {item.itemName}. Check level requirement or class restrictions.";
@@ -273,26 +312,96 @@ public class RPGChatCommands : MonoBehaviour
         if (args.Length == 0)
         {
             return $"{viewer.username}: Usage: !unequip <slot>\n" +
-                   "Slots: head, chest, legs, arms, lhand, rhand, feet";
+                   "Slots: head, chest, legs, arms, mainhand, offhand, feet";
         }
 
-        ItemType slot;
-        switch (args[0].ToLower())
+        string slotName = args[0].ToLower();
+        ItemType? slot = null;
+        bool isMainHand = false;
+        bool isOffHand = false;
+
+        switch (slotName)
         {
-            case "head": slot = ItemType.Helmet; break;
-            case "chest": slot = ItemType.ChestArmor; break;
-            case "legs": slot = ItemType.LegArmor; break;
-            case "arms": slot = ItemType.ArmArmor; break;
-            case "lhand": slot = ItemType.Weapon; break;
-            case "rhand": slot = ItemType.Weapon; break;
-            case "feet": slot = ItemType.Boots; break;
+            case "head":
+            case "helmet":
+                slot = ItemType.Helmet;
+                break;
+            case "chest":
+            case "body":
+                slot = ItemType.ChestArmor;
+                break;
+            case "legs":
+            case "pants":
+                slot = ItemType.LegArmor;
+                break;
+            case "arms":
+            case "gloves":
+            case "gauntlets":
+                slot = ItemType.ArmArmor;
+                break;
+            case "mainhand":
+            case "main":
+            case "lhand":
+            case "left":
+            case "weapon":
+                isMainHand = true;
+                break;
+            case "offhand":
+            case "off":
+            case "rhand":
+            case "right":
+            case "shield":
+                isOffHand = true;
+                break;
+            case "feet":
+            case "boots":
+                slot = ItemType.Boots;
+                break;
             default:
-                return $"{viewer.username}: Invalid slot. Use: head, chest, legs, arms, lhand, rhand, feet";
+                return $"{viewer.username}: Invalid slot. Use: head, chest, legs, arms, mainhand, offhand, feet";
         }
 
-        if (RPGManager.Instance.UnequipItem(viewer.twitchUserId, slot))
+        // Handle mainhand/offhand separately
+        if (isMainHand)
         {
-            return $"✓ {viewer.username}: Unequipped item from {args[0]}!";
+            if (viewer.equipped.mainHand == null)
+            {
+                return $"{viewer.username}: Nothing equipped in main hand.";
+            }
+
+            if (!viewer.AddItem(viewer.equipped.mainHand))
+            {
+                return $"{viewer.username}: Inventory full!";
+            }
+
+            string itemName = viewer.equipped.mainHand.itemName;
+            viewer.equipped.mainHand = null;
+            RPGManager.Instance.SaveGameData();
+            return $"[OK] {viewer.username}: Unequipped {itemName} from main hand!";
+        }
+
+        if (isOffHand)
+        {
+            if (viewer.equipped.offHand == null)
+            {
+                return $"{viewer.username}: Nothing equipped in off hand.";
+            }
+
+            if (!viewer.AddItem(viewer.equipped.offHand))
+            {
+                return $"{viewer.username}: Inventory full!";
+            }
+
+            string itemName = viewer.equipped.offHand.itemName;
+            viewer.equipped.offHand = null;
+            RPGManager.Instance.SaveGameData();
+            return $"[OK] {viewer.username}: Unequipped {itemName} from off hand!";
+        }
+
+        // Handle other slots
+        if (slot.HasValue && RPGManager.Instance.UnequipItem(viewer.twitchUserId, slot.Value))
+        {
+            return $"[OK] {viewer.username}: Unequipped item from {args[0]}!";
         }
 
         return $"{viewer.username}: No item equipped in that slot.";
@@ -305,16 +414,66 @@ public class RPGChatCommands : MonoBehaviour
             return $"{viewer.username}: Choose a class first with !class";
         }
 
-        CharacterStats total = viewer.GetTotalStats();
-        int xpNeeded = ExperienceManager.Instance.GetXPForNextLevel(viewer.baseStats.level);
-        float progress = ExperienceManager.Instance.GetLevelProgress(viewer);
+        CharacterStats baseStats = viewer.baseStats;
+        CharacterStats totalStats = viewer.GetTotalStats();
 
-        string result = $"═══ {viewer.username} [{viewer.characterClass}] ═══\n";
-        result += $"Level {total.level} | XP: {viewer.baseStats.experience}/{xpNeeded} ({progress * 100:F1}%)\n";
-        result += $"HP: {total.currentHealth}/{total.maxHealth}\n";
-        result += $"STR: {total.strength} | CON: {total.constitution} | DEX: {total.dexterity}\n";
-        result += $"WIL: {total.willpower} | CHA: {total.charisma} | INT: {total.intelligence}\n";
-        result += $"💰 Coins: {viewer.coins} | Items: {viewer.inventory.Count}/50";
+        int xpNeeded = 150; // Default
+        float progress = 0f;
+
+        if (ExperienceManager.Instance != null)
+        {
+            xpNeeded = ExperienceManager.Instance.GetXPForNextLevel(baseStats.level);
+            progress = ExperienceManager.Instance.GetLevelProgress(viewer);
+        }
+        else
+        {
+            xpNeeded = 150;
+            progress = (float)baseStats.experience / xpNeeded;
+        }
+
+        string result = $"=== {viewer.username} [{viewer.characterClass}] ===\n";
+        result += $"Level {totalStats.level} | XP: {baseStats.experience}/{xpNeeded} ({progress * 100:F1}%)\n";
+        result += $"HP: {totalStats.currentHealth}/{totalStats.maxHealth}\n\n";
+
+        // Base Stats
+        result += "Base Stats:\n";
+        result += $"STR: {baseStats.strength} | CON: {baseStats.constitution} | DEX: {baseStats.dexterity}\n";
+        result += $"WIL: {baseStats.willpower} | CHA: {baseStats.charisma} | INT: {baseStats.intelligence}\n\n";
+
+        // Equipment Bonuses
+        int strBonus = totalStats.strength - baseStats.strength;
+        int conBonus = totalStats.constitution - baseStats.constitution;
+        int dexBonus = totalStats.dexterity - baseStats.dexterity;
+        int wilBonus = totalStats.willpower - baseStats.willpower;
+        int chaBonus = totalStats.charisma - baseStats.charisma;
+        int intBonus = totalStats.intelligence - baseStats.intelligence;
+
+        bool hasEquipmentBonus = (strBonus + conBonus + dexBonus + wilBonus + chaBonus + intBonus) > 0;
+
+        if (hasEquipmentBonus)
+        {
+            result += "Equipment Bonuses:\n";
+            if (strBonus > 0) result += $"+{strBonus} STR | ";
+            if (conBonus > 0) result += $"+{conBonus} CON | ";
+            if (dexBonus > 0) result += $"+{dexBonus} DEX | ";
+            if (wilBonus > 0) result += $"+{wilBonus} WIL | ";
+            if (chaBonus > 0) result += $"+{chaBonus} CHA | ";
+            if (intBonus > 0) result += $"+{intBonus} INT";
+            result += "\n";
+
+            int totalDamage = viewer.equipped.GetTotalDamageBonus();
+            int totalDefense = viewer.equipped.GetTotalDefenseBonus();
+            if (totalDamage > 0) result += $"+{totalDamage} Damage | ";
+            if (totalDefense > 0) result += $"+{totalDefense} Defense";
+            result += "\n\n";
+        }
+
+        // Total Stats
+        result += "Total Stats:\n";
+        result += $"STR: {totalStats.strength} | CON: {totalStats.constitution} | DEX: {totalStats.dexterity}\n";
+        result += $"WIL: {totalStats.willpower} | CHA: {totalStats.charisma} | INT: {totalStats.intelligence}\n\n";
+
+        result += $"[COINS] {viewer.coins} | Items: {viewer.inventory.Count}/50";
 
         return result;
     }

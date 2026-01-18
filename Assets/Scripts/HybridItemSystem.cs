@@ -60,8 +60,8 @@ public class HybridItemSystem : MonoBehaviour
             rarity = ItemRarity.Legendary,
             requiredLevel = 0,
             price = 10000,
+            isTwoHanded = false,  // One-handed dagger
 
-            // FIXED: Use 0.0-1.0 range (0.35 = 35%)
             strengthBonusPercent = 0.35f,
             dexterityBonusPercent = 0.25f,
             intelligenceBonusPercent = 0.10f,
@@ -70,11 +70,11 @@ public class HybridItemSystem : MonoBehaviour
             allowedClasses = new List<CharacterClass> { CharacterClass.Rogue },
 
             properties = new Dictionary<string, string>
-            {
-                { "CritChance", "+15%" },
-                { "Backstab", "+50% damage from stealth" },
-                { "Passive", "Gain 1 sneak on kill" }
-            }
+        {
+            { "CritChance", "+15%" },
+            { "Backstab", "+50% damage from stealth" },
+            { "Passive", "Gain 1 sneak on kill" }
+        }
         };
 
         namedLegendaries.Add(shadowfang);
@@ -90,6 +90,7 @@ public class HybridItemSystem : MonoBehaviour
             rarity = ItemRarity.Epic,
             requiredLevel = 0,
             price = 3500,
+            isTwoHanded = true,  // Two-handed staff!
 
             intelligenceBonusPercent = 0.30f,
             willpowerBonusPercent = 0.20f,
@@ -98,11 +99,11 @@ public class HybridItemSystem : MonoBehaviour
             allowedClasses = new List<CharacterClass> { CharacterClass.Mage },
 
             properties = new Dictionary<string, string>
-            {
-                { "ManaRegen", "+5 per turn" },
-                { "SpellPower", "+20%" },
-                { "Passive", "Spells cost 10% less mana" }
-            }
+        {
+            { "ManaRegen", "+5 per turn" },
+            { "SpellPower", "+20%" },
+            { "Passive", "Spells cost 10% less mana" }
+        }
         };
 
         namedEpics.Add(staff);
@@ -224,6 +225,9 @@ public class HybridItemSystem : MonoBehaviour
         weapon.requiredLevel = 0;
         weapon.price = CalculatePrice(rarity);
 
+        // Mark certain weapon types as two-handed
+        weapon.isTwoHanded = IsTwoHandedWeaponType(weaponType);
+
         // Use standard rarity percentages
         float basePercent = RPGItem.GetRarityPercentageBonus(rarity);
 
@@ -237,10 +241,25 @@ public class HybridItemSystem : MonoBehaviour
             weapon.dexterityBonusPercent = basePercent;
         }
 
-        // Flat damage based on rarity
-        weapon.damageBonus = rarity == ItemRarity.Common ? Random.Range(3, 6) : Random.Range(8, 15);
+        // Two-handed weapons get bonus damage
+        int damageMultiplier = weapon.isTwoHanded ? 2 : 1;
+        weapon.damageBonus = (rarity == ItemRarity.Common ? Random.Range(3, 6) : Random.Range(8, 15)) * damageMultiplier;
 
         return weapon;
+    }
+
+    private bool IsTwoHandedWeaponType(string weaponType)
+    {
+        // Two-handed weapon types
+        string[] twoHandedTypes = { "Bow", "Staff", "Spear", "Greatsword", "Warhammer" };
+
+        foreach (string type in twoHandedTypes)
+        {
+            if (weaponType.Contains(type))
+                return true;
+        }
+
+        return false;
     }
 
     private RPGItem GenerateProceduralArmor(ItemType armorType, ItemRarity rarity)
@@ -289,7 +308,11 @@ public class HybridItemSystem : MonoBehaviour
 
     private string GetRandomWeaponType()
     {
-        string[] weapons = { "Sword", "Axe", "Dagger", "Mace", "Spear", "Bow", "Staff" };
+        // Mix of one-handed and two-handed weapons
+        string[] weapons = {
+        "Sword", "Axe", "Dagger", "Mace",           // One-handed
+        "Bow", "Staff", "Spear", "Greatsword"       // Two-handed
+    };
         return weapons[Random.Range(0, weapons.Length)];
     }
 

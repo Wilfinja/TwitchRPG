@@ -887,7 +887,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterSpawner
   roguePrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
-  fighterPrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
+  fighterPrefab: {fileID: 4424705616336512928, guid: 3cf0ee1c38ee41e4b9d1ef96dc796e41, type: 3}
   magePrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
   clericPrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
   rangerPrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}

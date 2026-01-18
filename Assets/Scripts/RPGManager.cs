@@ -212,18 +212,108 @@ public class RPGManager : MonoBehaviour
             return false;
         }
 
-        // Unequip current item in that slot if it exists
+        // Handle weapon equipping (main hand / off hand / two-handed)
+        if (item.itemType == ItemType.Weapon)
+        {
+            return EquipWeapon(viewer, item);
+        }
+
+        // Handle armor equipping
         RPGItem currentItem = viewer.equipped.GetEquippedItem(item.itemType);
         if (currentItem != null)
         {
             viewer.AddItem(currentItem); // Put back in inventory
         }
 
-        // Equip new item
         viewer.equipped.SetEquippedItem(item.itemType, item);
         viewer.RemoveItem(itemId); // Remove from inventory
 
         Debug.Log($"[RPG] {viewer.username} equipped {item.itemName}");
+        SaveGameData();
+        return true;
+    }
+
+    private bool EquipWeapon(ViewerData viewer, RPGItem weapon)
+    {
+        // TWO-HANDED WEAPON: Clear both hands
+        if (weapon.isTwoHanded)
+        {
+            // Unequip main hand if equipped
+            if (viewer.equipped.mainHand != null)
+            {
+                if (!viewer.AddItem(viewer.equipped.mainHand))
+                {
+                    Debug.LogWarning($"[RPG] Inventory full, cannot unequip main hand");
+                    return false;
+                }
+                viewer.equipped.mainHand = null;
+            }
+
+            // Unequip off hand if equipped
+            if (viewer.equipped.offHand != null)
+            {
+                if (!viewer.AddItem(viewer.equipped.offHand))
+                {
+                    Debug.LogWarning($"[RPG] Inventory full, cannot unequip off hand");
+                    return false;
+                }
+                viewer.equipped.offHand = null;
+            }
+
+            // Equip two-handed weapon in main hand
+            viewer.equipped.mainHand = weapon;
+            viewer.RemoveItem(weapon.itemId);
+
+            Debug.Log($"[RPG] {viewer.username} equipped two-handed weapon {weapon.itemName}");
+            SaveGameData();
+            return true;
+        }
+
+        // ONE-HANDED WEAPON: Equip in first available hand
+
+        // If main hand has two-handed weapon, unequip it first
+        if (viewer.equipped.mainHand != null && viewer.equipped.mainHand.isTwoHanded)
+        {
+            if (!viewer.AddItem(viewer.equipped.mainHand))
+            {
+                Debug.LogWarning($"[RPG] Inventory full, cannot unequip two-handed weapon");
+                return false;
+            }
+            viewer.equipped.mainHand = null;
+        }
+
+        // Try main hand first
+        if (viewer.equipped.mainHand == null)
+        {
+            viewer.equipped.mainHand = weapon;
+            viewer.RemoveItem(weapon.itemId);
+            Debug.Log($"[RPG] {viewer.username} equipped {weapon.itemName} in main hand");
+            SaveGameData();
+            return true;
+        }
+
+        // Main hand full, try off hand
+        if (viewer.equipped.offHand == null)
+        {
+            viewer.equipped.offHand = weapon;
+            viewer.RemoveItem(weapon.itemId);
+            Debug.Log($"[RPG] {viewer.username} equipped {weapon.itemName} in off hand");
+            SaveGameData();
+            return true;
+        }
+
+        // Both hands full, replace main hand
+        if (!viewer.AddItem(viewer.equipped.mainHand))
+        {
+            Debug.LogWarning($"[RPG] Inventory full!");
+            return false;
+        }
+
+        viewer.equipped.mainHand = weapon;
+        viewer.RemoveItem(weapon.itemId);
+
+        Debug.Log($"[RPG] {viewer.username} equipped {weapon.itemName} in main hand (replaced existing)");
+        SaveGameData();
         return true;
     }
 

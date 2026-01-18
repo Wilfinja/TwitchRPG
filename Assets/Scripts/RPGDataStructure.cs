@@ -120,6 +120,9 @@ public class RPGItem
     public int requiredLevel;  // Optional: 0 = no requirement
     public int price;
 
+    // TWO-HANDED WEAPON SUPPORT
+    public bool isTwoHanded = false;  // If true, uses both hands
+
     // PERCENTAGE-BASED STAT BONUSES (0.0 to 1.0 = 0% to 100%)
     [Range(0f, 1f)] public float strengthBonusPercent;
     [Range(0f, 1f)] public float constitutionBonusPercent;
@@ -183,8 +186,8 @@ public class EquippedItems
     public RPGItem chest;
     public RPGItem legs;
     public RPGItem arms;
-    public RPGItem leftHand;
-    public RPGItem rightHand;
+    public RPGItem mainHand;  // LEFT HAND / MAIN HAND
+    public RPGItem offHand;   // RIGHT HAND / OFF HAND
     public RPGItem feet;
 
     public bool HasItem(string itemId)
@@ -193,8 +196,8 @@ public class EquippedItems
                (chest?.itemId == itemId) ||
                (legs?.itemId == itemId) ||
                (arms?.itemId == itemId) ||
-               (leftHand?.itemId == itemId) ||
-               (rightHand?.itemId == itemId) ||
+               (mainHand?.itemId == itemId) ||
+               (offHand?.itemId == itemId) ||
                (feet?.itemId == itemId);
     }
 
@@ -208,7 +211,7 @@ public class EquippedItems
             case ItemType.ArmArmor: return arms;
             case ItemType.Boots: return feet;
             case ItemType.Weapon:
-                return rightHand ?? leftHand;
+                return mainHand ?? offHand;  // Return either hand
             default: return null;
         }
     }
@@ -223,8 +226,9 @@ public class EquippedItems
             case ItemType.ArmArmor: arms = item; break;
             case ItemType.Boots: feet = item; break;
             case ItemType.Weapon:
-                if (leftHand == null) leftHand = item;
-                else rightHand = item;
+                // Will be handled by EquipWeapon() in RPGManager
+                if (mainHand == null) mainHand = item;
+                else offHand = item;
                 break;
         }
     }
@@ -257,7 +261,7 @@ public class EquippedItems
         int totalDamageBonus = 0;
         int totalDefenseBonus = 0;
 
-        RPGItem[] allItems = { head, chest, legs, arms, leftHand, rightHand, feet };
+        RPGItem[] allItems = { head, chest, legs, arms, mainHand, offHand, feet };
         foreach (var item in allItems)
         {
             if (item != null)
@@ -301,11 +305,11 @@ public class EquippedItems
         return total;
     }
 
-    // NEW: Get total combat bonuses
+    // Get total combat bonuses
     public int GetTotalDamageBonus()
     {
         int total = 0;
-        RPGItem[] allItems = { head, chest, legs, arms, leftHand, rightHand, feet };
+        RPGItem[] allItems = { head, chest, legs, arms, mainHand, offHand, feet };
         foreach (var item in allItems)
         {
             if (item != null)
@@ -317,7 +321,7 @@ public class EquippedItems
     public int GetTotalDefenseBonus()
     {
         int total = 0;
-        RPGItem[] allItems = { head, chest, legs, arms, leftHand, rightHand, feet };
+        RPGItem[] allItems = { head, chest, legs, arms, mainHand, offHand, feet };
         foreach (var item in allItems)
         {
             if (item != null)
