@@ -246,7 +246,7 @@ public class EquippedItems
             case ItemType.Boots: return feet;
             case ItemType.Offhand: return offHand;
             case ItemType.Mainhand:
-                return mainHand ?? offHand;
+                return mainHand;
             default: return null;
         }
     }
