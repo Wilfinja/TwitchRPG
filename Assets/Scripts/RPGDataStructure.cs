@@ -16,7 +16,8 @@ public enum ItemRarity
 [Serializable]
 public enum ItemType
 {
-    Weapon,
+    Mainhand,
+    Offhand,
     Helmet,
     ChestArmor,
     LegArmor,
@@ -243,7 +244,8 @@ public class EquippedItems
             case ItemType.LegArmor: return legs;
             case ItemType.ArmArmor: return arms;
             case ItemType.Boots: return feet;
-            case ItemType.Weapon:
+            case ItemType.Offhand: return offHand;
+            case ItemType.Mainhand:
                 return mainHand ?? offHand;
             default: return null;
         }
@@ -258,7 +260,8 @@ public class EquippedItems
             case ItemType.LegArmor: legs = item; break;
             case ItemType.ArmArmor: arms = item; break;
             case ItemType.Boots: feet = item; break;
-            case ItemType.Weapon:
+            case ItemType.Offhand: offHand = item; break;
+            case ItemType.Mainhand:
                 if (mainHand == null) mainHand = item;
                 else offHand = item;
                 break;

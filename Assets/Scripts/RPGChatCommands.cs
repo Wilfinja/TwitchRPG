@@ -622,6 +622,13 @@ public class RPGChatCommands : MonoBehaviour
         }
 
         var purchasedItem = viewer.inventory[viewer.inventory.Count - 1];
+
+        // ===== TRIGGER ITEM DROP VISUAL =====
+        if (ItemDropManager.Instance != null)
+        {
+            ItemDropManager.Instance.SpawnItemDrop(viewer.twitchUserId, purchasedItem);
+        }
+
         string bonusText = "";
 
         if (purchasedItem.strengthBonusPercent > 0)
@@ -1144,6 +1151,12 @@ public class RPGChatCommands : MonoBehaviour
 
         targetViewer.AddItem(giftedItem);
         RPGManager.Instance.SaveGameData();
+
+        // ===== TRIGGER ITEM DROP VISUAL =====
+        if (ItemDropManager.Instance != null)
+        {
+            ItemDropManager.Instance.SpawnItemDrop(targetViewer.twitchUserId, giftedItem);
+        }
 
         return $"✓ Gave {item.itemName} [{item.rarity}] to {targetViewer.username}!";
     }

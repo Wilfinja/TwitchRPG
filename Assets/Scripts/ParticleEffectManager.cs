@@ -12,6 +12,20 @@ public class ParticleEffectManager : MonoBehaviour
     [SerializeField] private float screenWidth = 19.2f;
     [SerializeField] private float screenHeight = 10.8f;
 
+    private static ParticleEffectManager _instance;
+
+    public static ParticleEffectManager Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = FindFirstObjectByType<ParticleEffectManager>();
+            }
+            return _instance;
+        }
+    }
+
     public void TriggerExplosion()
     {
         if (explosionEffect != null)

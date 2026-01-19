@@ -55,7 +55,7 @@ public class HybridItemSystem : MonoBehaviour
         {
             itemName = "Shadowfang",
             description = "A legendary dagger that strikes from the shadows.",
-            itemType = ItemType.Weapon,
+            itemType = ItemType.Mainhand,
             rarity = ItemRarity.Legendary,
             requiredLevel = 0,
             price = 10000,
@@ -97,7 +97,7 @@ public class HybridItemSystem : MonoBehaviour
         {
             itemName = "Staff of the Archmage",
             description = "Crackling with ancient magical power.",
-            itemType = ItemType.Weapon,
+            itemType = ItemType.Mainhand,
             rarity = ItemRarity.Epic,
             requiredLevel = 0,
             price = 3500,
@@ -172,6 +172,48 @@ public class HybridItemSystem : MonoBehaviour
         namedLegendaries.Add(plate);
     }
 
+    private void CustomMeltysMelter()
+    {
+        RPGItem shadowfang = new RPGItem
+        {
+            itemName = "Melty's Melter",
+            description = "A legendary orb that disintigrates all that it touches.",
+            itemType = ItemType.Offhand,
+            rarity = ItemRarity.Legendary,
+            requiredLevel = 0,
+            price = 10000,
+            isTwoHanded = false,
+
+            strengthBonusPercent = 0.35f,
+            dexterityBonusPercent = 0.25f,
+            intelligenceBonusPercent = 0.10f,
+            damageBonus = 40,
+
+            allowedClasses = new List<CharacterClass> { CharacterClass.Rogue },
+
+            properties = new Dictionary<string, string>
+            {
+                { "CritChance", "+15%" },
+                { "Backstab", "+50% damage from stealth" }
+            },
+
+            // ===== ABILITY =====
+            abilities = new List<ItemAbility>
+            {
+                new ItemAbility
+                {
+                    abilityName = "Shadow Dance",
+                    abilityDescription = "Consume 3 sneak to deal 200% weapon damage and gain +2 sneak back on kill.",
+                    abilityCommand = "shadowdance",
+                    manaCost = 3,  // 3 sneak points
+                    cooldownTurns = 2
+                }
+            }
+        };
+
+        namedLegendaries.Add(shadowfang);
+    }
+
     // ============================================
     // GENERATE SHOP INVENTORY
     // ============================================
@@ -229,7 +271,7 @@ public class HybridItemSystem : MonoBehaviour
 
         switch (type)
         {
-            case ItemType.Weapon:
+            case ItemType.Mainhand:
                 return GenerateProceduralWeapon(rarity);
             case ItemType.Helmet:
             case ItemType.ChestArmor:
@@ -250,7 +292,7 @@ public class HybridItemSystem : MonoBehaviour
         string weaponType = GetRandomWeaponType();
         weapon.itemName = $"{material} {weaponType}";
         weapon.description = $"A {rarity.ToString().ToLower()} quality {weaponType.ToLower()}.";
-        weapon.itemType = ItemType.Weapon;
+        weapon.itemType = ItemType.Mainhand;
         weapon.rarity = rarity;
         weapon.requiredLevel = 0;
         weapon.price = CalculatePrice(rarity);
@@ -353,8 +395,8 @@ public class HybridItemSystem : MonoBehaviour
     private ItemType GetRandomItemType()
     {
         ItemType[] types = {
-            ItemType.Weapon, ItemType.Helmet, ItemType.ChestArmor,
-            ItemType.LegArmor, ItemType.ArmArmor, ItemType.Boots
+            ItemType.Mainhand, ItemType.Helmet, ItemType.ChestArmor,
+            ItemType.LegArmor, ItemType.ArmArmor, ItemType.Boots, ItemType.Offhand
         };
         return types[Random.Range(0, types.Length)];
     }
