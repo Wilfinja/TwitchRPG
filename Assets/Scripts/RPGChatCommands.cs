@@ -64,6 +64,12 @@ public class RPGChatCommands : MonoBehaviour
             case "levelup":
                 return HandleLevelUpCommand(viewer, args);
 
+            case "abilities":
+                return HandleAbilitiesCommand(viewer);
+
+            case "ability":
+                return HandleAbilityDetailsCommand(viewer, args);
+
             case "help":
             case "rpghelp":
                 return HandleHelpCommand(viewer);
@@ -122,7 +128,6 @@ public class RPGChatCommands : MonoBehaviour
                    "!class rogue/fighter/mage/cleric/ranger";
         }
 
-        // Spawn character on screen
         if (CharacterSpawner.Instance.SpawnCharacter(viewer.twitchUserId, viewer.username))
         {
             return $"⚔️ {viewer.username} has appeared on screen!\n" +
@@ -166,11 +171,15 @@ public class RPGChatCommands : MonoBehaviour
             return $"{viewer.username}: You only have {viewer.baseStats.unallocatedStatPoints} unallocated points!";
         }
 
+        // Store old value
+        int oldValue = GetStatValue(viewer, statName);
+
         if (ExperienceManager.Instance != null &&
             ExperienceManager.Instance.AllocateStatPoints(viewer.twitchUserId, statName, points))
         {
-            return $"[OK] {viewer.username}: Allocated {points} points to {statName.ToUpper()}!\n" +
-                   $"New total: {GetStatValue(viewer, statName)}\n" +
+            int newValue = GetStatValue(viewer, statName);
+            return $"✅ {viewer.username}: Allocated {points} points to {statName.ToUpper()}!\n" +
+                   $"{statName.ToUpper()}: {oldValue} → {newValue}\n" +
                    $"Remaining points: {viewer.baseStats.unallocatedStatPoints}";
         }
 
@@ -205,6 +214,7 @@ public class RPGChatCommands : MonoBehaviour
         }
     }
 
+    // ===== UPDATED INVENTORY COMMAND =====
     private string HandleInventoryCommand(ViewerData viewer)
     {
         if (viewer.characterClass == CharacterClass.None)
@@ -212,7 +222,13 @@ public class RPGChatCommands : MonoBehaviour
             return $"{viewer.username}: Choose a class first with !class";
         }
 
+        CharacterStats totalStats = viewer.GetTotalStats();
+        int totalDamage = viewer.equipped.GetTotalDamageBonus();
+        int totalDefense = viewer.equipped.GetTotalDefenseBonus();
+
         string result = $"=== {viewer.username}'s Equipment ===\n";
+
+        // Show equipped items
         result += $"[HEAD] {GetEquippedItemDisplay(viewer.equipped.head)}\n";
         result += $"[CHEST] {GetEquippedItemDisplay(viewer.equipped.chest)}\n";
         result += $"[ARMS] {GetEquippedItemDisplay(viewer.equipped.arms)}\n";
@@ -221,16 +237,23 @@ public class RPGChatCommands : MonoBehaviour
         result += $"[OFFHAND] {GetEquippedItemDisplay(viewer.equipped.offHand)}\n";
         result += $"[FEET] {GetEquippedItemDisplay(viewer.equipped.feet)}\n";
 
+        // Show equipment stats summary
+        result += $"\n--- Equipment Stats ---\n";
+        result += $"Total Damage: +{totalDamage}\n";
+        result += $"Total Defense: +{totalDefense}\n";
+        result += $"Total HP: {totalStats.maxHealth}\n";
+
+        // Show inventory items
         if (viewer.inventory.Count > 0)
         {
-            result += $"\nInventory ({viewer.inventory.Count}/50):\n";
+            result += $"\n--- Inventory ({viewer.inventory.Count}/50) ---\n";
 
-            // Show up to 10 items with numbers
             int displayCount = Mathf.Min(10, viewer.inventory.Count);
             for (int i = 0; i < displayCount; i++)
             {
                 RPGItem item = viewer.inventory[i];
-                result += $"{i + 1}. {item.itemName} [{item.rarity}]\n";
+                string abilityTag = item.HasAbilities() ? " [ABILITY]" : "";
+                result += $"{i + 1}. {item.itemName} [{item.rarity}]{abilityTag}\n";
             }
 
             if (viewer.inventory.Count > 10)
@@ -240,10 +263,10 @@ public class RPGChatCommands : MonoBehaviour
         }
         else
         {
-            result += "\nInventory: Empty\n";
+            result += "\n--- Inventory: Empty ---\n";
         }
 
-        result += $"\n[COINS] {viewer.coins}";
+        result += $"\n💰 Coins: {viewer.coins}";
         result += $"\nUse !equip <number or name> to equip items";
 
         return result;
@@ -263,10 +286,13 @@ public class RPGChatCommands : MonoBehaviour
         if (item.damageBonus > 0) bonuses.Add($"+{item.damageBonus} DMG");
         if (item.defenseBonus > 0) bonuses.Add($"+{item.defenseBonus} DEF");
 
+        string abilityTag = item.HasAbilities() ? $" [{item.abilities[0].abilityName}]" : "";
         string bonusText = bonuses.Count > 0 ? $" ({string.Join(", ", bonuses)})" : "";
-        return $"{item.itemName}{bonusText}";
+
+        return $"{item.itemName}{bonusText}{abilityTag}";
     }
 
+    // ===== UPDATED EQUIP COMMAND =====
     private string HandleEquipCommand(ViewerData viewer, string[] args)
     {
         if (args.Length == 0)
@@ -279,7 +305,6 @@ public class RPGChatCommands : MonoBehaviour
         // Try to parse as number first
         if (int.TryParse(args[0], out int itemNumber))
         {
-            // Equip by number (1-based index)
             if (itemNumber < 1 || itemNumber > viewer.inventory.Count)
             {
                 return $"{viewer.username}: Invalid item number. Use !inventory to see your items.";
@@ -288,7 +313,6 @@ public class RPGChatCommands : MonoBehaviour
         }
         else
         {
-            // Equip by name
             string itemName = string.Join(" ", args).ToLower();
             item = viewer.inventory.Find(i => i.itemName.ToLower() == itemName);
 
@@ -298,13 +322,51 @@ public class RPGChatCommands : MonoBehaviour
             }
         }
 
-        // Equip the item using RPGManager
+        // Get stats BEFORE equipping
+        CharacterStats statsBefore = viewer.GetTotalStats();
+
+        // Equip the item
         if (RPGManager.Instance.EquipItem(viewer.twitchUserId, item.itemId))
         {
-            return $"[OK] {viewer.username}: Equipped {item.itemName}!";
+            // Get stats AFTER equipping
+            CharacterStats statsAfter = viewer.GetTotalStats();
+
+            // Calculate changes
+            int strChange = statsAfter.strength - statsBefore.strength;
+            int conChange = statsAfter.constitution - statsBefore.constitution;
+            int dexChange = statsAfter.dexterity - statsBefore.dexterity;
+            int wilChange = statsAfter.willpower - statsBefore.willpower;
+            int chaChange = statsAfter.charisma - statsBefore.charisma;
+            int intChange = statsAfter.intelligence - statsBefore.intelligence;
+            int hpChange = statsAfter.maxHealth - statsBefore.maxHealth;
+
+            string response = $"✅ {viewer.username}: Equipped {item.itemName}!\n";
+
+            // Show stat changes
+            List<string> changes = new List<string>();
+            if (strChange != 0) changes.Add($"STR {FormatStatChange(strChange)}");
+            if (conChange != 0) changes.Add($"CON {FormatStatChange(conChange)}");
+            if (dexChange != 0) changes.Add($"DEX {FormatStatChange(dexChange)}");
+            if (wilChange != 0) changes.Add($"WIL {FormatStatChange(wilChange)}");
+            if (chaChange != 0) changes.Add($"CHA {FormatStatChange(chaChange)}");
+            if (intChange != 0) changes.Add($"INT {FormatStatChange(intChange)}");
+            if (hpChange != 0) changes.Add($"HP {FormatStatChange(hpChange)}");
+
+            if (changes.Count > 0)
+            {
+                response += string.Join(" | ", changes);
+            }
+
+            return response;
         }
 
         return $"{viewer.username}: Failed to equip {item.itemName}. Check level requirement or class restrictions.";
+    }
+
+    private string FormatStatChange(int change)
+    {
+        if (change > 0) return $"+{change}";
+        return change.ToString();
     }
 
     private string HandleUnequipCommand(ViewerData viewer, string[] args)
@@ -377,7 +439,7 @@ public class RPGChatCommands : MonoBehaviour
             string itemName = viewer.equipped.mainHand.itemName;
             viewer.equipped.mainHand = null;
             RPGManager.Instance.SaveGameData();
-            return $"[OK] {viewer.username}: Unequipped {itemName} from main hand!";
+            return $"✅ {viewer.username}: Unequipped {itemName} from main hand!";
         }
 
         if (isOffHand)
@@ -395,18 +457,19 @@ public class RPGChatCommands : MonoBehaviour
             string itemName = viewer.equipped.offHand.itemName;
             viewer.equipped.offHand = null;
             RPGManager.Instance.SaveGameData();
-            return $"[OK] {viewer.username}: Unequipped {itemName} from off hand!";
+            return $"✅ {viewer.username}: Unequipped {itemName} from off hand!";
         }
 
         // Handle other slots
         if (slot.HasValue && RPGManager.Instance.UnequipItem(viewer.twitchUserId, slot.Value))
         {
-            return $"[OK] {viewer.username}: Unequipped item from {args[0]}!";
+            return $"✅ {viewer.username}: Unequipped item from {args[0]}!";
         }
 
         return $"{viewer.username}: No item equipped in that slot.";
     }
 
+    // ===== UPDATED STATS COMMAND (Option 2 Format) =====
     private string HandleStatsCommand(ViewerData viewer)
     {
         if (viewer.characterClass == CharacterClass.None)
@@ -417,7 +480,7 @@ public class RPGChatCommands : MonoBehaviour
         CharacterStats baseStats = viewer.baseStats;
         CharacterStats totalStats = viewer.GetTotalStats();
 
-        int xpNeeded = 150; // Default
+        int xpNeeded = 150;
         float progress = 0f;
 
         if (ExperienceManager.Instance != null)
@@ -425,22 +488,18 @@ public class RPGChatCommands : MonoBehaviour
             xpNeeded = ExperienceManager.Instance.GetXPForNextLevel(baseStats.level);
             progress = ExperienceManager.Instance.GetLevelProgress(viewer);
         }
-        else
-        {
-            xpNeeded = 150;
-            progress = (float)baseStats.experience / xpNeeded;
-        }
 
-        string result = $"=== {viewer.username} [{viewer.characterClass}] ===\n";
+        string result = $"═══ {viewer.username} [{viewer.characterClass}] ═══\n";
         result += $"Level {totalStats.level} | XP: {baseStats.experience}/{xpNeeded} ({progress * 100:F1}%)\n";
-        result += $"HP: {totalStats.currentHealth}/{totalStats.maxHealth}\n\n";
+        result += $"HP: {totalStats.currentHealth}/{totalStats.maxHealth}\n";
 
-        // Base Stats
-        result += "Base Stats:\n";
-        result += $"STR: {baseStats.strength} | CON: {baseStats.constitution} | DEX: {baseStats.dexterity}\n";
-        result += $"WIL: {baseStats.willpower} | CHA: {baseStats.charisma} | INT: {baseStats.intelligence}\n\n";
+        if (baseStats.unallocatedStatPoints > 0)
+        {
+            result += $"⭐ Unallocated Points: {baseStats.unallocatedStatPoints}\n";
+        }
+        result += "\n";
 
-        // Equipment Bonuses
+        // Calculate equipment bonuses
         int strBonus = totalStats.strength - baseStats.strength;
         int conBonus = totalStats.constitution - baseStats.constitution;
         int dexBonus = totalStats.dexterity - baseStats.dexterity;
@@ -448,34 +507,45 @@ public class RPGChatCommands : MonoBehaviour
         int chaBonus = totalStats.charisma - baseStats.charisma;
         int intBonus = totalStats.intelligence - baseStats.intelligence;
 
-        bool hasEquipmentBonus = (strBonus + conBonus + dexBonus + wilBonus + chaBonus + intBonus) > 0;
+        // Option 2: Inline format
+        result += "═══ STATS ═══\n";
+        result += FormatStatLine("STR", baseStats.strength, strBonus, totalStats.strength);
+        result += FormatStatLine("CON", baseStats.constitution, conBonus, totalStats.constitution);
+        result += FormatStatLine("DEX", baseStats.dexterity, dexBonus, totalStats.dexterity);
+        result += FormatStatLine("WIL", baseStats.willpower, wilBonus, totalStats.willpower);
+        result += FormatStatLine("CHA", baseStats.charisma, chaBonus, totalStats.charisma);
+        result += FormatStatLine("INT", baseStats.intelligence, intBonus, totalStats.intelligence);
 
-        if (hasEquipmentBonus)
+        // Combat stats
+        int totalDamage = viewer.equipped.GetTotalDamageBonus();
+        int totalDefense = viewer.equipped.GetTotalDefenseBonus();
+
+        if (totalDamage > 0 || totalDefense > 0)
         {
-            result += "Equipment Bonuses:\n";
-            if (strBonus > 0) result += $"+{strBonus} STR | ";
-            if (conBonus > 0) result += $"+{conBonus} CON | ";
-            if (dexBonus > 0) result += $"+{dexBonus} DEX | ";
-            if (wilBonus > 0) result += $"+{wilBonus} WIL | ";
-            if (chaBonus > 0) result += $"+{chaBonus} CHA | ";
-            if (intBonus > 0) result += $"+{intBonus} INT";
-            result += "\n";
-
-            int totalDamage = viewer.equipped.GetTotalDamageBonus();
-            int totalDefense = viewer.equipped.GetTotalDefenseBonus();
-            if (totalDamage > 0) result += $"+{totalDamage} Damage | ";
-            if (totalDefense > 0) result += $"+{totalDefense} Defense";
-            result += "\n\n";
+            result += "\n═══ COMBAT ═══\n";
+            if (totalDamage > 0) result += $"Damage: +{totalDamage}\n";
+            if (totalDefense > 0) result += $"Defense: +{totalDefense}\n";
         }
 
-        // Total Stats
-        result += "Total Stats:\n";
-        result += $"STR: {totalStats.strength} | CON: {totalStats.constitution} | DEX: {totalStats.dexterity}\n";
-        result += $"WIL: {totalStats.willpower} | CHA: {totalStats.charisma} | INT: {totalStats.intelligence}\n\n";
-
-        result += $"[COINS] {viewer.coins} | Items: {viewer.inventory.Count}/50";
+        result += $"\n💰 Coins: {viewer.coins} | Items: {viewer.inventory.Count}/50";
 
         return result;
+    }
+
+    private string FormatStatLine(string statName, int baseValue, int bonus, int totalValue)
+    {
+        if (bonus > 0)
+        {
+            return $"{statName}: {baseValue} (+{bonus}) = {totalValue}\n";
+        }
+        else if (bonus < 0)
+        {
+            return $"{statName}: {baseValue} ({bonus}) = {totalValue}\n";
+        }
+        else
+        {
+            return $"{statName}: {baseValue}\n";
+        }
     }
 
     private string HandleCoinsCommand(ViewerData viewer)
@@ -495,17 +565,15 @@ public class RPGChatCommands : MonoBehaviour
             return "Shop system is not available right now.";
         }
 
-        // Check if page number provided
         int page = 1;
         if (args.Length > 0)
         {
             if (int.TryParse(args[0], out int requestedPage))
             {
-                page = Mathf.Clamp(requestedPage, 1, 4); // Pages 1-4 only
+                page = Mathf.Clamp(requestedPage, 1, 4);
             }
         }
 
-        // Get the requested page
         return ShopManager.Instance.GetShopPage(viewer, page);
     }
 
@@ -532,7 +600,6 @@ public class RPGChatCommands : MonoBehaviour
 
         if (!success)
         {
-            // Check why it failed
             var shopItems = ShopManager.Instance.GetCurrentShopItems();
             var item = shopItems.Find(i => i.itemName.ToLower() == itemName.ToLower());
 
@@ -554,8 +621,7 @@ public class RPGChatCommands : MonoBehaviour
             }
         }
 
-        // Success! Calculate what bonus they got
-        var purchasedItem = viewer.inventory[viewer.inventory.Count - 1]; // Last added item
+        var purchasedItem = viewer.inventory[viewer.inventory.Count - 1];
         string bonusText = "";
 
         if (purchasedItem.strengthBonusPercent > 0)
@@ -594,6 +660,110 @@ public class RPGChatCommands : MonoBehaviour
         return $"{viewer.username}: Trading system coming soon!";
     }
 
+    // ===== NEW ABILITIES COMMANDS =====
+    private string HandleAbilitiesCommand(ViewerData viewer)
+    {
+        if (viewer.characterClass == CharacterClass.None)
+        {
+            return $"{viewer.username}: Choose a class first with !class";
+        }
+
+        string result = $"═══ {viewer.username}'s Abilities ═══\n";
+
+        // Get abilities from equipped items
+        List<ItemAbility> equippedAbilities = new List<ItemAbility>();
+        RPGItem[] allEquipped = {
+            viewer.equipped.head, viewer.equipped.chest, viewer.equipped.arms,
+            viewer.equipped.legs, viewer.equipped.mainHand, viewer.equipped.offHand,
+            viewer.equipped.feet
+        };
+
+        foreach (var item in allEquipped)
+        {
+            if (item != null && item.HasAbilities())
+            {
+                equippedAbilities.AddRange(item.abilities);
+            }
+        }
+
+        if (equippedAbilities.Count > 0)
+        {
+            result += "\n[ACTIVE ITEM ABILITIES]\n";
+            foreach (var ability in equippedAbilities)
+            {
+                result += $"• {ability.abilityName}\n";
+            }
+        }
+        else
+        {
+            result += "\nNo item abilities equipped.\n";
+        }
+
+        result += "\n[CLASS ABILITIES]\n";
+        result += "Coming in Phase 6 (Combat)!\n";
+
+        result += "\nUse !ability <name> for details\n";
+        result += "Example: !ability backstab";
+
+        return result;
+    }
+
+    private string HandleAbilityDetailsCommand(ViewerData viewer, string[] args)
+    {
+        if (args.Length == 0)
+        {
+            return $"{viewer.username}: Usage: !ability <name>\nExample: !ability backstab";
+        }
+
+        string abilityName = string.Join(" ", args).ToLower();
+
+        // Search equipped items for the ability
+        RPGItem[] allEquipped = {
+            viewer.equipped.head, viewer.equipped.chest, viewer.equipped.arms,
+            viewer.equipped.legs, viewer.equipped.mainHand, viewer.equipped.offHand,
+            viewer.equipped.feet
+        };
+
+        foreach (var item in allEquipped)
+        {
+            if (item != null && item.HasAbilities())
+            {
+                foreach (var ability in item.abilities)
+                {
+                    if (ability.abilityName.ToLower() == abilityName)
+                    {
+                        string result = $"═══ {ability.abilityName} ═══\n";
+                        result += $"{ability.abilityDescription}\n\n";
+
+                        if (ability.manaCost > 0)
+                            result += $"Cost: {ability.manaCost} {GetResourceName(viewer.characterClass)}\n";
+
+                        if (ability.cooldownTurns > 0)
+                            result += $"Cooldown: {ability.cooldownTurns} turns\n";
+
+                        result += $"\nSource: {item.itemName}";
+                        return result;
+                    }
+                }
+            }
+        }
+
+        return $"{viewer.username}: Ability '{abilityName}' not found. Use !abilities to see available abilities.";
+    }
+
+    private string GetResourceName(CharacterClass charClass)
+    {
+        switch (charClass)
+        {
+            case CharacterClass.Rogue: return "Sneak";
+            case CharacterClass.Mage: return "Mana";
+            case CharacterClass.Cleric: return "Wrath";
+            case CharacterClass.Ranger: return "Balance";
+            case CharacterClass.Fighter: return "Stance";
+            default: return "Resource";
+        }
+    }
+
     private string HandleHelpCommand(ViewerData viewer)
     {
         string help = "═══ RPG COMMANDS ═══\n";
@@ -606,7 +776,10 @@ public class RPGChatCommands : MonoBehaviour
         help += "!levelup <stat> <points> - Allocate stats (e.g., !levelup str 2)\n";
         help += "!equip <item> - Equip an item\n";
         help += "!unequip <slot> - Unequip an item\n";
-        help += "!shop - View the shop (coming soon)\n";
+        help += "!shop - View the shop\n";
+        help += "!buy <item> - Purchase from shop\n";
+        help += "!abilities - View your active abilities\n";
+        help += "!ability <name> - View ability details\n";
         help += "\nEarn XP by collecting coins and watching!\n";
         help += "Level up every 150 XP to get stronger!";
 
@@ -640,19 +813,50 @@ public class RPGChatCommands : MonoBehaviour
             case "rpgrefreshop":
             case "rpgrefreshshop":
                 return HandleAdminRefreshShop();
-
             case "rpggiveitem":
                 return HandleAdminGiveItem(args);
-
+            case "rpgtestlevelup":
+                return HandleAdminTestLevelUp(args);
             default:
                 return null;
         }
     }
 
+    // ===== NEW ADMIN COMMAND FOR TESTING LEVELUP =====
+    private string HandleAdminTestLevelUp(string[] args)
+    {
+        if (args.Length < 1)
+        {
+            return "Usage: !rpgtestlevelup @username\n" +
+                   "Gives user enough XP to level up for testing";
+        }
+
+        string targetUsername = args[0].TrimStart('@').ToLower();
+        ViewerData targetViewer = FindViewerByUsername(targetUsername);
+
+        if (targetViewer == null)
+        {
+            return $"Error: User '{targetUsername}' not found in database.";
+        }
+
+        if (ExperienceManager.Instance == null)
+        {
+            return "Error: ExperienceManager not found!";
+        }
+
+        // Give enough XP to level up
+        int xpNeeded = ExperienceManager.Instance.GetXPForNextLevel(targetViewer.baseStats.level);
+        int xpToGive = xpNeeded - targetViewer.baseStats.experience + 1;
+
+        ExperienceManager.Instance.AddExperience(targetViewer.twitchUserId, xpToGive);
+
+        return $"✓ Gave {xpToGive} XP to {targetViewer.username}\n" +
+               $"They should now be Level {targetViewer.baseStats.level}\n" +
+               $"Unallocated points: {targetViewer.baseStats.unallocatedStatPoints}";
+    }
+
     private string HandleAdminGive(string[] args)
     {
-        // Usage: !rpggive @username coins 100
-        // Usage: !rpggive @username xp 50
         if (args.Length < 3)
         {
             return "Usage:\n" +
@@ -674,7 +878,6 @@ public class RPGChatCommands : MonoBehaviour
             return "Error: Amount must be positive!";
         }
 
-        // Find viewer by username
         ViewerData targetViewer = FindViewerByUsername(targetUsername);
 
         if (targetViewer == null)
@@ -699,6 +902,7 @@ public class RPGChatCommands : MonoBehaviour
                     ExperienceManager.Instance.AddExperience(targetViewer.twitchUserId, amount);
                     RPGManager.Instance.SaveGameData();
                     return $"✓ Gave {amount} XP to {targetViewer.username}!\n" +
+                           $"Current Level: {targetViewer.baseStats.level}\n" +
                            $"Current XP: {targetViewer.baseStats.experience}";
                 }
                 else
@@ -734,7 +938,6 @@ public class RPGChatCommands : MonoBehaviour
 
         RPGManager.Instance.AdminBanViewer(targetViewer.twitchUserId, true);
 
-        // Remove from screen if they're active
         if (CharacterSpawner.Instance != null)
         {
             CharacterSpawner.Instance.DespawnCharacter(targetViewer.twitchUserId);
@@ -788,7 +991,6 @@ public class RPGChatCommands : MonoBehaviour
         string userId = targetViewer.twitchUserId;
         string username = targetViewer.username;
 
-        // Despawn character if on screen
         if (CharacterSpawner.Instance != null)
         {
             CharacterSpawner.Instance.DespawnCharacter(userId);
@@ -821,13 +1023,11 @@ public class RPGChatCommands : MonoBehaviour
             return $"{targetViewer.username} is already dead!";
         }
 
-        // Kill the player
         targetViewer.isDead = true;
         targetViewer.deathLockoutUntil = System.DateTime.Now.AddMinutes(30);
         targetViewer.baseStats.currentHealth = 0;
-        targetViewer.baseStats.experience = 0; // Reset XP progress to 0
+        targetViewer.baseStats.experience = 0;
 
-        // Despawn character if on screen
         if (CharacterSpawner.Instance != null)
         {
             CharacterSpawner.Instance.DespawnCharacter(targetViewer.twitchUserId);
@@ -846,10 +1046,12 @@ public class RPGChatCommands : MonoBehaviour
                "!rpgsave - Save game data\n" +
                "!rpggive @user coins <amount> - Give coins\n" +
                "!rpggive @user xp <amount> - Give XP\n" +
+               "!rpgtestlevelup @user - Give XP to level up\n" +
                "!rpgban @user - Ban from RPG\n" +
                "!rpgunban @user - Unban user\n" +
                "!rpgkill @user - Kill player (30 min lockout)\n" +
-               "!rpgreset @user - Reset character (DELETES PROGRESS!)";
+               "!rpgreset @user - Reset character (DELETES PROGRESS!)\n" +
+               "!rpggiveitem @user <item name> - Give named item";
     }
 
     private string HandleAdminRefreshShop()
@@ -876,14 +1078,12 @@ public class RPGChatCommands : MonoBehaviour
         string targetUsername = args[0].TrimStart('@').ToLower();
         string itemName = string.Join(" ", args.Skip(1));
 
-        // Find viewer
         ViewerData targetViewer = FindViewerByUsername(targetUsername);
         if (targetViewer == null)
         {
             return $"Error: User '{targetUsername}' not found.";
         }
 
-        // Find item in named items
         if (HybridItemSystem.Instance == null)
         {
             return "Item system not available!";
@@ -895,13 +1095,11 @@ public class RPGChatCommands : MonoBehaviour
             return $"Error: Item '{itemName}' not found.\nTip: This only works with hand-crafted named items.";
         }
 
-        // Check inventory space
         if (targetViewer.inventory.Count >= 50)
         {
             return $"Error: {targetViewer.username}'s inventory is full!";
         }
 
-        // Give item (create copy)
         RPGItem giftedItem = new RPGItem
         {
             itemName = item.itemName,
@@ -910,6 +1108,7 @@ public class RPGChatCommands : MonoBehaviour
             rarity = item.rarity,
             requiredLevel = item.requiredLevel,
             price = item.price,
+            isTwoHanded = item.isTwoHanded,
 
             strengthBonusPercent = item.strengthBonusPercent,
             constitutionBonusPercent = item.constitutionBonusPercent,
@@ -923,16 +1122,32 @@ public class RPGChatCommands : MonoBehaviour
             healAmount = item.healAmount,
 
             allowedClasses = new List<CharacterClass>(item.allowedClasses),
-            properties = new Dictionary<string, string>(item.properties)
+            properties = new Dictionary<string, string>(item.properties),
+            abilities = new List<ItemAbility>()
         };
+
+        // Copy abilities if they exist
+        if (item.HasAbilities())
+        {
+            foreach (var ability in item.abilities)
+            {
+                giftedItem.abilities.Add(new ItemAbility
+                {
+                    abilityName = ability.abilityName,
+                    abilityDescription = ability.abilityDescription,
+                    abilityCommand = ability.abilityCommand,
+                    manaCost = ability.manaCost,
+                    cooldownTurns = ability.cooldownTurns
+                });
+            }
+        }
 
         targetViewer.AddItem(giftedItem);
         RPGManager.Instance.SaveGameData();
 
-        return $"Wilfinja Gave {item.itemName} [{item.rarity}] to {targetViewer.username}!";
+        return $"✓ Gave {item.itemName} [{item.rarity}] to {targetViewer.username}!";
     }
 
-    // HELPER METHOD: Find viewer by username (case-insensitive)
     private ViewerData FindViewerByUsername(string username)
     {
         username = username.ToLower();

@@ -39,15 +39,14 @@ public class HybridItemSystem : MonoBehaviour
 
     private void InitializeNamedItems()
     {
-        // Hand-crafted items
+        // Hand-crafted items with abilities
         CustomShadowfang();
         CustomStaffOfTheArchmage();
         CustomDragonscalePlate();
-        // Add more as you create them...
     }
 
     // ============================================
-    // HAND-CRAFTED ITEMS (FIXED PERCENTAGES)
+    // HAND-CRAFTED ITEMS WITH ABILITIES
     // ============================================
 
     private void CustomShadowfang()
@@ -60,7 +59,7 @@ public class HybridItemSystem : MonoBehaviour
             rarity = ItemRarity.Legendary,
             requiredLevel = 0,
             price = 10000,
-            isTwoHanded = false,  // One-handed dagger
+            isTwoHanded = false,
 
             strengthBonusPercent = 0.35f,
             dexterityBonusPercent = 0.25f,
@@ -70,11 +69,23 @@ public class HybridItemSystem : MonoBehaviour
             allowedClasses = new List<CharacterClass> { CharacterClass.Rogue },
 
             properties = new Dictionary<string, string>
-        {
-            { "CritChance", "+15%" },
-            { "Backstab", "+50% damage from stealth" },
-            { "Passive", "Gain 1 sneak on kill" }
-        }
+            {
+                { "CritChance", "+15%" },
+                { "Backstab", "+50% damage from stealth" }
+            },
+
+            // ===== ABILITY =====
+            abilities = new List<ItemAbility>
+            {
+                new ItemAbility
+                {
+                    abilityName = "Shadow Dance",
+                    abilityDescription = "Consume 3 sneak to deal 200% weapon damage and gain +2 sneak back on kill.",
+                    abilityCommand = "shadowdance",
+                    manaCost = 3,  // 3 sneak points
+                    cooldownTurns = 2
+                }
+            }
         };
 
         namedLegendaries.Add(shadowfang);
@@ -90,7 +101,7 @@ public class HybridItemSystem : MonoBehaviour
             rarity = ItemRarity.Epic,
             requiredLevel = 0,
             price = 3500,
-            isTwoHanded = true,  // Two-handed staff!
+            isTwoHanded = true,
 
             intelligenceBonusPercent = 0.30f,
             willpowerBonusPercent = 0.20f,
@@ -99,11 +110,23 @@ public class HybridItemSystem : MonoBehaviour
             allowedClasses = new List<CharacterClass> { CharacterClass.Mage },
 
             properties = new Dictionary<string, string>
-        {
-            { "ManaRegen", "+5 per turn" },
-            { "SpellPower", "+20%" },
-            { "Passive", "Spells cost 10% less mana" }
-        }
+            {
+                { "ManaRegen", "+5 per turn" },
+                { "SpellPower", "+20%" }
+            },
+
+            // ===== ABILITY =====
+            abilities = new List<ItemAbility>
+            {
+                new ItemAbility
+                {
+                    abilityName = "Arcane Surge",
+                    abilityDescription = "Spend 30 mana to deal triple spell damage on your next spell cast.",
+                    abilityCommand = "arcanesurge",
+                    manaCost = 30,
+                    cooldownTurns = 3
+                }
+            }
         };
 
         namedEpics.Add(staff);
@@ -129,8 +152,20 @@ public class HybridItemSystem : MonoBehaviour
             properties = new Dictionary<string, string>
             {
                 { "FireResist", "+50%" },
-                { "Thorns", "Reflect 15% damage" },
-                { "Passive", "Immune to burn effects" }
+                { "Thorns", "Reflect 15% damage" }
+            },
+
+            // ===== ABILITY =====
+            abilities = new List<ItemAbility>
+            {
+                new ItemAbility
+                {
+                    abilityName = "Dragon's Wrath",
+                    abilityDescription = "Release a fiery explosion dealing 100 damage to all enemies and granting immunity to fire for 2 turns.",
+                    abilityCommand = "dragonwrath",
+                    manaCost = 0,  // Fighters don't use mana
+                    cooldownTurns = 5
+                }
             }
         };
 
@@ -138,24 +173,21 @@ public class HybridItemSystem : MonoBehaviour
     }
 
     // ============================================
-    // GENERATE SHOP INVENTORY (FIXED FOR YOUR SPECS)
+    // GENERATE SHOP INVENTORY
     // ============================================
 
     public List<RPGItem> GenerateShopInventory(int shopSize = 10)
     {
         List<RPGItem> shopItems = new List<RPGItem>();
 
-        // NO LEGENDARIES OR UNIQUES IN SHOP!
-        // They come from admin/expeditions only
-
-        // 1. Maybe add 1 Epic (5% chance) if we have any
+        // 1. Maybe add 1 Epic (5% chance)
         if (Random.value < 0.05f && namedEpics.Count > 0)
         {
             RPGItem epic = GetRandomFromList(namedEpics);
             shopItems.Add(epic);
         }
 
-        // 2. Add 2-3 Rares (20-30% of shop)
+        // 2. Add 2-3 Rares
         int rareCount = Random.Range(2, 4);
         for (int i = 0; i < rareCount; i++)
         {
@@ -169,17 +201,15 @@ public class HybridItemSystem : MonoBehaviour
             }
             else if (enableProceduralGeneration)
             {
-                // Generate procedural rare if no hand-crafted ones
                 shopItems.Add(GenerateProceduralItem(ItemRarity.Rare));
             }
         }
 
-        // 3. Fill rest with procedural Common/Uncommon items
+        // 3. Fill rest with procedural Common/Uncommon
         if (enableProceduralGeneration)
         {
             while (shopItems.Count < shopSize)
             {
-                // 60% Common, 40% Uncommon
                 ItemRarity rarity = Random.value < 0.6f ? ItemRarity.Common : ItemRarity.Uncommon;
                 RPGItem procedural = GenerateProceduralItem(rarity);
                 shopItems.Add(procedural);
@@ -190,7 +220,7 @@ public class HybridItemSystem : MonoBehaviour
     }
 
     // ============================================
-    // PROCEDURAL GENERATION (FIXED PERCENTAGES)
+    // PROCEDURAL GENERATION
     // ============================================
 
     private RPGItem GenerateProceduralItem(ItemRarity rarity)
@@ -225,13 +255,10 @@ public class HybridItemSystem : MonoBehaviour
         weapon.requiredLevel = 0;
         weapon.price = CalculatePrice(rarity);
 
-        // Mark certain weapon types as two-handed
         weapon.isTwoHanded = IsTwoHandedWeaponType(weaponType);
 
-        // Use standard rarity percentages
         float basePercent = RPGItem.GetRarityPercentageBonus(rarity);
 
-        // Weapons focus on STR or DEX
         if (Random.value < 0.5f)
         {
             weapon.strengthBonusPercent = basePercent;
@@ -241,7 +268,6 @@ public class HybridItemSystem : MonoBehaviour
             weapon.dexterityBonusPercent = basePercent;
         }
 
-        // Two-handed weapons get bonus damage
         int damageMultiplier = weapon.isTwoHanded ? 2 : 1;
         weapon.damageBonus = (rarity == ItemRarity.Common ? Random.Range(3, 6) : Random.Range(8, 15)) * damageMultiplier;
 
@@ -250,7 +276,6 @@ public class HybridItemSystem : MonoBehaviour
 
     private bool IsTwoHandedWeaponType(string weaponType)
     {
-        // Two-handed weapon types
         string[] twoHandedTypes = { "Bow", "Staff", "Spear", "Greatsword", "Warhammer" };
 
         foreach (string type in twoHandedTypes)
@@ -275,13 +300,10 @@ public class HybridItemSystem : MonoBehaviour
         armor.requiredLevel = 0;
         armor.price = CalculatePrice(rarity);
 
-        // Use standard rarity percentages
         float basePercent = RPGItem.GetRarityPercentageBonus(rarity);
 
-        // Armor focuses on CON
         armor.constitutionBonusPercent = basePercent;
 
-        // Flat defense based on rarity
         armor.defenseBonus = rarity == ItemRarity.Common ? Random.Range(3, 8) : Random.Range(10, 20);
 
         return armor;
@@ -308,11 +330,10 @@ public class HybridItemSystem : MonoBehaviour
 
     private string GetRandomWeaponType()
     {
-        // Mix of one-handed and two-handed weapons
         string[] weapons = {
-        "Sword", "Axe", "Dagger", "Mace",           // One-handed
-        "Bow", "Staff", "Spear", "Greatsword"       // Two-handed
-    };
+            "Sword", "Axe", "Dagger", "Mace",
+            "Bow", "Staff", "Spear", "Greatsword"
+        };
         return weapons[Random.Range(0, weapons.Length)];
     }
 
@@ -340,7 +361,6 @@ public class HybridItemSystem : MonoBehaviour
 
     private int CalculatePrice(ItemRarity rarity)
     {
-        // Fixed prices per your specs
         switch (rarity)
         {
             case ItemRarity.Common: return 50;
@@ -365,7 +385,6 @@ public class HybridItemSystem : MonoBehaviour
 
     public RPGItem GetNamedItem(string itemName)
     {
-        // Search all lists
         foreach (var item in namedUniques)
             if (item.itemName.ToLower() == itemName.ToLower()) return item;
 

@@ -36,6 +36,20 @@ public enum CharacterClass
     Mage
 }
 
+// ===== NEW: ITEM ABILITY SYSTEM =====
+[Serializable]
+public class ItemAbility
+{
+    public string abilityName;          // "Backstab"
+    public string abilityDescription;   // "Deal 200% damage if attacking from stealth"
+    public string abilityCommand;       // "backstab" (for combat commands)
+    public int manaCost;                // Resource cost (sneak, mana, wrath, etc.)
+    public int cooldownTurns;           // Turns before can use again
+
+    // Future: Combat-specific data will be added in Phase 6
+    // For now, this is just for display and preparation
+}
+
 [Serializable]
 public class CharacterStats
 {
@@ -50,7 +64,7 @@ public class CharacterStats
     public int currentHealth;
     public int level;
     public int experience;
-    public int unallocatedStatPoints; // NEW: Track stat points from leveling
+    public int unallocatedStatPoints;
 
     public CharacterStats()
     {
@@ -69,7 +83,16 @@ public class CharacterStats
 
     public void RecalculateHealth()
     {
+        int oldMax = maxHealth;
         maxHealth = 50 + (constitution * 10) + (level * 5);
+
+        // If max health increased, restore the difference to current health
+        if (maxHealth > oldMax)
+        {
+            currentHealth += (maxHealth - oldMax);
+        }
+
+        // Ensure current health doesn't exceed max
         currentHealth = Mathf.Min(currentHealth, maxHealth);
     }
 }
@@ -117,11 +140,11 @@ public class RPGItem
     public string description;
     public ItemType itemType;
     public ItemRarity rarity;
-    public int requiredLevel;  // Optional: 0 = no requirement
+    public int requiredLevel;
     public int price;
 
     // TWO-HANDED WEAPON SUPPORT
-    public bool isTwoHanded = false;  // If true, uses both hands
+    public bool isTwoHanded = false;
 
     // PERCENTAGE-BASED STAT BONUSES (0.0 to 1.0 = 0% to 100%)
     [Range(0f, 1f)] public float strengthBonusPercent;
@@ -131,7 +154,7 @@ public class RPGItem
     [Range(0f, 1f)] public float charismaBonusPercent;
     [Range(0f, 1f)] public float intelligenceBonusPercent;
 
-    // FLAT COMBAT BONUSES (for predictable combat balance)
+    // FLAT COMBAT BONUSES
     public int damageBonus;
     public int defenseBonus;
     public int healAmount;
@@ -142,11 +165,21 @@ public class RPGItem
     // Special properties
     public Dictionary<string, string> properties = new Dictionary<string, string>();
 
+    // ===== NEW: ABILITIES =====
+    public List<ItemAbility> abilities = new List<ItemAbility>();
+
     public RPGItem()
     {
         itemId = Guid.NewGuid().ToString();
         allowedClasses = new List<CharacterClass>();
         properties = new Dictionary<string, string>();
+        abilities = new List<ItemAbility>();
+    }
+
+    // Check if item has abilities
+    public bool HasAbilities()
+    {
+        return abilities != null && abilities.Count > 0;
     }
 
     // Helper method to get rarity multiplier
@@ -159,7 +192,7 @@ public class RPGItem
             case ItemRarity.Rare: return 0.30f;        // 30%
             case ItemRarity.Epic: return 0.40f;        // 40%
             case ItemRarity.Legendary: return 0.50f;   // 50%
-            case ItemRarity.Unique: return 0.60f;      // 60% (special)
+            case ItemRarity.Unique: return 0.60f;      // 60%
             default: return 0.10f;
         }
     }
@@ -186,8 +219,8 @@ public class EquippedItems
     public RPGItem chest;
     public RPGItem legs;
     public RPGItem arms;
-    public RPGItem mainHand;  // LEFT HAND / MAIN HAND
-    public RPGItem offHand;   // RIGHT HAND / OFF HAND
+    public RPGItem mainHand;
+    public RPGItem offHand;
     public RPGItem feet;
 
     public bool HasItem(string itemId)
@@ -211,7 +244,7 @@ public class EquippedItems
             case ItemType.ArmArmor: return arms;
             case ItemType.Boots: return feet;
             case ItemType.Weapon:
-                return mainHand ?? offHand;  // Return either hand
+                return mainHand ?? offHand;
             default: return null;
         }
     }
@@ -226,7 +259,6 @@ public class EquippedItems
             case ItemType.ArmArmor: arms = item; break;
             case ItemType.Boots: feet = item; break;
             case ItemType.Weapon:
-                // Will be handled by EquipWeapon() in RPGManager
                 if (mainHand == null) mainHand = item;
                 else offHand = item;
                 break;
@@ -235,7 +267,6 @@ public class EquippedItems
 
     public CharacterStats CalculateTotalStats(CharacterStats baseStats)
     {
-        // Start with base stats
         CharacterStats total = new CharacterStats
         {
             strength = baseStats.strength,
@@ -249,7 +280,6 @@ public class EquippedItems
             unallocatedStatPoints = baseStats.unallocatedStatPoints
         };
 
-        // Collect all percentage bonuses (ADDITIVE)
         float totalStrBonus = 0f;
         float totalConBonus = 0f;
         float totalDexBonus = 0f;
@@ -257,30 +287,20 @@ public class EquippedItems
         float totalChaBonus = 0f;
         float totalIntBonus = 0f;
 
-        // Collect flat bonuses
-        int totalDamageBonus = 0;
-        int totalDefenseBonus = 0;
-
         RPGItem[] allItems = { head, chest, legs, arms, mainHand, offHand, feet };
         foreach (var item in allItems)
         {
             if (item != null)
             {
-                // Add percentage bonuses
                 totalStrBonus += item.strengthBonusPercent;
                 totalConBonus += item.constitutionBonusPercent;
                 totalDexBonus += item.dexterityBonusPercent;
                 totalWilBonus += item.willpowerBonusPercent;
                 totalChaBonus += item.charismaBonusPercent;
                 totalIntBonus += item.intelligenceBonusPercent;
-
-                // Add flat bonuses
-                totalDamageBonus += item.damageBonus;
-                totalDefenseBonus += item.defenseBonus;
             }
         }
 
-        // Apply percentage bonuses to base stats (minimum +1 per stat if bonus > 0)
         if (totalStrBonus > 0)
             total.strength += Mathf.Max(1, Mathf.RoundToInt(baseStats.strength * totalStrBonus));
 
@@ -299,13 +319,11 @@ public class EquippedItems
         if (totalIntBonus > 0)
             total.intelligence += Mathf.Max(1, Mathf.RoundToInt(baseStats.intelligence * totalIntBonus));
 
-        // Recalculate health with new constitution
         total.RecalculateHealth();
 
         return total;
     }
 
-    // Get total combat bonuses
     public int GetTotalDamageBonus()
     {
         int total = 0;
