@@ -43,6 +43,8 @@ public class HybridItemSystem : MonoBehaviour
         CustomShadowfang();
         CustomStaffOfTheArchmage();
         CustomDragonscalePlate();
+        CustomMeltysMelter();
+        CustomKaptainsKillerKilt();
     }
 
     // ============================================
@@ -55,7 +57,8 @@ public class HybridItemSystem : MonoBehaviour
         {
             itemName = "Shadowfang",
             description = "A legendary dagger that strikes from the shadows.",
-            itemType = ItemType.Mainhand,
+            itemType = ItemType.Weapon,
+            weaponCategory = WeaponCategory.Dagger,
             rarity = ItemRarity.Legendary,
             requiredLevel = 0,
             price = 10000,
@@ -97,7 +100,8 @@ public class HybridItemSystem : MonoBehaviour
         {
             itemName = "Staff of the Archmage",
             description = "Crackling with ancient magical power.",
-            itemType = ItemType.Mainhand,
+            itemType = ItemType.Weapon,
+            weaponCategory = WeaponCategory.Staff,
             rarity = ItemRarity.Epic,
             requiredLevel = 0,
             price = 3500,
@@ -174,27 +178,26 @@ public class HybridItemSystem : MonoBehaviour
 
     private void CustomMeltysMelter()
     {
-        RPGItem shadowfang = new RPGItem
+        RPGItem meltysmelter = new RPGItem
         {
             itemName = "Melty's Melter",
             description = "A legendary orb that disintigrates all that it touches.",
-            itemType = ItemType.Offhand,
+            itemType = ItemType.Trinket,
             rarity = ItemRarity.Legendary,
             requiredLevel = 0,
             price = 10000,
             isTwoHanded = false,
 
-            strengthBonusPercent = 0.35f,
-            dexterityBonusPercent = 0.25f,
-            intelligenceBonusPercent = 0.10f,
-            damageBonus = 40,
+            intelligenceBonusPercent = 0.40f,
+            constitutionBonusPercent = 0.30f,
+            damageBonus = 20,
 
-            allowedClasses = new List<CharacterClass> { CharacterClass.Rogue },
+            allowedClasses = new List<CharacterClass> { CharacterClass.Mage, CharacterClass.Cleric },
 
             properties = new Dictionary<string, string>
             {
-                { "CritChance", "+15%" },
-                { "Backstab", "+50% damage from stealth" }
+                { "CritChance", "+10%" },
+                { "Soul Siphon", "5% Chance to deal damage equal to current Mana/Wrath" }
             },
 
             // ===== ABILITY =====
@@ -202,16 +205,56 @@ public class HybridItemSystem : MonoBehaviour
             {
                 new ItemAbility
                 {
-                    abilityName = "Shadow Dance",
-                    abilityDescription = "Consume 3 sneak to deal 200% weapon damage and gain +2 sneak back on kill.",
-                    abilityCommand = "shadowdance",
-                    manaCost = 3,  // 3 sneak points
-                    cooldownTurns = 2
+                    abilityName = "Melty Ray",
+                    abilityDescription = "Consume 20 Mana/Wrath to deal IntX2 damage to all enemies.",
+                    abilityCommand = "meltyray",
+                    manaCost = 20,  // 20 Mana or Wrath points
+                    cooldownTurns = 3
                 }
             }
         };
 
-        namedLegendaries.Add(shadowfang);
+        namedLegendaries.Add(meltysmelter);
+    }
+
+    private void CustomKaptainsKillerKilt()
+    {
+        RPGItem killerkilt = new RPGItem
+        {
+            itemName = "Kaptain's Kilt of Killing",
+            description = "A kilt formed from the down and feathers of seagulls. Vicious seagulls.",
+            itemType = ItemType.LegArmor,
+            rarity = ItemRarity.Legendary,
+            requiredLevel = 0,
+            price = 6000,
+
+            strengthBonusPercent = 0.10f,
+            constitutionBonusPercent = 0.35f,
+            defenseBonus = 50,
+
+            allowedClasses = new List<CharacterClass> { CharacterClass.Fighter },
+
+            properties = new Dictionary<string, string>
+            {
+                { "FireResist", "+50%" },
+                { "Thorns", "Reflect 15% damage" }
+            },
+
+            // ===== ABILITY =====
+            abilities = new List<ItemAbility>
+            {
+                new ItemAbility
+                {
+                    abilityName = "Squawk",
+                    abilityDescription = "Release a legendary squawk, weakening all foes.",
+                    abilityCommand = "squawk",
+                    manaCost = 0,  // Fighters don't use mana
+                    cooldownTurns = 5
+                }
+            }
+        };
+
+        namedLegendaries.Add(killerkilt);
     }
 
     // ============================================
@@ -271,7 +314,7 @@ public class HybridItemSystem : MonoBehaviour
 
         switch (type)
         {
-            case ItemType.Mainhand:
+            case ItemType.Weapon:
                 return GenerateProceduralWeapon(rarity);
             case ItemType.Helmet:
             case ItemType.ChestArmor:
@@ -292,7 +335,7 @@ public class HybridItemSystem : MonoBehaviour
         string weaponType = GetRandomWeaponType();
         weapon.itemName = $"{material} {weaponType}";
         weapon.description = $"A {rarity.ToString().ToLower()} quality {weaponType.ToLower()}.";
-        weapon.itemType = ItemType.Mainhand;
+        weapon.itemType = ItemType.Weapon;
         weapon.rarity = rarity;
         weapon.requiredLevel = 0;
         weapon.price = CalculatePrice(rarity);
@@ -374,7 +417,7 @@ public class HybridItemSystem : MonoBehaviour
     {
         string[] weapons = {
             "Sword", "Axe", "Dagger", "Mace",
-            "Bow", "Staff", "Spear", "Greatsword"
+            "Bow", "Staff", "Spear", "Greatsword", "Warhammer"
         };
         return weapons[Random.Range(0, weapons.Length)];
     }
@@ -395,8 +438,8 @@ public class HybridItemSystem : MonoBehaviour
     private ItemType GetRandomItemType()
     {
         ItemType[] types = {
-            ItemType.Mainhand, ItemType.Helmet, ItemType.ChestArmor,
-            ItemType.LegArmor, ItemType.ArmArmor, ItemType.Boots, ItemType.Offhand
+            ItemType.Weapon, ItemType.Helmet, ItemType.ChestArmor,
+            ItemType.LegArmor, ItemType.ArmArmor, ItemType.Boots, ItemType.Shield, ItemType.Trinket,
         };
         return types[Random.Range(0, types.Length)];
     }

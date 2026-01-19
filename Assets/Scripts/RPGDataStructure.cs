@@ -16,14 +16,30 @@ public enum ItemRarity
 [Serializable]
 public enum ItemType
 {
-    Mainhand,
-    Offhand,
+    Weapon,
+    Shield,      // Offhand-only for Fighters/Clerics
+    Trinket,     // Offhand-only for Mages
     Helmet,
     ChestArmor,
     LegArmor,
     ArmArmor,
     Boots,
     Consumable
+}
+
+[Serializable]
+public enum WeaponCategory
+{
+    None,
+    Sword,       // One-handed, mainhand-only
+    Axe,         // One-handed, mainhand-only
+    Mace,        // One-handed, mainhand-only
+    Dagger,      // One-handed, can dual wield (Rogue/Ranger)
+    Bow,         // Two-handed
+    Staff,       // Two-handed
+    Spear,       // Two-handed
+    Greatsword,  // Two-handed
+    Warhammer    // Two-handed
 }
 
 [Serializable]
@@ -37,18 +53,15 @@ public enum CharacterClass
     Mage
 }
 
-// ===== NEW: ITEM ABILITY SYSTEM =====
+// ===== ITEM ABILITY SYSTEM =====
 [Serializable]
 public class ItemAbility
 {
-    public string abilityName;          // "Backstab"
-    public string abilityDescription;   // "Deal 200% damage if attacking from stealth"
-    public string abilityCommand;       // "backstab" (for combat commands)
-    public int manaCost;                // Resource cost (sneak, mana, wrath, etc.)
-    public int cooldownTurns;           // Turns before can use again
-
-    // Future: Combat-specific data will be added in Phase 6
-    // For now, this is just for display and preparation
+    public string abilityName;
+    public string abilityDescription;
+    public string abilityCommand;
+    public int manaCost;
+    public int cooldownTurns;
 }
 
 [Serializable]
@@ -87,13 +100,11 @@ public class CharacterStats
         int oldMax = maxHealth;
         maxHealth = 50 + (constitution * 10) + (level * 5);
 
-        // If max health increased, restore the difference to current health
         if (maxHealth > oldMax)
         {
             currentHealth += (maxHealth - oldMax);
         }
 
-        // Ensure current health doesn't exceed max
         currentHealth = Mathf.Min(currentHealth, maxHealth);
     }
 }
@@ -144,10 +155,11 @@ public class RPGItem
     public int requiredLevel;
     public int price;
 
-    // TWO-HANDED WEAPON SUPPORT
+    // WEAPON PROPERTIES
     public bool isTwoHanded = false;
+    public WeaponCategory weaponCategory = WeaponCategory.None;
 
-    // PERCENTAGE-BASED STAT BONUSES (0.0 to 1.0 = 0% to 100%)
+    // PERCENTAGE-BASED STAT BONUSES
     [Range(0f, 1f)] public float strengthBonusPercent;
     [Range(0f, 1f)] public float constitutionBonusPercent;
     [Range(0f, 1f)] public float dexterityBonusPercent;
@@ -166,7 +178,7 @@ public class RPGItem
     // Special properties
     public Dictionary<string, string> properties = new Dictionary<string, string>();
 
-    // ===== NEW: ABILITIES =====
+    // Abilities
     public List<ItemAbility> abilities = new List<ItemAbility>();
 
     public RPGItem()
@@ -183,17 +195,62 @@ public class RPGItem
         return abilities != null && abilities.Count > 0;
     }
 
+    // Check if this weapon can be dual wielded by this class
+    public bool CanDualWield(CharacterClass charClass)
+    {
+        if (itemType != ItemType.Weapon) return false;
+        if (isTwoHanded) return false;
+        if (weaponCategory != WeaponCategory.Dagger) return false;
+
+        // Only Rogues and Rangers can dual wield daggers
+        return charClass == CharacterClass.Rogue || charClass == CharacterClass.Ranger;
+    }
+
+    // Check if this item can go in offhand for this class
+    public bool CanEquipInOffhand(CharacterClass charClass)
+    {
+        // Shields: Fighters and Clerics only
+        if (itemType == ItemType.Shield)
+        {
+            return charClass == CharacterClass.Fighter || charClass == CharacterClass.Cleric;
+        }
+
+        // Trinkets: Mages only
+        if (itemType == ItemType.Trinket)
+        {
+            return charClass == CharacterClass.Mage;
+        }
+
+        // Daggers: Rogues and Rangers can dual wield
+        if (itemType == ItemType.Weapon && weaponCategory == WeaponCategory.Dagger)
+        {
+            return charClass == CharacterClass.Rogue || charClass == CharacterClass.Ranger;
+        }
+
+        return false;
+    }
+
+    // Check if this weapon MUST go in mainhand only
+    public bool IsMainhandOnly()
+    {
+        if (itemType != ItemType.Weapon) return false;
+        if (isTwoHanded) return true;
+
+        // All weapons except daggers are mainhand-only
+        return weaponCategory != WeaponCategory.Dagger;
+    }
+
     // Helper method to get rarity multiplier
     public static float GetRarityPercentageBonus(ItemRarity rarity)
     {
         switch (rarity)
         {
-            case ItemRarity.Common: return 0.10f;      // 10%
-            case ItemRarity.Uncommon: return 0.20f;    // 20%
-            case ItemRarity.Rare: return 0.30f;        // 30%
-            case ItemRarity.Epic: return 0.40f;        // 40%
-            case ItemRarity.Legendary: return 0.50f;   // 50%
-            case ItemRarity.Unique: return 0.60f;      // 60%
+            case ItemRarity.Common: return 0.10f;
+            case ItemRarity.Uncommon: return 0.20f;
+            case ItemRarity.Rare: return 0.30f;
+            case ItemRarity.Epic: return 0.40f;
+            case ItemRarity.Legendary: return 0.50f;
+            case ItemRarity.Unique: return 0.60f;
             default: return 0.10f;
         }
     }
@@ -244,9 +301,11 @@ public class EquippedItems
             case ItemType.LegArmor: return legs;
             case ItemType.ArmArmor: return arms;
             case ItemType.Boots: return feet;
-            case ItemType.Offhand: return offHand;
-            case ItemType.Mainhand:
+            case ItemType.Weapon:
                 return mainHand;
+            case ItemType.Shield:
+            case ItemType.Trinket:
+                return offHand;
             default: return null;
         }
     }
@@ -260,10 +319,13 @@ public class EquippedItems
             case ItemType.LegArmor: legs = item; break;
             case ItemType.ArmArmor: arms = item; break;
             case ItemType.Boots: feet = item; break;
-            case ItemType.Offhand: offHand = item; break;
-            case ItemType.Mainhand:
+            case ItemType.Weapon:
                 if (mainHand == null) mainHand = item;
                 else offHand = item;
+                break;
+            case ItemType.Shield:
+            case ItemType.Trinket:
+                offHand = item;
                 break;
         }
     }
