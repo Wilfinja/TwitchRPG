@@ -414,26 +414,6 @@ public class EquippedItems
     }
 }
 
-[Serializable]
-public class ViewerData
-{
-    public string twitchUserId;
-    public string username;
-    public int coins;
-    public CharacterClass characterClass;
-
-    public CharacterStats baseStats;
-    public ClassResources classResources;
-    public EquippedItems equipped;
-    public List<RPGItem> inventory;
-
-    public DateTime lastSeen;
-    public float totalWatchTimeMinutes;
-    public bool isInCombat;
-    public bool isDead;
-    public DateTime deathLockoutUntil;
-    public bool isBanned;
-
     [Serializable]
     public class ViewerData
     {

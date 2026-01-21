@@ -340,7 +340,13 @@ public class HybridItemSystem : MonoBehaviour
 
         offhand.itemName = $"{material} {offhandType}";
         offhand.description = $"A {rarity.ToString().ToLower()} quality {offhandType.ToLower()}.";
-        offhand.itemType = ItemType.Trinket;
+
+        // FIX: Set correct ItemType based on offhand type
+        if (offhandType == "Shield")
+            offhand.itemType = ItemType.Shield;
+        else
+            offhand.itemType = ItemType.Trinket;
+
         offhand.rarity = rarity;
         offhand.requiredLevel = 0;
         offhand.price = CalculatePrice(rarity);

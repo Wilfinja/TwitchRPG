@@ -73,8 +73,6 @@ public class RPGChatCommands : MonoBehaviour
             case "help":
             case "rpghelp":
                 return HandleHelpCommand(viewer);
-            case "trade":
-                return HandleTradeCommand(viewer, args);
 
             case "give":
                 return HandleGiveCommand(viewer, args);
@@ -667,18 +665,6 @@ public class RPGChatCommands : MonoBehaviour
         }
 
         return $"✅ {viewer.username} bought {purchasedItem.itemName}! ({bonusText})\nRemaining coins: {viewer.coins}";
-    }
-
-    private string HandleTradeCommand(ViewerData viewer, string[] args)
-    {
-        if (args.Length < 2)
-        {
-            return $"{viewer.username}: Usage:\n" +
-                   "!trade @username <item name> - Trade an item\n" +
-                   "!trade @username coins <amount> - Trade coins";
-        }
-
-        return $"{viewer.username}: Trading system coming soon!";
     }
 
     // ===== NEW ABILITIES COMMANDS =====
