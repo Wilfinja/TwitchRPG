@@ -53,6 +53,8 @@ public enum CharacterClass
     Mage
 }
 
+
+
 // ===== ITEM ABILITY SYSTEM =====
 [Serializable]
 public class ItemAbility
@@ -432,27 +434,53 @@ public class ViewerData
     public DateTime deathLockoutUntil;
     public bool isBanned;
 
-    public ViewerData(string userId, string name)
+    [Serializable]
+    public class ViewerData
     {
-        twitchUserId = userId;
-        username = name;
-        coins = 0;
-        characterClass = CharacterClass.None;
+        public string twitchUserId;
+        public string username;
+        public int coins;
+        public CharacterClass characterClass;
 
-        baseStats = new CharacterStats();
-        classResources = new ClassResources();
-        equipped = new EquippedItems();
-        inventory = new List<RPGItem>();
+        public CharacterStats baseStats;
+        public ClassResources classResources;
+        public EquippedItems equipped;
+        public List<RPGItem> inventory;
 
-        lastSeen = DateTime.Now;
-        totalWatchTimeMinutes = 0;
-        isInCombat = false;
-        isDead = false;
-        deathLockoutUntil = DateTime.MinValue;
-        isBanned = false;
-    }
+        public DateTime lastSeen;
+        public float totalWatchTimeMinutes;
+        public bool isInCombat;
+        public bool isDead;
+        public DateTime deathLockoutUntil;
+        public bool isBanned;
 
-    public bool CanTakeAction()
+        // ===== ADD THIS LINE =====
+        public List<TradeRecord> tradeHistory;
+
+        public ViewerData(string userId, string name)
+        {
+            twitchUserId = userId;
+            username = name;
+            coins = 0;
+            characterClass = CharacterClass.None;
+
+            baseStats = new CharacterStats();
+            classResources = new ClassResources();
+            equipped = new EquippedItems();
+            inventory = new List<RPGItem>();
+
+            // ===== ADD THIS LINE =====
+            tradeHistory = new List<TradeRecord>();
+
+            lastSeen = DateTime.Now;
+            totalWatchTimeMinutes = 0;
+            isInCombat = false;
+            isDead = false;
+            deathLockoutUntil = DateTime.MinValue;
+            isBanned = false;
+        }
+
+        public bool CanTakeAction()
     {
         if (isBanned) return false;
         if (isDead && DateTime.Now < deathLockoutUntil) return false;

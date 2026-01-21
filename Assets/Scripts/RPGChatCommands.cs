@@ -73,6 +73,20 @@ public class RPGChatCommands : MonoBehaviour
             case "help":
             case "rpghelp":
                 return HandleHelpCommand(viewer);
+            case "trade":
+                return HandleTradeCommand(viewer, args);
+
+            case "give":
+                return HandleGiveCommand(viewer, args);
+
+            case "accepttrade":
+                return HandleAcceptTradeCommand(viewer, args);
+
+            case "canceltrade":
+                return HandleCancelTradeCommand(viewer);
+
+            case "tradehistory":
+                return HandleTradeHistoryCommand(viewer, args);
 
             default:
                 return null;
@@ -1177,5 +1191,209 @@ public class RPGChatCommands : MonoBehaviour
         }
 
         return null;
+    }
+
+    private string HandleTradeCommand(ViewerData viewer, string[] args)
+    {
+        if (viewer.characterClass == CharacterClass.None)
+        {
+            return $"{viewer.username}: Choose a class first with !class";
+        }
+
+        if (args.Length < 2)
+        {
+            return $"{viewer.username}: Usage:\n" +
+                   "!trade @username coins <amount> - Give coins\n" +
+                   "!trade @username item <name> - Give item\n" +
+                   "!trade @username offer:<item/coins> want:<item/coins> - Trade offer\n" +
+                   "Examples:\n" +
+                   "  !trade @alice coins 100\n" +
+                   "  !trade @bob item iron sword\n" +
+                   "  !trade @carol offer:steel axe want:100";
+        }
+
+        if (TradeManager.Instance == null)
+        {
+            return "Trade system not available!";
+        }
+
+        string targetUsername = args[0].TrimStart('@');
+
+        // SIMPLE COMMANDS: coins or item
+        if (args.Length >= 2 && args[1].ToLower() == "coins")
+        {
+            if (args.Length < 3)
+            {
+                return $"{viewer.username}: !trade @{targetUsername} coins <amount>";
+            }
+
+            if (!int.TryParse(args[2], out int amount))
+            {
+                return $"{viewer.username}: Invalid coin amount!";
+            }
+
+            return TradeManager.Instance.GiveCoins(viewer.twitchUserId, viewer.username, targetUsername, amount);
+        }
+
+        if (args.Length >= 2 && args[1].ToLower() == "item")
+        {
+            if (args.Length < 3)
+            {
+                return $"{viewer.username}: !trade @{targetUsername} item <name>";
+            }
+
+            string itemName = string.Join(" ", args.Skip(2));
+            return TradeManager.Instance.GiveItem(viewer.twitchUserId, viewer.username, targetUsername, itemName);
+        }
+
+        // TRADE OFFER SYSTEM: offer:X want:Y
+        string offerItemName = null;
+        string wantItemName = null;
+        int offerCoins = 0;
+        int wantCoins = 0;
+
+        foreach (string arg in args.Skip(1))
+        {
+            if (arg.StartsWith("offer:", StringComparison.OrdinalIgnoreCase))
+            {
+                string value = arg.Substring(6);
+                if (int.TryParse(value, out int coins))
+                {
+                    offerCoins = coins;
+                }
+                else
+                {
+                    offerItemName = value;
+                }
+            }
+            else if (arg.StartsWith("want:", StringComparison.OrdinalIgnoreCase))
+            {
+                string value = arg.Substring(5);
+                if (int.TryParse(value, out int coins))
+                {
+                    wantCoins = coins;
+                }
+                else
+                {
+                    wantItemName = value;
+                }
+            }
+        }
+
+        // Validate we have something to offer and want
+        if (string.IsNullOrEmpty(offerItemName) && offerCoins == 0)
+        {
+            return $"{viewer.username}: You must offer something! Use offer:<item or coins>";
+        }
+
+        if (string.IsNullOrEmpty(wantItemName) && wantCoins == 0)
+        {
+            return $"{viewer.username}: You must want something! Use want:<item or coins>";
+        }
+
+        return TradeManager.Instance.CreateTradeOffer(
+            viewer.twitchUserId,
+            viewer.username,
+            targetUsername,
+            offerItemName,
+            wantItemName,
+            offerCoins,
+            wantCoins
+        );
+    }
+
+    private string HandleGiveCommand(ViewerData viewer, string[] args)
+    {
+        // Alternative simpler syntax: !give @user coins 100  OR  !give @user iron sword
+        if (args.Length < 2)
+        {
+            return $"{viewer.username}: Usage:\n" +
+                   "!give @username coins <amount>\n" +
+                   "!give @username <item name>";
+        }
+
+        if (TradeManager.Instance == null)
+        {
+            return "Trade system not available!";
+        }
+
+        string targetUsername = args[0].TrimStart('@');
+
+        // Check if second arg is "coins"
+        if (args[1].ToLower() == "coins")
+        {
+            if (args.Length < 3)
+            {
+                return $"{viewer.username}: !give @{targetUsername} coins <amount>";
+            }
+
+            if (!int.TryParse(args[2], out int amount))
+            {
+                return $"{viewer.username}: Invalid coin amount!";
+            }
+
+            return TradeManager.Instance.GiveCoins(viewer.twitchUserId, viewer.username, targetUsername, amount);
+        }
+
+        // Otherwise it's an item name
+        string itemName = string.Join(" ", args.Skip(1));
+        return TradeManager.Instance.GiveItem(viewer.twitchUserId, viewer.username, targetUsername, itemName);
+    }
+
+    private string HandleAcceptTradeCommand(ViewerData viewer, string[] args)
+    {
+        if (viewer.characterClass == CharacterClass.None)
+        {
+            return $"{viewer.username}: Choose a class first with !class";
+        }
+
+        if (args.Length < 1)
+        {
+            return $"{viewer.username}: Usage: !accepttrade @username";
+        }
+
+        if (TradeManager.Instance == null)
+        {
+            return "Trade system not available!";
+        }
+
+        string initiatorUsername = args[0].TrimStart('@');
+        return TradeManager.Instance.AcceptTrade(viewer.twitchUserId, viewer.username, initiatorUsername);
+    }
+
+    private string HandleCancelTradeCommand(ViewerData viewer)
+    {
+        if (viewer.characterClass == CharacterClass.None)
+        {
+            return $"{viewer.username}: Choose a class first with !class";
+        }
+
+        if (TradeManager.Instance == null)
+        {
+            return "Trade system not available!";
+        }
+
+        return TradeManager.Instance.CancelTrade(viewer.twitchUserId, viewer.username);
+    }
+
+    private string HandleTradeHistoryCommand(ViewerData viewer, string[] args)
+    {
+        if (viewer.characterClass == CharacterClass.None)
+        {
+            return $"{viewer.username}: Choose a class first with !class";
+        }
+
+        if (TradeManager.Instance == null)
+        {
+            return "Trade system not available!";
+        }
+
+        int count = 10;
+        if (args.Length > 0 && int.TryParse(args[0], out int requestedCount))
+        {
+            count = Mathf.Clamp(requestedCount, 1, 20);
+        }
+
+        return TradeManager.Instance.GetTradeHistory(viewer.twitchUserId, count);
     }
 }
