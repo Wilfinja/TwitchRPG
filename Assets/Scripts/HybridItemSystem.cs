@@ -316,6 +316,9 @@ public class HybridItemSystem : MonoBehaviour
         {
             case ItemType.Weapon:
                 return GenerateProceduralWeapon(rarity);
+            case ItemType.Trinket:
+            case ItemType.Shield:
+                return GenerateProceduralOffhand(rarity); // ADD THIS
             case ItemType.Helmet:
             case ItemType.ChestArmor:
             case ItemType.LegArmor:
@@ -325,6 +328,40 @@ public class HybridItemSystem : MonoBehaviour
             default:
                 return GenerateProceduralWeapon(rarity);
         }
+    }
+
+    private RPGItem GenerateProceduralOffhand(ItemRarity rarity)
+    {
+        RPGItem offhand = new RPGItem();
+
+        string material = GetRandomMaterial(rarity);
+        string[] offhandTypes = { "Shield", "Orb", "Tome", "Focus" };
+        string offhandType = offhandTypes[Random.Range(0, offhandTypes.Length)];
+
+        offhand.itemName = $"{material} {offhandType}";
+        offhand.description = $"A {rarity.ToString().ToLower()} quality {offhandType.ToLower()}.";
+        offhand.itemType = ItemType.Trinket;
+        offhand.rarity = rarity;
+        offhand.requiredLevel = 0;
+        offhand.price = CalculatePrice(rarity);
+        offhand.isTwoHanded = false;
+
+        float basePercent = RPGItem.GetRarityPercentageBonus(rarity);
+
+        // Shields = CON/DEF, Magic offhands = INT/WIL
+        if (offhandType == "Shield")
+        {
+            offhand.constitutionBonusPercent = basePercent;
+            offhand.defenseBonus = rarity == ItemRarity.Common ? Random.Range(5, 10) : Random.Range(12, 20);
+        }
+        else
+        {
+            offhand.intelligenceBonusPercent = basePercent * 0.7f;
+            offhand.willpowerBonusPercent = basePercent * 0.3f;
+            offhand.damageBonus = rarity == ItemRarity.Common ? Random.Range(2, 5) : Random.Range(6, 12);
+        }
+
+        return offhand;
     }
 
     private RPGItem GenerateProceduralWeapon(ItemRarity rarity)
@@ -438,9 +475,15 @@ public class HybridItemSystem : MonoBehaviour
     private ItemType GetRandomItemType()
     {
         ItemType[] types = {
-            ItemType.Weapon, ItemType.Helmet, ItemType.ChestArmor,
-            ItemType.LegArmor, ItemType.ArmArmor, ItemType.Boots, ItemType.Shield, ItemType.Trinket,
-        };
+        ItemType.Weapon,
+        ItemType.Trinket,
+        ItemType.Shield,     // ADD THIS
+        ItemType.Helmet,
+        ItemType.ChestArmor,
+        ItemType.LegArmor,
+        ItemType.ArmArmor,
+        ItemType.Boots
+    };
         return types[Random.Range(0, types.Length)];
     }
 

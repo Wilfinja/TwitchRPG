@@ -212,25 +212,31 @@ public class RPGManager : MonoBehaviour
             return false;
         }
 
-        // Handle weapon equipping (main hand / off hand / two-handed)
+        // Handle different item types
         if (item.itemType == ItemType.Weapon)
         {
             return EquipWeapon(viewer, item);
         }
-
-        // Handle armor equipping
-        RPGItem currentItem = viewer.equipped.GetEquippedItem(item.itemType);
-        if (currentItem != null)
+        else if (item.itemType == ItemType.Shield || item.itemType == ItemType.Trinket)
         {
-            viewer.AddItem(currentItem); // Put back in inventory
+            return EquipOffhandItem(viewer, item);
         }
+        else
+        {
+            // Handle armor equipping
+            RPGItem currentItem = viewer.equipped.GetEquippedItem(item.itemType);
+            if (currentItem != null)
+            {
+                viewer.AddItem(currentItem); // Put back in inventory
+            }
 
-        viewer.equipped.SetEquippedItem(item.itemType, item);
-        viewer.RemoveItem(itemId); // Remove from inventory
+            viewer.equipped.SetEquippedItem(item.itemType, item);
+            viewer.RemoveItem(itemId);
 
-        Debug.Log($"[RPG] {viewer.username} equipped {item.itemName}");
-        SaveGameData();
-        return true;
+            Debug.Log($"[RPG] {viewer.username} equipped {item.itemName}");
+            SaveGameData();
+            return true;
+        }
     }
 
     private bool EquipWeapon(ViewerData viewer, RPGItem weapon)
@@ -269,7 +275,7 @@ public class RPGManager : MonoBehaviour
             return true;
         }
 
-        // ONE-HANDED WEAPON: Equip in first available hand
+        // ONE-HANDED WEAPON: Equip in main hand
 
         // If main hand has two-handed weapon, unequip it first
         if (viewer.equipped.mainHand != null && viewer.equipped.mainHand.isTwoHanded)
@@ -282,41 +288,50 @@ public class RPGManager : MonoBehaviour
             viewer.equipped.mainHand = null;
         }
 
-        // Try main hand first
-        if (viewer.equipped.mainHand == null)
+        // If main hand occupied, unequip it
+        if (viewer.equipped.mainHand != null)
         {
-            viewer.equipped.mainHand = weapon;
-            viewer.RemoveItem(weapon.itemId);
-            Debug.Log($"[RPG] {viewer.username} equipped {weapon.itemName} in main hand");
-            SaveGameData();
-            return true;
-        }
-
-        // Main hand full, try off hand
-        if (viewer.equipped.offHand == null)
-        {
-            viewer.equipped.offHand = weapon;
-            viewer.RemoveItem(weapon.itemId);
-            Debug.Log($"[RPG] {viewer.username} equipped {weapon.itemName} in off hand");
-            SaveGameData();
-            return true;
-        }
-
-        // Both hands full, replace main hand
-        if (!viewer.AddItem(viewer.equipped.mainHand))
-        {
-            Debug.LogWarning($"[RPG] Inventory full!");
-            return false;
+            if (!viewer.AddItem(viewer.equipped.mainHand))
+            {
+                Debug.LogWarning($"[RPG] Inventory full!");
+                return false;
+            }
         }
 
         viewer.equipped.mainHand = weapon;
         viewer.RemoveItem(weapon.itemId);
 
-        Debug.Log($"[RPG] {viewer.username} equipped {weapon.itemName} in main hand (replaced existing)");
+        Debug.Log($"[RPG] {viewer.username} equipped {weapon.itemName} in main hand");
         SaveGameData();
         return true;
     }
 
+    private bool EquipOffhandItem(ViewerData viewer, RPGItem offhandItem)
+    {
+        // Can't equip offhand item if wielding two-handed weapon
+        if (viewer.equipped.mainHand != null && viewer.equipped.mainHand.isTwoHanded)
+        {
+            Debug.LogWarning($"[RPG] Cannot equip offhand while wielding two-handed weapon {viewer.equipped.mainHand.itemName}");
+            return false;
+        }
+
+        // Unequip current offhand if equipped
+        if (viewer.equipped.offHand != null)
+        {
+            if (!viewer.AddItem(viewer.equipped.offHand))
+            {
+                Debug.LogWarning($"[RPG] Inventory full!");
+                return false;
+            }
+        }
+
+        viewer.equipped.offHand = offhandItem;
+        viewer.RemoveItem(offhandItem.itemId);
+
+        Debug.Log($"[RPG] {viewer.username} equipped {offhandItem.itemName} in off hand");
+        SaveGameData();
+        return true;
+    }
     public bool UnequipItem(string userId, ItemType slot)
     {
         ViewerData viewer = GetViewer(userId);

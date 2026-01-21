@@ -319,13 +319,11 @@ public class EquippedItems
             case ItemType.LegArmor: legs = item; break;
             case ItemType.ArmArmor: arms = item; break;
             case ItemType.Boots: feet = item; break;
-            case ItemType.Weapon:
-                if (mainHand == null) mainHand = item;
-                else offHand = item;
-                break;
-            case ItemType.Shield:
-            case ItemType.Trinket:
-                offHand = item;
+            case ItemType.Weapon: mainHand = item; break; // FIXED - direct assignment
+            case ItemType.Shield: offHand = item; break;
+            case ItemType.Trinket: offHand = item; break;
+            default:
+                Debug.LogWarning($"[RPGData] Unknown item type: {slot}");
                 break;
         }
     }
