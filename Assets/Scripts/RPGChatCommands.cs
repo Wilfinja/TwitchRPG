@@ -86,6 +86,15 @@ public class RPGChatCommands : MonoBehaviour
             case "tradehistory":
                 return HandleTradeHistoryCommand(viewer, args);
 
+            case "enterexpedition":
+                return HandleEnterExpedition(viewer, args);
+
+            case "queue":
+                return HandleQueueAction(viewer, args);
+
+            case "confirm":
+                return HandleConfirmAction(viewer);
+
             default:
                 return null;
         }
@@ -667,6 +676,62 @@ public class RPGChatCommands : MonoBehaviour
         return $"✅ {viewer.username} bought {purchasedItem.itemName}! ({bonusText})\nRemaining coins: {viewer.coins}";
     }
 
+    private string HandleEnterExpedition(ViewerData viewer, string[] args)
+    {
+        if (viewer.characterClass == CharacterClass.None)
+        {
+            return $"{viewer.username}: Choose a class first with !class";
+        }
+
+        if (args.Length < 1)
+        {
+            return $"{viewer.username}: Usage: !enterexpedition <position 1-4>";
+        }
+
+        if (!int.TryParse(args[0], out int position))
+        {
+            return $"{viewer.username}: Position must be a number 1-4";
+        }
+
+        if (ExpeditionManager.Instance != null)
+        {
+            ExpeditionManager.Instance.AddParticipant(viewer.twitchUserId, viewer.username, position);
+            return null; // ExpeditionManager sends its own messages
+        }
+
+        return "No expedition is currently accepting joins!";
+    }
+
+    private string HandleQueueAction(ViewerData viewer, string[] args)
+    {
+        if (args.Length < 1)
+        {
+            return $"{viewer.username}: Usage: !queue <ability> [target]\nExample: !queue quickcut";
+        }
+
+        string abilityName = args[0].ToLower();
+        string targetName = args.Length >= 2 ? args[1] : null;
+
+        if (CombatTurnManager.Instance != null)
+        {
+            CombatTurnManager.Instance.QueueAction(viewer.twitchUserId, viewer.username, abilityName, targetName);
+            return null; // CombatTurnManager sends its own messages
+        }
+
+        return $"{viewer.username}: Not currently in combat!";
+    }
+
+    private string HandleConfirmAction(ViewerData viewer)
+    {
+        if (CombatTurnManager.Instance != null)
+        {
+            CombatTurnManager.Instance.ConfirmAction(viewer.twitchUserId, viewer.username);
+            return null; // CombatTurnManager sends its own messages
+        }
+
+        return $"{viewer.username}: Not currently in combat!";
+    }
+
     // ===== NEW ABILITIES COMMANDS =====
     private string HandleAbilitiesCommand(ViewerData viewer)
     {
@@ -677,13 +742,28 @@ public class RPGChatCommands : MonoBehaviour
 
         string result = $"═══ {viewer.username}'s Abilities ═══\n";
 
+        // Get class combat abilities
+        if (AbilityDatabase.Instance != null)
+        {
+            var classAbilities = AbilityDatabase.Instance.GetAbilitiesForClass(viewer.characterClass);
+
+            if (classAbilities.Count > 0)
+            {
+                result += "\n[CLASS ABILITIES]\n";
+                foreach (var ability in classAbilities)
+                {
+                    result += $"• {ability.abilityName} (use: !queue {ability.commandName})\n";
+                }
+            }
+        }
+
         // Get abilities from equipped items
         List<ItemAbility> equippedAbilities = new List<ItemAbility>();
         RPGItem[] allEquipped = {
-            viewer.equipped.head, viewer.equipped.chest, viewer.equipped.arms,
-            viewer.equipped.legs, viewer.equipped.mainHand, viewer.equipped.offHand,
-            viewer.equipped.feet
-        };
+        viewer.equipped.head, viewer.equipped.chest, viewer.equipped.arms,
+        viewer.equipped.legs, viewer.equipped.mainHand, viewer.equipped.offHand,
+        viewer.equipped.feet
+    };
 
         foreach (var item in allEquipped)
         {
@@ -695,22 +775,19 @@ public class RPGChatCommands : MonoBehaviour
 
         if (equippedAbilities.Count > 0)
         {
-            result += "\n[ACTIVE ITEM ABILITIES]\n";
+            result += "\n[ITEM ABILITIES]\n";
             foreach (var ability in equippedAbilities)
             {
                 result += $"• {ability.abilityName}\n";
             }
         }
-        else
+
+        if (classAbilities.Count == 0 && equippedAbilities.Count == 0)
         {
-            result += "\nNo item abilities equipped.\n";
+            result += "\nNo abilities available.\n";
         }
 
-        result += "\n[CLASS ABILITIES]\n";
-        result += "Coming in Phase 6 (Combat)!\n";
-
-        result += "\nUse !ability <name> for details\n";
-        result += "Example: !ability backstab";
+        result += "\nUse !ability <name> for details";
 
         return result;
     }
@@ -824,9 +901,61 @@ public class RPGChatCommands : MonoBehaviour
                 return HandleAdminGiveItem(args);
             case "rpgtestlevelup":
                 return HandleAdminTestLevelUp(args);
+            case "startexpedition":
+                return HandleStartExpedition(args);
+
+            case "cancelexpedition":
+                return HandleCancelExpedition();
             default:
                 return null;
         }
+    }
+
+    private string HandleStartExpedition(string[] args)
+    {
+        if (args.Length < 1)
+        {
+            return "Usage: !startexpedition <easy/medium/hard/deadly>";
+        }
+
+        string difficultyStr = args[0].ToLower();
+        ExpeditionDifficulty difficulty;
+
+        switch (difficultyStr)
+        {
+            case "easy":
+                difficulty = ExpeditionDifficulty.Easy;
+                break;
+            case "medium":
+                difficulty = ExpeditionDifficulty.Medium;
+                break;
+            case "hard":
+                difficulty = ExpeditionDifficulty.Hard;
+                break;
+            case "deadly":
+                difficulty = ExpeditionDifficulty.Deadly;
+                break;
+            default:
+                return "Invalid difficulty! Use: easy, medium, hard, or deadly";
+        }
+
+        if (ExpeditionManager.Instance != null)
+        {
+            ExpeditionManager.Instance.QueueExpedition(difficulty);
+            return null; // ExpeditionManager sends its own message
+        }
+
+        return "Expedition system not available!";
+    }
+
+    private string HandleCancelExpedition()
+    {
+        if (ExpeditionManager.Instance != null)
+        {
+            ExpeditionManager.Instance.CancelExpedition();
+            return "Expedition cancelled.";
+        }
+        return "No active expedition to cancel.";
     }
 
     // ===== NEW ADMIN COMMAND FOR TESTING LEVELUP =====

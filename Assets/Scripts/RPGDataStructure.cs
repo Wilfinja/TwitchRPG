@@ -55,6 +55,8 @@ public enum CharacterClass
 
 
 
+
+
 // ===== ITEM ABILITY SYSTEM =====
 [Serializable]
 public class ItemAbility
@@ -64,6 +66,98 @@ public class ItemAbility
     public string abilityCommand;
     public int manaCost;
     public int cooldownTurns;
+}
+
+[Serializable]
+public class CombatAbility
+{
+    public string abilityName;
+    public string commandName; // What players type
+    [TextArea(3, 5)]
+    public string description;
+    public CharacterClass requiredClass;
+
+    // Ability type
+    public AbilityCategory category; // Buff, Heal, Damage
+    public AbilityTargetType targetType;
+
+    // Damage/Healing
+    public DamageStat scalingStat;
+    public float statMultiplier = 1f;
+    public int baseDamage;
+
+    // Resource costs (reuse existing ClassResources structure)
+    public int sneakCost;
+    public int sneakGain;
+    public int manaCost;
+    public int wrathCost;
+    public int wrathGain;
+    public int balanceCost;
+    public int balanceGain;
+    public int balanceRequirement;
+    public BalanceRequirementType balanceRequirementType;
+
+    // Targeting
+    public bool canTargetAllies;
+    public bool canTargetEnemies = true;
+    public int maxTargetPosition = 1;
+    public bool isAOE;
+    public int aoeTargets = 1;
+
+    public int cooldown;
+}
+
+[Serializable]
+public enum FighterStance
+{
+    None,
+    Defensive,
+    Aggressive,
+    Balanced
+}
+
+[Serializable]
+public class StatusEffect
+{
+    public string effectName;
+    public int duration;
+    public float damageMultiplier = 1f;
+    public float defenseMultiplier = 1f;
+    public int damageOverTime;
+}
+
+public enum AbilityCategory
+{
+    Damage,
+    Heal,
+    Buff,
+    Debuff
+}
+
+public enum AbilityTargetType
+{
+    SingleEnemy,
+    SingleAlly,
+    Self,
+    AllEnemies,
+    AllAllies,
+    FrontEnemy,
+    AOEEnemies
+}
+
+public enum DamageStat
+{
+    Strength,
+    Dexterity,
+    Intelligence,
+    Constitution
+}
+
+public enum BalanceRequirementType
+{
+    None,
+    Above,
+    Below
 }
 
 [Serializable]
@@ -434,8 +528,10 @@ public class EquippedItems
         public DateTime deathLockoutUntil;
         public bool isBanned;
 
-        // ===== ADD THIS LINE =====
-        public List<TradeRecord> tradeHistory;
+    public bool isInExpedition;
+    public int expeditionActionsPerformed;
+
+    public List<TradeRecord> tradeHistory;
 
         public ViewerData(string userId, string name)
         {
