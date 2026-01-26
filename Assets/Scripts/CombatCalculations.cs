@@ -30,15 +30,15 @@ public static class CombatCalculations
         GrantResources(caster, ability);
 
         // Apply status effects
-        foreach (StatusEffect effect in ability.appliesEffects)
+        foreach (StatusEffect effectTemplate in ability.appliesEffects)
         {
             StatusEffect newEffect = new StatusEffect
             {
-                effectName = effect.effectName,
-                duration = effect.duration,
-                damageMultiplier = effect.damageMultiplier,
-                defenseMultiplier = effect.defenseMultiplier,
-                damageOverTime = effect.damageOverTime
+                effectName = effectTemplate.effectName,
+                duration = effectTemplate.duration,
+                damageMultiplier = effectTemplate.damageMultiplier,
+                defenseMultiplier = effectTemplate.defenseMultiplier,
+                damageOverTime = effectTemplate.damageOverTime
             };
             target.ApplyStatusEffect(newEffect);
         }

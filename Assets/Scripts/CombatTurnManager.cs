@@ -130,6 +130,12 @@ public class CombatTurnManager : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
         }
 
+        // Process status effects for all players
+        foreach (CombatEntity player in players)
+        {
+            player.ProcessStatusEffects();
+        }
+
         // Check if wave is cleared
         if (CheckWaveCleared())
         {
@@ -154,6 +160,8 @@ public class CombatTurnManager : MonoBehaviour
     IEnumerator ExecuteEnemyTurn()
     {
         OnScreenNotification.Instance?.ShowNotification("👹 Enemy turn!");
+        CombatUIManager.Instance?.ShowTurnIndicator(false);
+
         yield return new WaitForSeconds(1f);
 
         List<CombatEntity> enemies = ExpeditionManager.Instance.GetAllEnemyEntities();
@@ -172,6 +180,15 @@ public class CombatTurnManager : MonoBehaviour
             yield return new WaitForSeconds(0.8f);
         }
 
+        // Process status effects for all enemies
+        foreach (CombatEntity enemy in enemies)
+        {
+            if (!enemy.isDead)
+            {
+                enemy.ProcessStatusEffects();
+            }
+        }
+
         yield return new WaitForSeconds(0.5f);
     }
 
@@ -179,9 +196,9 @@ public class CombatTurnManager : MonoBehaviour
 
     #region Action Management
 
-    public bool QueueAction(string username, string abilityName, string targetName = null)
+    public bool QueueAction(string userId, string username, string abilityName, string targetName = null)
     {
-        CombatEntity caster = ExpeditionManager.Instance.GetPlayerEntity(username);
+        CombatEntity caster = ExpeditionManager.Instance.GetPlayerEntity(userId, username);
 
         if (caster == null)
         {
@@ -202,7 +219,7 @@ public class CombatTurnManager : MonoBehaviour
         }
 
         // Get ability
-        AbilityData ability = AbilityDatabase.Instance.GetAbility(abilityName);
+        AbilityData ability = AbilityDatabase.Instance?.GetAbility(abilityName);
 
         if (ability == null)
         {
@@ -254,7 +271,7 @@ public class CombatTurnManager : MonoBehaviour
         return true;
     }
 
-    public bool ConfirmAction(string username)
+    public bool ConfirmAction(string userId, string username)
     {
         if (!queuedActions.ContainsKey(username))
         {
@@ -298,8 +315,12 @@ public class CombatTurnManager : MonoBehaviour
             {
                 // Use default ability
                 string defaultAbility = GetDefaultAbility(player.characterClass);
-                QueueAction(player.entityName, defaultAbility);
-                queuedActions[player.entityName].confirmed = true;
+                QueueAction(player.userId, player.entityName, defaultAbility);
+
+                if (queuedActions.ContainsKey(player.entityName))
+                {
+                    queuedActions[player.entityName].confirmed = true;
+                }
 
                 OnScreenNotification.Instance?.ShowNotification($"@{player.entityName} auto-used {defaultAbility} (time expired)");
             }
@@ -341,7 +362,10 @@ public class CombatTurnManager : MonoBehaviour
         CombatCalculations.ExecuteAbility(caster, target, ability);
 
         // Track action for XP
-        ExpeditionManager.Instance.currentExpedition.actionsPerformed[caster.entityName]++;
+        if (ExpeditionManager.Instance.currentExpedition.actionsPerformed.ContainsKey(caster.entityName))
+        {
+            ExpeditionManager.Instance.currentExpedition.actionsPerformed[caster.entityName]++;
+        }
     }
 
     #endregion
@@ -401,7 +425,8 @@ public class CombatTurnManager : MonoBehaviour
         {
             if (ability.canTargetAllies)
             {
-                CombatEntity ally = ExpeditionManager.Instance.GetPlayerEntity(targetName);
+                List<CombatEntity> allies = ExpeditionManager.Instance.GetAllPlayerEntities();
+                CombatEntity ally = allies.Find(a => a.entityName.ToLower() == targetName.ToLower());
                 if (ally != null && !ally.isDead)
                     return ally;
             }

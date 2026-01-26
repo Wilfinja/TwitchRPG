@@ -18,6 +18,11 @@ public class OnScreenCharacter : MonoBehaviour
     private bool isMovingToCoin = false;
     private bool isCollecting = false;
 
+    [Header("Combat Mode")]
+    public bool isInCombat = false;
+    private Vector3 combatPosition;
+    private bool movingToCombatPosition = false;
+
     [Header("Idle Behavior")]
     [SerializeField] private float idleWanderInterval = 3f;
     private float idleTimer;
@@ -65,6 +70,21 @@ public class OnScreenCharacter : MonoBehaviour
 
     private void Update()
     {
+        // COMBAT MODE: Move to combat position
+        if (isInCombat && movingToCombatPosition)
+        {
+            MoveToCombatPosition();
+            return;
+        }
+
+        // COMBAT MODE: Idle at combat position
+        if (isInCombat)
+        {
+            PlayAnimation(idleAnimationName);
+            return;
+        }
+
+        // EXPLORATION MODE BELOW
         // Don't move while collecting
         if (isCollecting) return;
 
@@ -84,6 +104,65 @@ public class OnScreenCharacter : MonoBehaviour
             IdleWander();
         }
     }
+
+    // ==================== COMBAT MODE METHODS ====================
+
+    public void EnterCombatMode(Vector3 position)
+    {
+        isInCombat = true;
+        combatPosition = position;
+        movingToCombatPosition = true;
+
+        // Cancel any current coin collection
+        isMovingToCoin = false;
+        isCollecting = false;
+        targetCoin = null;
+
+        Debug.Log($"[Character] {username} entering combat mode, moving to {position}");
+    }
+
+    public void ExitCombatMode()
+    {
+        isInCombat = false;
+        movingToCombatPosition = false;
+
+        Debug.Log($"[Character] {username} exiting combat mode, returning to exploration");
+    }
+
+    private void MoveToCombatPosition()
+    {
+        float distance = Vector3.Distance(transform.position, combatPosition);
+
+        if (distance < 0.1f)
+        {
+            // Arrived at combat position
+            transform.position = combatPosition;
+            movingToCombatPosition = false;
+            PlayAnimation(idleAnimationName);
+
+            Debug.Log($"[Character] {username} arrived at combat position");
+            return;
+        }
+
+        // Move toward combat position
+        Vector3 direction = (combatPosition - transform.position).normalized;
+        transform.position += direction * walkSpeed * Time.deltaTime;
+
+        // Face direction
+        if (direction.x > 0 && !facingRight)
+            Flip();
+        else if (direction.x < 0 && facingRight)
+            Flip();
+
+        PlayAnimation(walkAnimationName);
+    }
+
+    public bool HasArrivedAtCombatPosition()
+    {
+        return isInCombat && !movingToCombatPosition;
+    }
+
+    // ==================== EXPLORATION MODE METHODS ====================
 
     private void FindNearestCoin()
     {
@@ -194,7 +273,8 @@ public class OnScreenCharacter : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Coin") && !isCollecting)
+        // Only collect coins in exploration mode
+        if (!isInCombat && collision.CompareTag("Coin") && !isCollecting)
         {
             CollectCoin(collision.gameObject);
         }
@@ -248,6 +328,8 @@ public class OnScreenCharacter : MonoBehaviour
         PlayAnimation(idleAnimationName);
     }
 
+    // ==================== SHARED METHODS ====================
+
     private void PlayAnimation(string animationName)
     {
         if (animator == null) return;
@@ -268,9 +350,7 @@ public class OnScreenCharacter : MonoBehaviour
         transform.localScale = scale;
 
         Vector3 nameScale = nameContainer.transform.localScale;
-
         nameScale.x *= -1;
-
         nameContainer.transform.localScale = nameScale;
     }
 
@@ -293,6 +373,8 @@ public class OnScreenCharacter : MonoBehaviour
         UpdateUI();
     }
 
+    // ==================== PUBLIC GETTERS ====================
+
     public float GetHomePosition()
     {
         return homePositionX;
@@ -306,5 +388,10 @@ public class OnScreenCharacter : MonoBehaviour
     public string GetUsername()
     {
         return username;
+    }
+
+    public CharacterClass GetCharacterClass()
+    {
+        return characterClass;
     }
 }

@@ -165,8 +165,11 @@ public class CharacterSpawner : MonoBehaviour
 
     public OnScreenCharacter GetCharacter(string userId)
     {
-        activeCharacters.TryGetValue(userId, out OnScreenCharacter character);
-        return character;
+        if (activeCharacters.TryGetValue(userId, out OnScreenCharacter character))
+        {
+            return character;
+        }
+        return null;
     }
 
     public List<OnScreenCharacter> GetAllCharacters()

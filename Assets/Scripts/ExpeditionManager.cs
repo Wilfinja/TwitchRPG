@@ -1,11 +1,10 @@
-﻿using NUnit.Framework.Interfaces;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 /// <summary>
-/// Manages expedition flow: queue, timer, wave progression
+/// Manages expedition flow: queue, timer, wave progression, character transitions
 /// </summary>
 public class ExpeditionManager : MonoBehaviour
 {
@@ -19,18 +18,14 @@ public class ExpeditionManager : MonoBehaviour
     public bool expeditionQueued;
     public bool acceptingJoins;
 
-    [Header("Spawn Positions")]
-    public Transform playerCombatParent;
-    public Transform enemyCombatParent;
-    public Vector3[] playerPositions = new Vector3[4]; // Positions 1-4
+    [Header("Combat Positions")]
+    public Vector3[] playerCombatPositions = new Vector3[4]; // Positions 1-4
     public Vector3[] enemyPositions = new Vector3[6]; // Positions 1-6
 
-    [Header("Prefabs")]
-    public GameObject playerCombatPrefab;
+    [Header("Enemy Prefabs")]
     public GameObject enemyCombatPrefab;
 
     [Header("References")]
-    private Dictionary<string, GameObject> activePlayers = new Dictionary<string, GameObject>();
     private List<GameObject> activeEnemies = new List<GameObject>();
 
     void Awake()
@@ -137,6 +132,7 @@ public class ExpeditionManager : MonoBehaviour
 
         // Add participant
         currentExpedition.participantUsernames.Add(username);
+        currentExpedition.participantUserIds.Add(userId);
         currentExpedition.participantPositions[username] = requestedPosition;
         currentExpedition.actionsPerformed[username] = 0;
 
@@ -172,11 +168,86 @@ public class ExpeditionManager : MonoBehaviour
 
         OnScreenNotification.Instance?.ShowNotification($"🔥 The expedition begins! {currentExpedition.participantUsernames.Count} brave adventurers embark into danger!");
 
-        // Spawn player characters
-        SpawnPlayerCharacters();
+        // Transition characters to combat mode
+        StartCoroutine(TransitionToCombat());
+    }
 
-        // Start first wave
-        StartCoroutine(StartWaveWithDelay(0, 2f));
+    private IEnumerator TransitionToCombat()
+    {
+        // 1. FADE OUT non-participants
+        List<OnScreenCharacter> allCharacters = CharacterSpawner.Instance?.GetAllCharacters();
+        if (allCharacters != null)
+        {
+            foreach (var character in allCharacters)
+            {
+                string charUserId = character.GetUserId();
+
+                if (!currentExpedition.participantUserIds.Contains(charUserId))
+                {
+                    // Fade out non-participants
+                    StartCoroutine(FadeCharacter(character, 0.3f));
+                }
+            }
+        }
+
+        yield return new WaitForSeconds(0.5f);
+
+        // 2. MOVE participants to combat positions and add CombatEntity
+        foreach (string username in currentExpedition.participantUsernames)
+        {
+            int position = currentExpedition.participantPositions[username];
+
+            // Find the OnScreenCharacter
+            OnScreenCharacter character = CharacterSpawner.Instance?.GetCharacter(
+                currentExpedition.participantUserIds[currentExpedition.participantUsernames.IndexOf(username)]
+            );
+
+            if (character != null)
+            {
+                // Enter combat mode - character will walk to position
+                character.EnterCombatMode(playerCombatPositions[position - 1]);
+
+                // Add CombatEntity component
+                CombatEntity combatEntity = character.gameObject.GetComponent<CombatEntity>();
+                if (combatEntity == null)
+                {
+                    combatEntity = character.gameObject.AddComponent<CombatEntity>();
+                }
+
+                string userId = character.GetUserId();
+                combatEntity.InitializePlayer(userId, username, position);
+
+                // Create health bar
+                CombatUIManager.Instance?.CreateHealthBar(combatEntity);
+            }
+        }
+
+        // 3. Wait for characters to arrive at positions
+        yield return new WaitForSeconds(2f);
+
+        // 4. Start first wave
+        StartCoroutine(StartWaveWithDelay(0, 1f));
+    }
+
+    private IEnumerator FadeCharacter(OnScreenCharacter character, float targetAlpha)
+    {
+        SpriteRenderer sr = character.GetComponent<SpriteRenderer>();
+        if (sr == null) yield break;
+
+        Color startColor = sr.color;
+        Color targetColor = new Color(startColor.r, startColor.g, startColor.b, targetAlpha);
+
+        float duration = 1f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            sr.color = Color.Lerp(startColor, targetColor, elapsed / duration);
+            yield return null;
+        }
+
+        sr.color = targetColor;
     }
 
     #endregion
@@ -201,8 +272,12 @@ public class ExpeditionManager : MonoBehaviour
 
         OnScreenNotification.Instance?.ShowNotification($"⚔️ Wave {currentExpedition.currentWave}/{currentExpedition.totalWaves} begins!");
 
+        CombatUIManager.Instance?.UpdateWaveIndicator(currentExpedition.currentWave, currentExpedition.totalWaves);
+
         // Spawn enemies
         SpawnWaveEnemies(wave);
+
+        yield return new WaitForSeconds(0.5f);
 
         // Start combat
         CombatTurnManager.Instance?.StartCombat();
@@ -217,7 +292,7 @@ public class ExpeditionManager : MonoBehaviour
         // Spawn regular enemies
         for (int i = 0; i < enemyCount; i++)
         {
-            EnemyData enemyData = EnemyDatabase.Instance.GetRandomEnemy(currentExpedition.difficulty, false);
+            EnemyData enemyData = EnemyDatabase.Instance?.GetRandomEnemy(currentExpedition.difficulty, false);
             if (enemyData != null)
             {
                 SpawnEnemy(enemyData, i + 1);
@@ -229,7 +304,7 @@ public class ExpeditionManager : MonoBehaviour
         {
             for (int i = 0; i < wave.bossCount; i++)
             {
-                EnemyData bossData = EnemyDatabase.Instance.GetRandomEnemy(currentExpedition.difficulty, true);
+                EnemyData bossData = EnemyDatabase.Instance?.GetRandomEnemy(currentExpedition.difficulty, true);
                 if (bossData != null)
                 {
                     SpawnEnemy(bossData, enemyCount + i + 1);
@@ -240,24 +315,45 @@ public class ExpeditionManager : MonoBehaviour
 
     void SpawnEnemy(EnemyData data, int position)
     {
-        GameObject enemyObj = Instantiate(enemyCombatPrefab, enemyCombatParent);
-        enemyObj.transform.position = enemyPositions[position - 1];
+        if (enemyCombatPrefab == null)
+        {
+            Debug.LogError("[Expedition] Enemy prefab not assigned!");
+            return;
+        }
 
+        GameObject enemyObj = Instantiate(enemyCombatPrefab, enemyPositions[position - 1], Quaternion.identity);
+
+        // Add CombatEntity component
         CombatEntity entity = enemyObj.GetComponent<CombatEntity>();
-        entity.isPlayer = false;
-        entity.entityName = data.enemyName;
-        entity.position = position;
-        entity.maxHealth = data.baseHealth;
-        entity.currentHealth = data.baseHealth;
-        entity.strength = data.baseStrength;
-        entity.dexterity = data.baseDexterity;
-        entity.constitution = data.baseConstitution;
-        entity.intelligence = data.baseIntelligence;
-        entity.defense = data.baseDefense;
+        if (entity == null)
+        {
+            entity = enemyObj.AddComponent<CombatEntity>();
+        }
+
+        entity.InitializeEnemy(
+            data.enemyName,
+            position,
+            data.baseHealth,
+            data.baseStrength,
+            data.baseDexterity,
+            data.baseConstitution,
+            data.baseIntelligence,
+            0, // willpower - not in EnemyData yet
+            0, // charisma - not in EnemyData yet
+            data.baseDefense
+        );
 
         // Setup visuals
         SpriteRenderer sr = enemyObj.GetComponent<SpriteRenderer>();
         if (sr != null) sr.sprite = data.enemySprite;
+
+        // Setup AI controller
+        EnemyCombatController controller = enemyObj.GetComponent<EnemyCombatController>();
+        if (controller == null)
+        {
+            controller = enemyObj.AddComponent<EnemyCombatController>();
+        }
+        controller.Initialize(data);
 
         activeEnemies.Add(enemyObj);
 
@@ -269,113 +365,35 @@ public class ExpeditionManager : MonoBehaviour
     {
         OnScreenNotification.Instance?.ShowNotification($"✅ Wave {currentExpedition.currentWave} cleared!");
 
+        currentExpedition.totalEnemiesDefeated += activeEnemies.Count;
+
+        // Clear enemy objects
+        foreach (var enemy in activeEnemies)
+        {
+            if (enemy != null) Destroy(enemy);
+        }
+        activeEnemies.Clear();
+
         // Brief rest period
         StartCoroutine(WaveRestPeriod());
     }
 
     IEnumerator WaveRestPeriod()
     {
-        OnScreenNotification.Instance?.ShowNotification($"Take a breath! Next wave in {config.waveClearDelay} seconds. You can use items with !useitem <name>");
+        OnScreenNotification.Instance?.ShowNotification($"Take a breath! Next wave in {config.waveClearDelay} seconds.");
 
         yield return new WaitForSeconds(config.waveClearDelay);
 
-        // Reset cooldowns for players
-        foreach (var player in activePlayers.Values)
+        // Reset resources for players
+        var allPlayers = GetAllPlayerEntities();
+        foreach (var player in allPlayers)
         {
-            CombatEntity entity = player.GetComponent<CombatEntity>();
-            // TODO: Reset cooldowns when ability cooldown system is implemented
+            player.RegenerateManaIfMage();
+            // TODO: Reset ability cooldowns when implemented
         }
 
         // Start next wave
         StartCoroutine(StartWaveWithDelay(currentExpedition.currentWave, 0f));
-    }
-
-    #endregion
-
-    #region Player Spawning
-
-    void SpawnPlayerCharacters()
-    {
-        activePlayers.Clear();
-
-        foreach (string username in currentExpedition.participantUsernames)
-        {
-            ViewerData viewer = ViewerDataManager.Instance.GetOrCreateViewer(username);
-            int position = currentExpedition.participantPositions[username];
-
-            GameObject playerObj = Instantiate(playerCombatPrefab, playerCombatParent);
-            playerObj.transform.position = playerPositions[position - 1];
-
-            CombatEntity entity = playerObj.GetComponent<CombatEntity>();
-            entity.isPlayer = true;
-            entity.entityName = username;
-            entity.position = position;
-            entity.characterClass = viewer.characterClass;
-
-            // Set stats from viewer data
-            entity.maxHealth = viewer.maxHealth;
-            entity.currentHealth = viewer.currentHealth;
-            entity.strength = viewer.strength;
-            entity.dexterity = viewer.dexterity;
-            entity.constitution = viewer.constitution;
-            entity.intelligence = viewer.intelligence;
-            entity.defense = CalculateDefense(viewer);
-
-            // Initialize class resources
-            InitializeClassResources(entity);
-
-            // Setup visuals
-            OnScreenCharacter osc = playerObj.GetComponent<OnScreenCharacter>();
-            if (osc != null)
-            {
-                osc.characterClass = viewer.characterClass;
-                osc.UpdateVisuals();
-            }
-
-            activePlayers[username] = playerObj;
-
-            // Create health bar
-            CombatUIManager.Instance?.CreateHealthBar(entity);
-        }
-    }
-
-    int CalculateDefense(ViewerData viewer)
-    {
-        int defense = 0;
-
-        // Add defense from equipment
-        foreach (ItemData item in viewer.equippedItems)
-        {
-            if (item != null)
-                defense += item.defense;
-        }
-
-        return defense;
-    }
-
-    void InitializeClassResources(CombatEntity entity)
-    {
-        switch (entity.characterClass)
-        {
-            case CharacterClass.Rogue:
-                entity.sneakPoints = 0;
-                break;
-            case CharacterClass.Fighter:
-                entity.currentStance = FighterStance.None;
-                entity.stanceCooldown = 0;
-                break;
-            case CharacterClass.Mage:
-                entity.mana = 100;
-                break;
-            case CharacterClass.Cleric:
-                entity.wrath = 0;
-                break;
-            case CharacterClass.Ranger:
-                entity.balance = 0;
-                entity.comboCounter = 0;
-                entity.lastAttackWasMelee = false;
-                break;
-        }
     }
 
     #endregion
@@ -387,34 +405,106 @@ public class ExpeditionManager : MonoBehaviour
         if (victory)
         {
             OnScreenNotification.Instance?.ShowNotification("🎉 Victory! The expedition is complete!");
-            // TODO: Grant rewards
+            GrantRewards();
         }
         else
         {
             OnScreenNotification.Instance?.ShowNotification("💀 The party has been defeated...");
-            // TODO: Grant partial rewards based on progress
+            GrantPartialRewards();
         }
 
         StartCoroutine(CleanupExpedition());
+    }
+
+    private void GrantRewards()
+    {
+        DifficultyConfig diffConfig = config.GetDifficulty(currentExpedition.difficulty);
+
+        foreach (string userId in currentExpedition.participantUserIds)
+        {
+            ViewerData viewer = RPGManager.Instance.GetViewer(userId);
+            if (viewer == null) continue;
+
+            // Grant coins
+            int coinReward = Random.Range(diffConfig.coinRewardMin, diffConfig.coinRewardMax + 1);
+            RPGManager.Instance.AddCoins(userId, coinReward);
+
+            // Grant XP
+            int xpReward = 50 * diffConfig.xpMultiplier;
+            ExperienceManager.Instance?.AddExperience(userId, xpReward);
+
+            OnScreenNotification.Instance?.ShowSuccess($"{viewer.username} earned {coinReward} coins and {xpReward} XP!");
+        }
+
+        Debug.Log("[Expedition] Rewards granted to all participants");
+    }
+
+    private void GrantPartialRewards()
+    {
+        DifficultyConfig diffConfig = config.GetDifficulty(currentExpedition.difficulty);
+
+        foreach (string userId in currentExpedition.participantUserIds)
+        {
+            ViewerData viewer = RPGManager.Instance.GetViewer(userId);
+            if (viewer == null) continue;
+
+            // Partial rewards (50%)
+            int coinReward = Random.Range(diffConfig.coinRewardMin / 2, diffConfig.coinRewardMax / 2);
+            RPGManager.Instance.AddCoins(userId, coinReward);
+
+            OnScreenNotification.Instance?.ShowInfo($"{viewer.username} earned {coinReward} coins for participating.");
+        }
     }
 
     IEnumerator CleanupExpedition()
     {
         yield return new WaitForSeconds(3f);
 
-        // Despawn all combat entities
-        foreach (var player in activePlayers.Values)
+        // Remove CombatEntity components and exit combat mode
+        foreach (string userId in currentExpedition.participantUserIds)
         {
-            if (player != null) Destroy(player);
+            OnScreenCharacter character = CharacterSpawner.Instance?.GetCharacter(userId);
+            if (character != null)
+            {
+                // Sync combat data back to ViewerData
+                CombatEntity combatEntity = character.GetComponent<CombatEntity>();
+                if (combatEntity != null)
+                {
+                    combatEntity.SyncAllToViewerData();
+                    Destroy(combatEntity);
+                }
+
+                // Exit combat mode
+                character.ExitCombatMode();
+
+                // Fade back in
+                StartCoroutine(FadeCharacter(character, 1f));
+            }
         }
 
+        // Fade in all non-participants
+        List<OnScreenCharacter> allCharacters = CharacterSpawner.Instance?.GetAllCharacters();
+        if (allCharacters != null)
+        {
+            foreach (var character in allCharacters)
+            {
+                string charUserId = character.GetUserId();
+
+                if (!currentExpedition.participantUserIds.Contains(charUserId))
+                {
+                    StartCoroutine(FadeCharacter(character, 1f));
+                }
+            }
+        }
+
+        // Despawn all enemies
         foreach (var enemy in activeEnemies)
         {
             if (enemy != null) Destroy(enemy);
         }
-
-        activePlayers.Clear();
         activeEnemies.Clear();
+
+        yield return new WaitForSeconds(1f);
 
         ResetExpedition();
     }
@@ -426,15 +516,36 @@ public class ExpeditionManager : MonoBehaviour
         acceptingJoins = false;
     }
 
+    public void CancelExpedition()
+    {
+        if (!expeditionQueued && !currentExpedition.isActive)
+        {
+            OnScreenNotification.Instance?.ShowError("No active expedition to cancel.");
+            return;
+        }
+
+        OnScreenNotification.Instance?.ShowNotification("Expedition has been cancelled.");
+
+        if (currentExpedition.isActive)
+        {
+            StartCoroutine(CleanupExpedition());
+        }
+        else
+        {
+            ResetExpedition();
+        }
+    }
+
     #endregion
 
     #region Helper Methods
 
-    public CombatEntity GetPlayerEntity(string username)
+    public CombatEntity GetPlayerEntity(string userId, string username)
     {
-        if (activePlayers.TryGetValue(username, out GameObject playerObj))
+        OnScreenCharacter character = CharacterSpawner.Instance?.GetCharacter(userId);
+        if (character != null)
         {
-            return playerObj.GetComponent<CombatEntity>();
+            return character.GetComponent<CombatEntity>();
         }
         return null;
     }
@@ -442,38 +553,48 @@ public class ExpeditionManager : MonoBehaviour
     public List<CombatEntity> GetAllPlayerEntities()
     {
         List<CombatEntity> entities = new List<CombatEntity>();
-        foreach (var player in activePlayers.Values)
+
+        foreach (string userId in currentExpedition.participantUserIds)
         {
-            if (player != null)
+            OnScreenCharacter character = CharacterSpawner.Instance?.GetCharacter(userId);
+            if (character != null)
             {
-                CombatEntity entity = player.GetComponent<CombatEntity>();
+                CombatEntity entity = character.GetComponent<CombatEntity>();
                 if (entity != null && !entity.isDead)
+                {
                     entities.Add(entity);
+                }
             }
         }
+
         return entities.OrderBy(e => e.position).ToList();
     }
 
     public List<CombatEntity> GetAllEnemyEntities()
     {
         List<CombatEntity> entities = new List<CombatEntity>();
+
         foreach (var enemy in activeEnemies)
         {
             if (enemy != null)
             {
                 CombatEntity entity = enemy.GetComponent<CombatEntity>();
                 if (entity != null && !entity.isDead)
+                {
                     entities.Add(entity);
+                }
             }
         }
+
         return entities.OrderBy(e => e.position).ToList();
     }
 
-    public void OnPlayerDeath(string username)
+    public void OnPlayerDeath(string userId)
     {
-        if (!currentExpedition.deadParticipants.Contains(username))
+        ViewerData viewer = RPGManager.Instance.GetViewer(userId);
+        if (viewer != null && !currentExpedition.deadParticipants.Contains(viewer.username))
         {
-            currentExpedition.deadParticipants.Add(username);
+            currentExpedition.deadParticipants.Add(viewer.username);
         }
 
         // Check for TPK (Total Party Kill)
@@ -488,6 +609,12 @@ public class ExpeditionManager : MonoBehaviour
         }
     }
 
+    public void OnEnemyDeath(CombatEntity enemy)
+    {
+        Debug.Log($"[Expedition] Enemy {enemy.entityName} defeated");
+        // Enemy death is handled by wave completion check
+    }
+
     void ShiftPositionsForward()
     {
         List<CombatEntity> alivePlayers = GetAllPlayerEntities();
@@ -495,7 +622,12 @@ public class ExpeditionManager : MonoBehaviour
         for (int i = 0; i < alivePlayers.Count; i++)
         {
             alivePlayers[i].position = i + 1;
-            alivePlayers[i].transform.position = playerPositions[i];
+
+            OnScreenCharacter character = alivePlayers[i].GetComponent<OnScreenCharacter>();
+            if (character != null)
+            {
+                character.EnterCombatMode(playerCombatPositions[i]);
+            }
         }
     }
 

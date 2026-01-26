@@ -77,6 +77,7 @@ public class ExpeditionState
 {
     public ExpeditionDifficulty difficulty;
     public List<string> participantUsernames = new List<string>();
+    public List<string> participantUserIds = new List<string>(); // ADDED - was missing
     public Dictionary<string, int> participantPositions = new Dictionary<string, int>();
     public int currentWave;
     public bool isActive;

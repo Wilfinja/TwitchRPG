@@ -743,9 +743,11 @@ public class RPGChatCommands : MonoBehaviour
         string result = $"═══ {viewer.username}'s Abilities ═══\n";
 
         // Get class combat abilities
+        List<AbilityData> classAbilities = new List<AbilityData>();
+
         if (AbilityDatabase.Instance != null)
         {
-            var classAbilities = AbilityDatabase.Instance.GetAbilitiesForClass(viewer.characterClass);
+            classAbilities = AbilityDatabase.Instance.GetAbilitiesForClass(viewer.characterClass);
 
             if (classAbilities.Count > 0)
             {
@@ -760,10 +762,10 @@ public class RPGChatCommands : MonoBehaviour
         // Get abilities from equipped items
         List<ItemAbility> equippedAbilities = new List<ItemAbility>();
         RPGItem[] allEquipped = {
-        viewer.equipped.head, viewer.equipped.chest, viewer.equipped.arms,
-        viewer.equipped.legs, viewer.equipped.mainHand, viewer.equipped.offHand,
-        viewer.equipped.feet
-    };
+            viewer.equipped.head, viewer.equipped.chest, viewer.equipped.arms,
+            viewer.equipped.legs, viewer.equipped.mainHand, viewer.equipped.offHand,
+            viewer.equipped.feet
+        };
 
         foreach (var item in allEquipped)
         {
