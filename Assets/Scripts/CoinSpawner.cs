@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class CoinSpawner : MonoBehaviour
@@ -27,6 +28,9 @@ public class CoinSpawner : MonoBehaviour
     [SerializeField] private float minVerticalForce = 4f;
     [SerializeField] private float maxVerticalForce = 6f;
 
+    [Header("Combat Queuing")]
+    private Queue<int> queuedCoinSpawns = new Queue<int>();
+
     private int totalCoinsSpawned = 0;
 
     public void TestSpawn()
@@ -36,7 +40,37 @@ public class CoinSpawner : MonoBehaviour
 
     public void SpawnCoins(int count)
     {
-        StartCoroutine(SpawnCoinsRoutine(count, 0));
+        // Check if expedition or PvP is active
+        bool combatActive = (ExpeditionManager.Instance != null && ExpeditionManager.Instance.currentExpedition.isActive) ||
+                           (PvPManager.Instance != null && PvPManager.Instance.pvpActive);
+
+        if (combatActive)
+        {
+            // Queue coins to spawn later
+            queuedCoinSpawns.Enqueue(count);
+            Debug.Log($"[CoinSpawner] Queued {count} coins to spawn after combat ends");
+        }
+        else
+        {
+            // Spawn immediately
+            StartCoroutine(SpawnCoinsRoutine(count, 0));
+        }
+    }
+
+    /// <summary>
+    /// Called by ExpeditionManager or PvPManager when combat ends
+    /// </summary>
+    public void SpawnQueuedCoins()
+    {
+        if (queuedCoinSpawns.Count == 0) return;
+
+        Debug.Log($"[CoinSpawner] Spawning {queuedCoinSpawns.Count} queued coin batches");
+
+        while (queuedCoinSpawns.Count > 0)
+        {
+            int count = queuedCoinSpawns.Dequeue();
+            StartCoroutine(SpawnCoinsRoutine(count, 0));
+        }
     }
 
     public void SpawnGoldenCoin()

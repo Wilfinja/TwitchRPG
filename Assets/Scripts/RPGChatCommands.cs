@@ -95,6 +95,24 @@ public class RPGChatCommands : MonoBehaviour
             case "confirm":
                 return HandleConfirmAction(viewer);
 
+            case "challenge":
+                return HandleChallengeCommand(viewer, args);
+
+            case "accept":
+                return HandleAcceptCommand(viewer);
+
+            case "decline":
+                return HandleDeclineCommand(viewer);
+
+            case "bet":
+                return HandleBetCommand(viewer, args);
+
+            case "pvpstats":
+                return HandlePvPStatsCommand(args);
+
+            case "pvpleaderboard":
+                return HandlePvPLeaderboardCommand();
+
             default:
                 return null;
         }
@@ -1513,4 +1531,117 @@ public class RPGChatCommands : MonoBehaviour
 
         return TradeManager.Instance.GetTradeHistory(viewer.twitchUserId, count);
     }
+
+    // ==================== PVP COMMANDS ====================
+
+    private string HandleChallengeCommand(ViewerData viewer, string[] args)
+    {
+        if (viewer.characterClass == CharacterClass.None)
+        {
+            return $"{viewer.username}: Choose a class first with !class";
+        }
+
+        if (args.Length < 2)
+        {
+            return $"{viewer.username}: Usage: !challenge @username <coins>\n" +
+                   "Example: !challenge @alice 100";
+        }
+
+        string targetUsername = args[0].TrimStart('@');
+
+        if (!int.TryParse(args[1], out int wager))
+        {
+            return $"{viewer.username}: Wager must be a number!";
+        }
+
+        if (PvPManager.Instance == null)
+        {
+            return "PvP system not available!";
+        }
+
+        string result = PvPManager.Instance.CreateChallenge(viewer.twitchUserId, viewer.username, targetUsername, wager);
+        return result; // Can be null if notification already sent
+    }
+
+    private string HandleAcceptCommand(ViewerData viewer)
+    {
+        if (viewer.characterClass == CharacterClass.None)
+        {
+            return $"{viewer.username}: Choose a class first with !class";
+        }
+
+        if (PvPManager.Instance == null)
+        {
+            return "PvP system not available!";
+        }
+
+        return PvPManager.Instance.AcceptChallenge(viewer.twitchUserId, viewer.username);
+    }
+
+    private string HandleDeclineCommand(ViewerData viewer)
+    {
+        if (viewer.characterClass == CharacterClass.None)
+        {
+            return $"{viewer.username}: Choose a class first with !class";
+        }
+
+        if (PvPManager.Instance == null)
+        {
+            return "PvP system not available!";
+        }
+
+        return PvPManager.Instance.DeclineChallenge(viewer.twitchUserId, viewer.username);
+    }
+
+    private string HandleBetCommand(ViewerData viewer, string[] args)
+    {
+        if (viewer.characterClass == CharacterClass.None)
+        {
+            return $"{viewer.username}: Choose a class first with !class";
+        }
+
+        if (args.Length < 1)
+        {
+            return $"{viewer.username}: Usage: !bet @username\n" +
+                   "Example: !bet @alice";
+        }
+
+        string fighterUsername = args[0].TrimStart('@');
+
+        if (PvPManager.Instance == null)
+        {
+            return "PvP system not available!";
+        }
+
+        return PvPManager.Instance.PlaceBet(viewer.twitchUserId, viewer.username, fighterUsername);
+    }
+
+    private string HandlePvPStatsCommand(string[] args)
+    {
+        if (PvPManager.Instance == null)
+        {
+            return "PvP system not available!";
+        }
+
+        string targetUsername = args.Length > 0 ? args[0].TrimStart('@') : null;
+
+        // If no username provided, must be used by someone with a class
+        if (targetUsername == null)
+        {
+            return "Usage: !pvpstats @username\nExample: !pvpstats @alice";
+        }
+
+        return PvPManager.Instance.GetPvPStats(targetUsername);
+    }
+
+    private string HandlePvPLeaderboardCommand()
+    {
+        if (PvPManager.Instance == null)
+        {
+            return "PvP system not available!";
+        }
+
+        return PvPManager.Instance.GetPvPLeaderboard();
+    }
 }
+

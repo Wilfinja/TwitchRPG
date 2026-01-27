@@ -531,6 +531,10 @@ public class EquippedItems
     public bool isInExpedition;
     public int expeditionActionsPerformed;
 
+    // PvP Stats
+    public int pvpWins;
+    public int pvpLosses;
+
     public List<TradeRecord> tradeHistory;
 
         public ViewerData(string userId, string name)

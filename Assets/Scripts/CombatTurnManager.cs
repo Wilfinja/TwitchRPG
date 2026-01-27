@@ -139,7 +139,22 @@ public class CombatTurnManager : MonoBehaviour
         // Check if wave is cleared
         if (CheckWaveCleared())
         {
-            ExpeditionManager.Instance.OnWaveCleared();
+            // Check if this is PvP
+            if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
+            {
+                // PvP match end - determine winner
+                List<CombatEntity> pvpplayers = ExpeditionManager.Instance.GetAllPlayerEntities();
+                if (pvpplayers.Count > 0)
+                {
+                    PvPManager.Instance.OnPvPMatchEnd(pvpplayers[0].userId);
+                }
+                combatActive = false;
+            }
+            else
+            {
+                // Expedition wave cleared
+                ExpeditionManager.Instance.OnWaveCleared();
+            }
             yield break;
         }
 
@@ -149,7 +164,31 @@ public class CombatTurnManager : MonoBehaviour
         // Check for player wipe
         if (CheckPlayerWipe())
         {
-            ExpeditionManager.Instance.CompleteExpedition(false);
+            // Check if this is PvP
+            if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
+            {
+                // PvP match end - determine winner (the one still alive)
+                List<CombatEntity> allPlayers = ExpeditionManager.Instance.GetAllPlayerEntities();
+                List<CombatEntity> enemies = ExpeditionManager.Instance.GetAllEnemyEntities();
+
+                // In PvP, "enemies" are actually the other player
+                if (allPlayers.Count > 0)
+                {
+                    PvPManager.Instance.OnPvPMatchEnd(allPlayers[0].userId);
+                }
+                else if (enemies.Count > 0)
+                {
+                    // The "enemy" player won
+                    PvPManager.Instance.OnPvPMatchEnd(enemies[0].userId);
+                }
+
+                combatActive = false;
+            }
+            else
+            {
+                // Expedition failure
+                ExpeditionManager.Instance.CompleteExpedition(false);
+            }
             yield break;
         }
 
