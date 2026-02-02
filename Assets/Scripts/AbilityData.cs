@@ -1,6 +1,10 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
+/// <summary>
+/// Enhanced AbilityData with dual-stat scaling support
+/// BACKWARDS COMPATIBLE - old abilities will work without changes
+/// </summary>
 [CreateAssetMenu(fileName = "New Ability", menuName = "RPG/Ability")]
 public class AbilityData : ScriptableObject
 {
@@ -16,10 +20,44 @@ public class AbilityData : ScriptableObject
     public AbilityCategory category; // Buff, Heal, Damage
     public AbilityTargetType targetType;
 
-    [Header("Damage/Healing")]
-    public DamageStat scalingStat; // Which stat scales the ability
-    public float statMultiplier = 1f; // Damage = stat * multiplier
-    public int baseDamage; // Flat damage added
+    [Header("Primary Damage/Healing Scaling")]
+    public DamageStat scalingStat; // Primary stat (DEX, STR, INT, etc.)
+    public float statMultiplier = 1f; // Primary stat multiplier
+
+    // ═══════════════════════════════════════════════════════════
+    // ✅ NEW: SECONDARY STAT SCALING
+    // ═══════════════════════════════════════════════════════════
+    [Header("Secondary Scaling (Optional)")]
+    [Tooltip("Enable dual-stat scaling (e.g., Flame Dagger = DEX + INT)")]
+    public bool useSecondaryScaling = false;
+
+    [Tooltip("Secondary stat to scale with")]
+    public DamageStat secondaryScalingStat = DamageStat.None;
+
+    [Tooltip("Secondary stat multiplier")]
+    public float secondaryStatMultiplier = 0f;
+
+    // ═══════════════════════════════════════════════════════════
+
+    // ═══════════════════════════════════════════════════════════
+    // ✅ NEW: SNEAK-BASED DAMAGE SCALING (ROGUE)
+    // ═══════════════════════════════════════════════════════════
+    [Header("Sneak Damage Scaling (Rogue Only)")]
+    [Tooltip("Damage scales based on CURRENT sneak points")]
+    public bool scalesWithSneak = false;
+
+    [Tooltip("Damage multiplier per sneak point (e.g., 0.5 = +50% per sneak)")]
+    public float sneakDamageMultiplier = 0f;
+
+    [Tooltip("Consume ALL sneak points after using this ability")]
+    public bool consumesAllSneak = false;
+
+    [Tooltip("Consume specific amount of sneak (0 = don't consume based on count)")]
+    public int consumeSneakAmount = 0;
+    // ═══════════════════════════════════════════════════════════
+
+    [Header("Base Damage/Healing")]
+    public int baseDamage; // Flat damage/healing added
     public bool canCrit;
 
     [Header("Resource Cost")]
@@ -54,6 +92,100 @@ public class AbilityData : ScriptableObject
     [Header("Animation")]
     public string animationTrigger = "Attack";
     public GameObject particleEffect;
+
+    // ═══════════════════════════════════════════════════════════
+    // ✅ HELPER METHODS FOR DUAL-STAT SCALING
+    // ═══════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Returns true if this ability uses dual-stat scaling
+    /// </summary>
+    public bool HasSecondaryScaling()
+    {
+        return useSecondaryScaling &&
+               secondaryScalingStat != DamageStat.None &&
+               secondaryStatMultiplier > 0f;
+    }
+
+    /// <summary>
+    /// Returns true if this ability scales damage with sneak points
+    /// </summary>
+    public bool HasSneakScaling()
+    {
+        return scalesWithSneak && sneakDamageMultiplier > 0f;
+    }
+
+    /// <summary>
+    /// Get all scaling stats for this ability (for UI display)
+    /// </summary>
+    public string GetScalingDescription()
+    {
+        if (!HasSecondaryScaling() && !HasSneakScaling())
+        {
+            // Single stat scaling (backwards compatible)
+            return $"{statMultiplier:F2}x {scalingStat}";
+        }
+
+        List<string> parts = new List<string>();
+        parts.Add($"{statMultiplier:F2}x {scalingStat}");
+
+        if (HasSecondaryScaling())
+        {
+            parts.Add($"{secondaryStatMultiplier:F2}x {secondaryScalingStat}");
+        }
+
+        if (HasSneakScaling())
+        {
+            float percentPerSneak = sneakDamageMultiplier * 100f;
+            parts.Add($"+{percentPerSneak:F0}% per Sneak");
+        }
+
+        return string.Join(" + ", parts);
+    }
+
+    /// <summary>
+    /// Validate ability data on save (Unity Editor only)
+    /// </summary>
+    private void OnValidate()
+    {
+        // Prevent invalid secondary scaling configurations
+        if (useSecondaryScaling)
+        {
+            if (secondaryScalingStat == DamageStat.None)
+            {
+                Debug.LogWarning($"[{abilityName}] Secondary scaling enabled but no stat selected!");
+            }
+
+            if (secondaryScalingStat == scalingStat)
+            {
+                Debug.LogWarning($"[{abilityName}] Secondary stat should be different from primary stat!");
+            }
+
+            if (secondaryStatMultiplier <= 0f)
+            {
+                Debug.LogWarning($"[{abilityName}] Secondary multiplier should be greater than 0!");
+            }
+        }
+
+        // Validate sneak scaling
+        if (scalesWithSneak)
+        {
+            if (requiredClass != CharacterClass.Rogue)
+            {
+                Debug.LogWarning($"[{abilityName}] Sneak scaling should only be used for Rogue abilities!");
+            }
+
+            if (sneakDamageMultiplier <= 0f)
+            {
+                Debug.LogWarning($"[{abilityName}] Sneak damage multiplier should be greater than 0!");
+            }
+
+            if (consumesAllSneak && consumeSneakAmount > 0)
+            {
+                Debug.LogWarning($"[{abilityName}] Can't use both consumesAllSneak AND consumeSneakAmount!");
+            }
+        }
+    }
 }
 
 /// <summary>
@@ -130,7 +262,7 @@ public class AbilityDatabase : MonoBehaviour
     {
         List<AbilityData> available = new List<AbilityData>();
 
-        CharacterClass charClass = entity.GetCharacterClass(); // CORRECT - use method
+        CharacterClass charClass = entity.GetCharacterClass();
         List<AbilityData> classAbilities = GetAbilitiesForClass(charClass);
 
         available.AddRange(classAbilities);

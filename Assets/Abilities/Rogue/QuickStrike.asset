@@ -19,8 +19,15 @@ MonoBehaviour:
   levelRequired: 1
   category: 0
   targetType: 0
-  scalingStat: 1
+  scalingStat: 2
   statMultiplier: 1
+  useSecondaryScaling: 0
+  secondaryScalingStat: 0
+  secondaryStatMultiplier: 0
+  scalesWithSneak: 0
+  sneakDamageMultiplier: 0
+  consumesAllSneak: 0
+  consumeSneakAmount: 0
   baseDamage: 10
   canCrit: 1
   sneakCost: 0

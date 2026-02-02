@@ -507,7 +507,7 @@ public class PvPManager : MonoBehaviour
 
         if (loser != null)
         {
-            winner.pvpLosses++;
+            loser.pvpLosses++;
         }
 
         RPGManager.Instance.SaveGameData();
@@ -541,6 +541,12 @@ public class PvPManager : MonoBehaviour
         }
 
         yield return new WaitForSeconds(1f);
+
+        if (CoinSpawner.Instance != null)
+        {
+            CoinSpawner.Instance.SpawnQueuedCoins();
+            Debug.Log("[PVP] Spawning queued coins after match");
+        }
 
         currentMatch = null;
         pvpActive = false;

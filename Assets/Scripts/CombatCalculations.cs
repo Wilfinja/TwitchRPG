@@ -1,20 +1,24 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
-/// Handles all combat damage, healing, and resource calculations
+/// Enhanced combat calculations with dual-stat scaling support
+/// FULLY BACKWARDS COMPATIBLE with existing abilities
 /// </summary>
 public static class CombatCalculations
 {
     public static void ExecuteAbility(CombatEntity caster, CombatEntity target, AbilityData ability)
     {
-        // Consume resources
-        ConsumeResources(caster, ability);
+        // Consume upfront resources (sneakCost, manaCost, etc.)
+        ConsumeUpfrontResources(caster, ability);
 
         // Apply damage or healing
         if (ability.category == AbilityCategory.Damage)
         {
             int damage = CalculateDamage(caster, target, ability);
             target.TakeDamage(damage, caster);
+
+            // ✅ CONSUME SNEAK AFTER DAMAGE (if ability uses sneak scaling)
+            ConsumeSneakAfterDamage(caster, ability);
         }
         else if (ability.category == AbilityCategory.Heal)
         {
@@ -50,38 +54,97 @@ public static class CombatCalculations
         }
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // ✅ ENHANCED: DAMAGE CALCULATION WITH DUAL-STAT AND SNEAK SCALING
+    // ═══════════════════════════════════════════════════════════════════════
     static int CalculateDamage(CombatEntity caster, CombatEntity target, AbilityData ability)
     {
-        // Get base stat value
-        int statValue = GetStatValue(caster, ability.scalingStat);
+        float totalDamage = 0f;
 
-        // Calculate base damage
-        float damage = (statValue * ability.statMultiplier) + ability.baseDamage;
+        // PRIMARY STAT SCALING (always present - backwards compatible)
+        int primaryStatValue = GetStatValue(caster, ability.scalingStat);
+        float primaryScaling = primaryStatValue * ability.statMultiplier;
+        totalDamage += primaryScaling;
+
+        // ✅ SECONDARY STAT SCALING (optional)
+        if (ability.HasSecondaryScaling())
+        {
+            int secondaryStatValue = GetStatValue(caster, ability.secondaryScalingStat);
+            float secondaryScaling = secondaryStatValue * ability.secondaryStatMultiplier;
+            totalDamage += secondaryScaling;
+
+            // Log dual-stat calculation
+            Debug.Log($"[Dual-Stat] {ability.abilityName}: " +
+                     $"{primaryStatValue} {ability.scalingStat} × {ability.statMultiplier} = {primaryScaling:F1} + " +
+                     $"{secondaryStatValue} {ability.secondaryScalingStat} × {ability.secondaryStatMultiplier} = {secondaryScaling:F1} " +
+                     $"= {totalDamage:F1} total");
+        }
+
+        // Add base damage BEFORE sneak multiplier
+        totalDamage += ability.baseDamage;
+
+        // ✅ SNEAK-BASED DAMAGE SCALING (applied as multiplier to total)
+        if (ability.HasSneakScaling() && caster.characterClass == CharacterClass.Rogue)
+        {
+            int currentSneak = caster.sneakPoints;
+            float sneakBonus = currentSneak * ability.sneakDamageMultiplier;
+            float sneakMultiplier = 1f + sneakBonus;
+
+            float damageBeforeSneak = totalDamage;
+            totalDamage *= sneakMultiplier;
+
+            CombatLog.Instance?.AddEntry(
+                $"{caster.entityName} uses {currentSneak} sneak! " +
+                $"Damage: {damageBeforeSneak:F0} × {sneakMultiplier:F2} = {totalDamage:F0}"
+            );
+
+            Debug.Log($"[Sneak Scaling] {ability.abilityName}: " +
+                     $"{currentSneak} sneak × {ability.sneakDamageMultiplier:F2} = +{sneakBonus:F2} multiplier " +
+                     $"({damageBeforeSneak:F0} → {totalDamage:F0})");
+        }
 
         // Apply Ranger combo multiplier
         if (caster.characterClass == CharacterClass.Ranger && caster.comboCounter > 0)
         {
             float comboBonus = 1f + (caster.comboCounter * 0.2f); // +20% per combo
-            damage *= comboBonus;
+            totalDamage *= comboBonus;
         }
 
         // Apply status effect multipliers
         foreach (StatusEffect effect in caster.activeEffects)
         {
-            damage *= effect.damageMultiplier;
+            totalDamage *= effect.damageMultiplier;
         }
 
         // TODO: Critical hits (if ability.canCrit)
 
-        return Mathf.RoundToInt(damage);
+        return Mathf.RoundToInt(totalDamage);
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // ✅ ENHANCED: HEALING CALCULATION WITH DUAL-STAT SCALING
+    // ═══════════════════════════════════════════════════════════════════════
     static int CalculateHealing(CombatEntity caster, AbilityData ability)
     {
-        int statValue = GetStatValue(caster, ability.scalingStat);
-        float healing = (statValue * ability.statMultiplier) + ability.baseDamage; // Using baseDamage field for healing amount
+        float totalHealing = 0f;
 
-        return Mathf.RoundToInt(healing);
+        // PRIMARY STAT SCALING
+        int primaryStatValue = GetStatValue(caster, ability.scalingStat);
+        float primaryScaling = primaryStatValue * ability.statMultiplier;
+        totalHealing += primaryScaling;
+
+        // ✅ NEW: SECONDARY STAT SCALING (optional)
+        if (ability.HasSecondaryScaling())
+        {
+            int secondaryStatValue = GetStatValue(caster, ability.secondaryScalingStat);
+            float secondaryScaling = secondaryStatValue * ability.secondaryStatMultiplier;
+            totalHealing += secondaryScaling;
+        }
+
+        // Add base healing (stored in baseDamage field)
+        totalHealing += ability.baseDamage;
+
+        return Mathf.RoundToInt(totalHealing);
     }
 
     static void ApplyBuff(CombatEntity caster, CombatEntity target, AbilityData ability)
@@ -90,10 +153,15 @@ public static class CombatCalculations
         CombatLog.Instance?.AddEntry($"{caster.entityName} buffed {target.entityName} with {ability.abilityName}!");
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // ✅ ENHANCED: GET STAT VALUE WITH NONE HANDLING
+    // ═══════════════════════════════════════════════════════════════════════
     static int GetStatValue(CombatEntity entity, DamageStat stat)
     {
         switch (stat)
         {
+            case DamageStat.None:
+                return 0; // ← Backwards compatible
             case DamageStat.Strength:
                 return entity.strength;
             case DamageStat.Dexterity:
@@ -102,18 +170,69 @@ public static class CombatCalculations
                 return entity.intelligence;
             case DamageStat.Constitution:
                 return entity.constitution;
+            case DamageStat.Willpower:
+                return entity.willpower;
+            case DamageStat.Charisma:
+                return entity.charisma;
             default:
-                return entity.strength;
+                return entity.strength; // Fallback
         }
     }
 
-    static void ConsumeResources(CombatEntity caster, AbilityData ability)
+    // ═══════════════════════════════════════════════════════════════════════
+    // ✅ NEW: CONSUME SNEAK AFTER DAMAGE (separate from upfront costs)
+    // ═══════════════════════════════════════════════════════════════════════
+    static void ConsumeSneakAfterDamage(CombatEntity caster, AbilityData ability)
+    {
+        if (caster.characterClass != CharacterClass.Rogue) return;
+        if (!ability.HasSneakScaling()) return;
+
+        int sneakBefore = caster.sneakPoints;
+
+        if (ability.consumesAllSneak)
+        {
+            // Consume ALL sneak points
+            caster.sneakPoints = 0;
+
+            CombatLog.Instance?.AddEntry(
+                $"{caster.entityName} consumed all {sneakBefore} sneak points!"
+            );
+
+            Debug.Log($"[Sneak Consumed] {ability.abilityName} consumed ALL sneak: {sneakBefore} → 0");
+        }
+        else if (ability.consumeSneakAmount > 0)
+        {
+            // Consume specific amount
+            int consumed = Mathf.Min(ability.consumeSneakAmount, caster.sneakPoints);
+            caster.sneakPoints -= consumed;
+
+            CombatLog.Instance?.AddEntry(
+                $"{caster.entityName} consumed {consumed} sneak points!"
+            );
+
+            Debug.Log($"[Sneak Consumed] {ability.abilityName} consumed {consumed} sneak: " +
+                     $"{sneakBefore} → {caster.sneakPoints}");
+        }
+
+        // Clamp to valid range
+        caster.sneakPoints = Mathf.Clamp(caster.sneakPoints, 0, 6);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // ✅ RENAMED: UPFRONT RESOURCE CONSUMPTION (checked before damage)
+    // ═══════════════════════════════════════════════════════════════════════
+    static void ConsumeUpfrontResources(CombatEntity caster, AbilityData ability)
     {
         switch (caster.characterClass)
         {
             case CharacterClass.Rogue:
-                caster.sneakPoints -= ability.sneakCost;
-                caster.sneakPoints = Mathf.Clamp(caster.sneakPoints, 0, 6);
+                // Only consume sneakCost upfront (NOT for sneak scaling)
+                // Sneak scaling consumption happens AFTER damage
+                if (ability.sneakCost > 0)
+                {
+                    caster.sneakPoints -= ability.sneakCost;
+                    caster.sneakPoints = Mathf.Clamp(caster.sneakPoints, 0, 6);
+                }
                 break;
 
             case CharacterClass.Fighter:

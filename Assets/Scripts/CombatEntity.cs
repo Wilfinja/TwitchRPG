@@ -35,7 +35,6 @@ public class CombatEntity : MonoBehaviour
     [Header("Class & Resources")]
     public CharacterClass characterClass;
     public int sneakPoints; // Rogue: 0-6
-    public FighterStance currentStance; // Fighter
     public int stanceCooldown; // Fighter
     public int mana; // Mage: 0-100
     public int wrath; // Cleric: 0-100
@@ -49,6 +48,14 @@ public class CombatEntity : MonoBehaviour
     [Header("Visual References")]
     public GameObject healthBarObject;
     public Animator animator;
+
+    [Header("Fighter Stance System")]
+    public FighterStance currentStance = FighterStance.None;
+
+    // Base stats (before stance modifiers)
+    private int baseStrength;
+    private int baseConstitution;
+    private int baseDefense;
 
     // Reference to the ViewerData (for syncing back after combat)
     private ViewerData viewerData;
@@ -103,6 +110,20 @@ public class CombatEntity : MonoBehaviour
         else
         {
             Debug.LogError($"[CombatEntity] Could not find ViewerData for {uid}!");
+        }
+
+        // Copy stats from ViewerData
+        strength = viewerData.baseStats.strength;
+        constitution = viewerData.baseStats.constitution;
+        defense = viewerData.equipped.GetTotalDefenseBonus();
+
+        // ✅ NEW: Save base stats before any modifiers
+        InitializeBaseStats();
+
+        // ✅ NEW: Fighters start in no stance (could also start in Aggressive)
+        if (characterClass == CharacterClass.Fighter)
+        {
+            currentStance = FighterStance.None;
         }
 
         animator = GetComponent<Animator>();
@@ -416,5 +437,85 @@ public class CombatEntity : MonoBehaviour
     }
 
     #endregion
+    public void InitializeBaseStats()
+    {
+        baseStrength = strength;
+        baseConstitution = constitution;
+        baseDefense = defense;
+    }
 
+    public void RecalculateStatsWithStance()
+    {
+        // Reset to base stats
+        strength = baseStrength;
+        constitution = baseConstitution;
+        defense = baseDefense;
+
+        // Apply stance bonuses
+        switch (currentStance)
+        {
+            case FighterStance.Aggressive:
+                strength = Mathf.RoundToInt(baseStrength * 1.1f);
+                break;
+
+            case FighterStance.Defensive:
+                constitution = Mathf.RoundToInt(baseConstitution * 1.1f);
+                int oldMaxHealth = maxHealth;
+                maxHealth = constitution * 10;
+                float healthPercent = (float)currentHealth / oldMaxHealth;
+                currentHealth = Mathf.RoundToInt(maxHealth * healthPercent);
+                break;
+
+            case FighterStance.Reflective:
+                defense = baseDefense + 10;
+                break;
+        }
+
+        UpdateHealthBar();
+    }
+
+    public bool ChangeStance(FighterStance newStance)
+    {
+        if (characterClass != CharacterClass.Fighter)
+            return false;
+
+        FighterStance oldStance = currentStance;
+        currentStance = newStance;
+        RecalculateStatsWithStance();
+
+        CombatLog.Instance?.AddEntry(
+            $"{entityName} shifts to {GetStanceName(newStance)} Stance!"
+        );
+
+        return true;
+    }
+
+    private string GetStanceName(FighterStance stance)
+    {
+        switch (stance)
+        {
+            case FighterStance.Aggressive: return "Aggressive";
+            case FighterStance.Defensive: return "Defensive";
+            case FighterStance.Reflective: return "Reflective";
+            default: return "None";
+        }
+    }
+
+    public string GetCurrentStanceBonusText()
+    {
+        if (characterClass != CharacterClass.Fighter)
+            return "";
+
+        switch (currentStance)
+        {
+            case FighterStance.Aggressive:
+                return $"+{strength - baseStrength} STR";
+            case FighterStance.Defensive:
+                return $"+{constitution - baseConstitution} CON";
+            case FighterStance.Reflective:
+                return $"+{defense - baseDefense} DEF";
+            default:
+                return "No Stance";
+        }
+    }
 }

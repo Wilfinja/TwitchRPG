@@ -113,6 +113,12 @@ public class RPGChatCommands : MonoBehaviour
             case "pvpleaderboard":
                 return HandlePvPLeaderboardCommand();
 
+            case "stance":
+                return HandleStanceCommand(userId, username, args);
+
+            case "stances":
+                return HandleStancesCommand(userId);
+
             default:
                 return null;
         }
@@ -866,6 +872,121 @@ public class RPGChatCommands : MonoBehaviour
             case CharacterClass.Fighter: return "Stance";
             default: return "Resource";
         }
+    }
+
+    private string HandleStanceCommand(string userId, string username, string[] args)
+    {
+        // Check if in combat
+        if (!CombatTurnManager.Instance.combatActive)
+        {
+            return "You can only change stance during combat!";
+        }
+
+        // Get player's combat entity
+        OnScreenCharacter character = CharacterSpawner.Instance?.GetCharacter(userId);
+        if (character == null)
+            return "You're not in the expedition!";
+
+        CombatEntity entity = character.GetComponent<CombatEntity>();
+        if (entity == null)
+            return "You're not in combat!";
+
+        // Check if player is a Fighter
+        if (entity.characterClass != CharacterClass.Fighter)
+        {
+            return "Only Fighters can use stances!";
+        }
+
+        // Check if it's player's turn
+        if (!CombatTurnManager.Instance.playerTurn)
+        {
+            return "You can only change stance during the player turn phase!";
+        }
+
+        // Show current stance if no args
+        if (args.Length < 1)
+        {
+            return $"Current: {GetStanceDescription(entity.currentStance)}\\n" +
+                   "!stance aggressive - +10% STR\\n" +
+                   "!stance defensive - +10% CON\\n" +
+                   "!stance reflective - +10 DEF";
+        }
+
+        // Parse stance
+        FighterStance newStance;
+        switch (args[0].ToLower())
+        {
+            case "aggressive":
+            case "agg":
+                newStance = FighterStance.Aggressive;
+                break;
+            case "defensive":
+            case "def":
+                newStance = FighterStance.Defensive;
+                break;
+            case "reflective":
+            case "ref":
+                newStance = FighterStance.Reflective;
+                break;
+            default:
+                return $"Unknown stance: {args[0]}";
+        }
+
+        // Check if already in this stance
+        if (entity.currentStance == newStance)
+        {
+            return $"You're already in {GetStanceName(newStance)} stance!";
+        }
+
+        // Change stance (FREE ACTION)
+        bool success = entity.ChangeStance(newStance);
+
+        if (success)
+        {
+            return $"✓ {GetStanceName(newStance)} Stance! {entity.GetCurrentStanceBonusText()}";
+        }
+
+        return "Failed to change stance!";
+    }
+
+    private string GetStanceDescription(FighterStance stance)
+    {
+        switch (stance)
+        {
+            case FighterStance.Aggressive: return "Aggressive (+10% STR)";
+            case FighterStance.Defensive: return "Defensive (+10% CON)";
+            case FighterStance.Reflective: return "Reflective (+10 DEF)";
+            default: return "None";
+        }
+    }
+
+    private string GetStanceName(FighterStance stance)
+    {
+        switch (stance)
+        {
+            case FighterStance.Aggressive: return "Aggressive";
+            case FighterStance.Defensive: return "Defensive";
+            case FighterStance.Reflective: return "Reflective";
+            default: return "None";
+        }
+    }
+
+    private string HandleStancesCommand(string userId)
+    {
+        ViewerData viewer = RPGManager.Instance?.GetViewer(userId);
+        if (viewer == null)
+            return "Viewer data not found!";
+
+        if (viewer.characterClass != CharacterClass.Fighter)
+        {
+            return "Only Fighters can use stances!";
+        }
+
+        return "═══ FIGHTER STANCES ═══\\n" +
+               "⚔️ Aggressive: +10% Strength\\n" +
+               "🛡️ Defensive: +10% Constitution\\n" +
+               "✨ Reflective: +10 Defense\\n\\n" +
+               "Change with: !stance <type>";
     }
 
     private string HandleHelpCommand(ViewerData viewer)

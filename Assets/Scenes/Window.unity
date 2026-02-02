@@ -154,7 +154,7 @@ MonoBehaviour:
   epicItemPrefab: {fileID: 0}
   legendaryItemPrefab: {fileID: 0}
   uniqueItemPrefab: {fileID: 0}
-  spawnHeight: 0
+  spawnHeight: 14
   dropParent: {fileID: 1769051486}
   queueDelay: 0.3
   queueMultipleDrops: 1
@@ -387,7 +387,7 @@ Transform:
   m_GameObject: {fileID: 464495705}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.95333, y: -0.35383, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -646,6 +646,7 @@ GameObject:
   m_Component:
   - component: {fileID: 668260151}
   - component: {fileID: 668260152}
+  - component: {fileID: 668260153}
   m_Layer: 0
   m_Name: ExpeditionManager
   m_TagString: Untagged
@@ -662,7 +663,7 @@ Transform:
   m_GameObject: {fileID: 668260150}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -9.13725, y: -3.32141, z: 0}
+  m_LocalPosition: {x: 13.35, y: -9, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -680,7 +681,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ac4c0310e5cf824ca367203ac6db126, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ExpeditionManager
-  config: {fileID: 0}
+  config: {fileID: 11400000, guid: 55174aa678959934eadd2986efd23403, type: 2}
   currentExpedition:
     difficulty: 0
     participantUsernames: []
@@ -695,18 +696,58 @@ MonoBehaviour:
   expeditionQueued: 0
   acceptingJoins: 0
   playerCombatPositions:
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
+  - {x: -3, y: -10, z: 0}
+  - {x: -6, y: -10, z: 0}
+  - {x: -9, y: -10, z: 0}
+  - {x: -12, y: -10, z: 0}
   enemyPositions:
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
-  enemyCombatPrefab: {fileID: 0}
+  - {x: 3, y: -10, z: 0}
+  - {x: 6, y: -10, z: 0}
+  - {x: 9, y: -10, z: 0}
+  - {x: 12, y: -10, z: 0}
+  - {x: 15, y: -10, z: 0}
+  - {x: 18, y: -10, z: 0}
+  enemyCombatPrefab: {fileID: 6036980086267423090, guid: 27cf75924c0bcec47a5ccb9a387c1eec, type: 3}
+--- !u!114 &668260153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 668260150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc9652edd4b380240a610b5228d786d5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PvPManager
+  pvpActive: 0
+  currentMatch:
+    fighter1UserId: 
+    fighter1Username: 
+    fighter2UserId: 
+    fighter2Username: 
+    wager: 0
+    totalPot: 0
+  challengeTimeoutSeconds: 60
+  challengeCooldownMinutes: 20
+  minWager: 25
+  winnerXP: 50
+  loserXP: 25
+  voteCost: 25
+  fighter1Position: {x: -2, y: 0, z: 0}
+  fighter2Position: {x: 2, y: 0, z: 0}
+  leftSpectatorPositions:
+  - {x: -12, y: -10, z: 0}
+  - {x: -14, y: -10, z: 0}
+  - {x: -16, y: -10, z: 0}
+  - {x: -18, y: -10, z: 0}
+  - {x: -20, y: -10, z: 0}
+  rightSpectatorPositions:
+  - {x: 12, y: -10, z: 0}
+  - {x: 14, y: -10, z: 0}
+  - {x: 16, y: -10, z: 0}
+  - {x: 18, y: -10, z: 0}
+  - {x: 20, y: -10, z: 0}
 --- !u!1 &688515458
 GameObject:
   m_ObjectHideFlags: 0
@@ -1017,7 +1058,7 @@ MonoBehaviour:
   magePrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
   clericPrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
   rangerPrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
-  spawnYPosition: 0
+  spawnYPosition: -9
   spawnSpacing: 1.5
   idleRangeX: 8
   characterParent: {fileID: 635347820}
@@ -1079,6 +1120,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1210868019}
+  - component: {fileID: 1210868020}
   m_Layer: 0
   m_Name: Trademanager
   m_TagString: Untagged
@@ -1101,6 +1143,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1210868020
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1210868018}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49c50cdd78a938749a564e3999d924ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TradeManager
+  tradeOfferDurationSeconds: 60
+  maxTradeHistoryPerPlayer: 10
 --- !u!1 &1304412138
 GameObject:
   m_ObjectHideFlags: 0
@@ -1660,7 +1716,7 @@ Transform:
   m_GameObject: {fileID: 2130528495}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.95333, y: -0.35383, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

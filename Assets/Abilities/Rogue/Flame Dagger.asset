@@ -10,25 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Strike
+  m_Name: Flame Dagger
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Strike
-  commandName: strike
-  description: The fighter strikes out, dealing 1.25x STR damage.
-  requiredClass: 3
-  levelRequired: 1
+  abilityName: Flame Dagger
+  commandName: flamedagger
+  description: The rogue conjures a flame dagger and launches it at an enemy, dealing
+    1.25x DEX + .5x INT damage and causing burn.
+  requiredClass: 1
+  levelRequired: 2
   category: 0
-  targetType: 5
-  scalingStat: 0
+  targetType: 0
+  scalingStat: 2
   statMultiplier: 1.25
-  useSecondaryScaling: 0
-  secondaryScalingStat: 0
-  secondaryStatMultiplier: 0
+  useSecondaryScaling: 1
+  secondaryScalingStat: 3
+  secondaryStatMultiplier: 0.5
   scalesWithSneak: 0
   sneakDamageMultiplier: 0
   consumesAllSneak: 0
   consumeSneakAmount: 0
-  baseDamage: 10
+  baseDamage: 0
   canCrit: 0
   sneakCost: 0
   sneakGain: 0
@@ -43,13 +44,18 @@ MonoBehaviour:
   balanceRequirementType: 0
   canTargetAllies: 0
   canTargetEnemies: 1
-  maxTargetPosition: 1
-  minTargetPosition: 1
+  maxTargetPosition: 2
+  minTargetPosition: 2
   isAOE: 0
   aoETargets: 1
-  cooldown: 0
-  appliesEffects: []
+  cooldown: 2
+  appliesEffects:
+  - effectName: Burn
+    duration: 1
+    damageMultiplier: 0
+    defenseMultiplier: 0
+    damageOverTime: 10
   shiftPosition: 0
   positionShift: 0
   animationTrigger: Attack
-  particleEffect: {fileID: 6710139492206580332, guid: 95b8d3d65b5d7f1409c4ed1723887826, type: 3}
+  particleEffect: {fileID: 0}

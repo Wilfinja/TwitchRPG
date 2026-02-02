@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Strike
+  m_Name: GlobShot
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Strike
-  commandName: strike
-  description: The fighter strikes out, dealing 1.25x STR damage.
-  requiredClass: 3
+  abilityName: GlobShot
+  commandName: 
+  description: 
+  requiredClass: 0
   levelRequired: 1
   category: 0
   targetType: 5
-  scalingStat: 0
-  statMultiplier: 1.25
+  scalingStat: 6
+  statMultiplier: 1
   useSecondaryScaling: 0
   secondaryScalingStat: 0
   secondaryStatMultiplier: 0
@@ -28,7 +28,7 @@ MonoBehaviour:
   sneakDamageMultiplier: 0
   consumesAllSneak: 0
   consumeSneakAmount: 0
-  baseDamage: 10
+  baseDamage: 0
   canCrit: 0
   sneakCost: 0
   sneakGain: 0
@@ -47,9 +47,9 @@ MonoBehaviour:
   minTargetPosition: 1
   isAOE: 0
   aoETargets: 1
-  cooldown: 0
+  cooldown: 2
   appliesEffects: []
   shiftPosition: 0
   positionShift: 0
   animationTrigger: Attack
-  particleEffect: {fileID: 6710139492206580332, guid: 95b8d3d65b5d7f1409c4ed1723887826, type: 3}
+  particleEffect: {fileID: 0}

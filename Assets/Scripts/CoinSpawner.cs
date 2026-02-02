@@ -33,6 +33,20 @@ public class CoinSpawner : MonoBehaviour
 
     private int totalCoinsSpawned = 0;
 
+    private static CoinSpawner _instance;
+
+    public static CoinSpawner Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = FindFirstObjectByType<CoinSpawner>();
+            }
+            return _instance;
+        }
+    }
+
     public void TestSpawn()
     {
         SpawnCoins(5);
@@ -54,6 +68,7 @@ public class CoinSpawner : MonoBehaviour
         {
             // Spawn immediately
             StartCoroutine(SpawnCoinsRoutine(count, 0));
+            Debug.Log($"[CoinSpawner] Spawning {count} coins immediately");
         }
     }
 
@@ -62,7 +77,10 @@ public class CoinSpawner : MonoBehaviour
     /// </summary>
     public void SpawnQueuedCoins()
     {
-        if (queuedCoinSpawns.Count == 0) return;
+        if (queuedCoinSpawns.Count == 0)
+        {
+            Debug.Log("[CoinSpawner] No queued coins to spawn");
+        }
 
         Debug.Log($"[CoinSpawner] Spawning {queuedCoinSpawns.Count} queued coin batches");
 

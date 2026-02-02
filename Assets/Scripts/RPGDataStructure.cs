@@ -113,7 +113,8 @@ public enum FighterStance
     None,
     Defensive,
     Aggressive,
-    Balanced
+    Balanced,
+    Reflective
 }
 
 [Serializable]
@@ -147,9 +148,12 @@ public enum AbilityTargetType
 
 public enum DamageStat
 {
+    None,
     Strength,
     Dexterity,
     Intelligence,
+    Willpower,
+    Charisma,
     Constitution
 }
 
