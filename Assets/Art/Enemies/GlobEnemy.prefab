@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5519869543937243796}
   - component: {fileID: 2486689575954619365}
   - component: {fileID: 1284621580192192753}
+  - component: {fileID: 6418857617156637135}
   m_Layer: 0
   m_Name: GlobEnemy
   m_TagString: Untagged
@@ -133,3 +134,16 @@ MonoBehaviour:
   healthBarObject: {fileID: 0}
   animator: {fileID: 0}
   currentStance: 0
+--- !u!114 &6418857617156637135
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6036980086267423090}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8bd7196a691c41c45b030f81bd2623a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyCombatController
+  enemyData: {fileID: 11400000, guid: dbe5e06f2c8e1bc46b4811d633d63cde, type: 2}

@@ -506,6 +506,12 @@ public class ExpeditionManager : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
+        if (CoinSpawner.Instance != null)
+        {
+            CoinSpawner.Instance.SpawnQueuedCoins();
+            Debug.Log("[Expedition] Spawning queued coins after combat");
+        }
+
         ResetExpedition();
     }
 
