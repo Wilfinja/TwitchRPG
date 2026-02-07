@@ -403,6 +403,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: RogueMeduimBase
       objectReference: {fileID: 0}
+    - target: {fileID: -2253911629886400664, guid: 92a073af0abfef64ba33ee823deacd24, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: -2253911629886400664, guid: 92a073af0abfef64ba33ee823deacd24, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
     - target: {fileID: 1160356261127867848, guid: 92a073af0abfef64ba33ee823deacd24, type: 3}
       propertyPath: m_Controller
       value: 
@@ -504,8 +512,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5929f3b6c3e66514dafd61102ff2e31d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OnScreenCharacter
-  walkSpeed: 2
-  runSpeed: 5
+  walkSpeed: 2.5
+  runSpeed: 5.5
   isInCombat: 0
   idleWanderInterval: 3
   idleAnimationName: Idle
@@ -513,9 +521,9 @@ MonoBehaviour:
   runAnimationName: Run
   collectAnimationName: Collect
   collectAnimationDuration: 0.5
-  nameLabel: {fileID: 0}
-  levelLabel: {fileID: 0}
-  nameContainer: {fileID: 0}
+  nameLabel: {fileID: 4266723505783834379}
+  levelLabel: {fileID: 763516281011950816}
+  nameContainer: {fileID: 6845981596687107549}
 --- !u!70 &5119824346498765694
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
