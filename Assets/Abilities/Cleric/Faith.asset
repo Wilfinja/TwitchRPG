@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
+  m_Name: Faith
+  m_EditorClassIdentifier: Assembly-CSharp::AbilityData
+  abilityName: Faith
+  commandName: faith
+  description: The Cleric imbues a friend with defense to resist the next attack.
+    Defense is increased by 1.0x WILL for one round.
+  requiredClass: 2
+  levelRequired: 1
+  category: 2
+  targetType: 1
+  scalingStat: 4
+  statMultiplier: 1
+  useSecondaryScaling: 0
+  secondaryScalingStat: 0
+  secondaryStatMultiplier: 0
+  scalesWithSneak: 0
+  sneakDamageMultiplier: 0
+  consumesAllSneak: 0
+  consumeSneakAmount: 0
+  baseDamage: 0
+  canCrit: 0
+  grantsDefenseBoost: 0
+  defenseBoostAmount: 0
+  defenseConsumedOnHit: 0
+  grantsStatBoost: 0
+  statToBoost: 0
+  statBoostAmount: 0
+  statBoostDuration: 1
+  sneakCost: 0
+  sneakGain: 0
+  requiresStance: 0
+  requiredStance: 0
+  manaCost: 0
+  wrathCost: 0
+  wrathGain: 0
+  balanceCost: 0
+  balanceGain: 0
+  balanceRequirement: 0
+  balanceRequirementType: 0
+  canTargetAllies: 0
+  canTargetEnemies: 1
+  maxTargetPosition: 1
+  minTargetPosition: 1
+  isAOE: 0
+  aoETargets: 1
+  cooldown: 1
+  appliesEffects:
+  - effectName: Def Up (Faith)
+    duration: 1
+    damageMultiplier: 0
+    defenseMultiplier: 0
+    damageOverTime: 0
+    temporaryDefenseBonus: 30
+    consumedOnHit: 1
+    statBoostType: 0
+    statBoostAmount: 0
+  shiftPosition: 0
+  positionShift: 0
+  animationTrigger: BuffCast
+  particleEffect: {fileID: 0}

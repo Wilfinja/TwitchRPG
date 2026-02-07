@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -118,6 +118,18 @@ public enum FighterStance
 }
 
 [Serializable]
+public enum BoostableStat
+{
+    None,
+    Strength,
+    Constitution,
+    Dexterity,
+    Willpower,
+    Charisma,
+    Intelligence
+}
+
+[Serializable]
 public class StatusEffect
 {
     public string effectName;
@@ -125,6 +137,18 @@ public class StatusEffect
     public float damageMultiplier = 1f;
     public float defenseMultiplier = 1f;
     public int damageOverTime;
+
+    [Tooltip("Flat defense bonus added while active")]
+    public int temporaryDefenseBonus;
+
+    [Tooltip("If true, removed after 1 hit instead of after duration expires")]
+    public bool consumedOnHit;
+
+    [Tooltip("Which stat is being boosted")]
+    public BoostableStat statBoostType;
+
+    [Tooltip("Amount the stat is boosted")]
+    public int statBoostAmount;
 }
 
 public enum AbilityCategory

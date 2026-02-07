@@ -1056,7 +1056,8 @@ public class RPGChatCommands : MonoBehaviour
     {
         if (args.Length < 1)
         {
-            return "Usage: !startexpedition <easy/medium/hard/deadly>";
+            return "Usage: !startexpedition <easy/medium/hard/deadly> [theme]\n" +
+                   "Example: !startexpedition easy forest";
         }
 
         string difficultyStr = args[0].ToLower();
@@ -1080,9 +1081,12 @@ public class RPGChatCommands : MonoBehaviour
                 return "Invalid difficulty! Use: easy, medium, hard, or deadly";
         }
 
+        // Check for optional theme parameter
+        string theme = args.Length >= 2 ? args[1] : null;
+
         if (ExpeditionManager.Instance != null)
         {
-            ExpeditionManager.Instance.QueueExpedition(difficulty);
+            ExpeditionManager.Instance.QueueExpedition(difficulty, theme);
             return null; // ExpeditionManager sends its own message
         }
 

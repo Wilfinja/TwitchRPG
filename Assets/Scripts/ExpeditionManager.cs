@@ -22,8 +22,8 @@ public class ExpeditionManager : MonoBehaviour
     public Vector3[] playerCombatPositions = new Vector3[4]; // Positions 1-4
     public Vector3[] enemyPositions = new Vector3[6]; // Positions 1-6
 
-    [Header("Enemy Prefabs")]
-    public GameObject enemyCombatPrefab;
+    //[Header("Enemy Prefabs")]
+    //public GameObject enemyCombatPrefab;
 
     [Header("References")]
     private List<GameObject> activeEnemies = new List<GameObject>();
@@ -57,7 +57,7 @@ public class ExpeditionManager : MonoBehaviour
 
     #region Expedition Setup
 
-    public void QueueExpedition(ExpeditionDifficulty difficulty)
+    public void QueueExpedition(ExpeditionDifficulty difficulty, string theme = null)
     {
         if (expeditionQueued || currentExpedition.isActive)
         {
@@ -65,9 +65,19 @@ public class ExpeditionManager : MonoBehaviour
             return;
         }
 
+        // If no theme specified, pick a random one from config
+        if (string.IsNullOrEmpty(theme))
+        {
+            if (config.themedPools != null && config.themedPools.Count > 0)
+            {
+                theme = config.themedPools[Random.Range(0, config.themedPools.Count)].themeName;
+            }
+        }
+
         currentExpedition = new ExpeditionState
         {
             difficulty = difficulty,
+            theme = theme, // NEW
             isActive = false,
             currentWave = 0,
             joinTimer = config.joinTimerDuration
@@ -79,7 +89,12 @@ public class ExpeditionManager : MonoBehaviour
         expeditionQueued = true;
         acceptingJoins = true;
 
-        OnScreenNotification.Instance?.ShowNotification($"🗡️ {diffConfig.displayName} expedition is now open! Type !enterexpedition <position 1-4> to join! Timer: {config.joinTimerDuration}s");
+        // Show theme in notification
+        string themeText = !string.IsNullOrEmpty(theme) ? $" [{theme}]" : "";
+        OnScreenNotification.Instance?.ShowNotification(
+            $"🗡️ {diffConfig.displayName} expedition{themeText} is now open! " +
+            $"Type !enterexpedition <position 1-4> to join! Timer: {config.joinTimerDuration}s"
+        );
     }
 
     public bool AddParticipant(string userId, string username, int requestedPosition)
@@ -289,13 +304,46 @@ public class ExpeditionManager : MonoBehaviour
 
         int enemyCount = Random.Range(wave.minEnemyCount, wave.maxEnemyCount + 1);
 
+        // Get the themed pool if available
+        ThemedEnemyPool themedPool = null;
+        if (!string.IsNullOrEmpty(currentExpedition.theme))
+        {
+            themedPool = config.GetThemedPool(currentExpedition.theme);
+
+            if (themedPool != null)
+            {
+                Debug.Log($"[Expedition] Using themed pool: {currentExpedition.theme}");
+            }
+            else
+            {
+                Debug.LogWarning($"[Expedition] Theme '{currentExpedition.theme}' not found! Using default EnemyDatabase.");
+            }
+        }
+
         // Spawn regular enemies
         for (int i = 0; i < enemyCount; i++)
         {
-            EnemyData enemyData = EnemyDatabase.Instance?.GetRandomEnemy(currentExpedition.difficulty, false);
+            EnemyData enemyData = null;
+
+            // Try themed pool first
+            if (themedPool != null)
+            {
+                enemyData = themedPool.GetRandomEnemy(currentExpedition.difficulty, false);
+            }
+
+            // Fallback to global EnemyDatabase if themed pool failed
+            if (enemyData == null && EnemyDatabase.Instance != null)
+            {
+                enemyData = EnemyDatabase.Instance.GetRandomEnemy(currentExpedition.difficulty, false);
+            }
+
             if (enemyData != null)
             {
                 SpawnEnemy(enemyData, i + 1);
+            }
+            else
+            {
+                Debug.LogError($"[Expedition] Failed to get enemy data for wave!");
             }
         }
 
@@ -304,7 +352,20 @@ public class ExpeditionManager : MonoBehaviour
         {
             for (int i = 0; i < wave.bossCount; i++)
             {
-                EnemyData bossData = EnemyDatabase.Instance?.GetRandomEnemy(currentExpedition.difficulty, true);
+                EnemyData bossData = null;
+
+                // Try themed pool first
+                if (themedPool != null)
+                {
+                    bossData = themedPool.GetRandomEnemy(currentExpedition.difficulty, true);
+                }
+
+                // Fallback to global EnemyDatabase
+                if (bossData == null && EnemyDatabase.Instance != null)
+                {
+                    bossData = EnemyDatabase.Instance.GetRandomEnemy(currentExpedition.difficulty, true);
+                }
+
                 if (bossData != null)
                 {
                     SpawnEnemy(bossData, enemyCount + i + 1);
@@ -315,21 +376,35 @@ public class ExpeditionManager : MonoBehaviour
 
     void SpawnEnemy(EnemyData data, int position)
     {
-        if (enemyCombatPrefab == null)
+        if (data == null)
         {
-            Debug.LogError("[Expedition] Enemy prefab not assigned!");
+            Debug.LogError("[Expedition] Cannot spawn null EnemyData!");
             return;
         }
 
-        GameObject enemyObj = Instantiate(enemyCombatPrefab, enemyPositions[position - 1], Quaternion.identity);
+        if (data.enemyPrefab == null)
+        {
+            Debug.LogError($"[Expedition] {data.enemyName} has no enemyPrefab assigned! Assign a prefab in the EnemyData ScriptableObject.");
+            return;
+        }
 
-        // Add CombatEntity component
+        if (position < 1 || position > enemyPositions.Length)
+        {
+            Debug.LogError($"[Expedition] Invalid enemy position {position}! Must be 1-{enemyPositions.Length}");
+            return;
+        }
+
+        // Instantiate the SPECIFIC prefab for this enemy type
+        GameObject enemyObj = Instantiate(data.enemyPrefab, enemyPositions[position - 1], Quaternion.identity);
+
+        // Add or get CombatEntity component
         CombatEntity entity = enemyObj.GetComponent<CombatEntity>();
         if (entity == null)
         {
             entity = enemyObj.AddComponent<CombatEntity>();
         }
 
+        // Initialize combat stats from EnemyData
         entity.InitializeEnemy(
             data.enemyName,
             position,
@@ -338,14 +413,10 @@ public class ExpeditionManager : MonoBehaviour
             data.baseDexterity,
             data.baseConstitution,
             data.baseIntelligence,
-            0, // willpower - not in EnemyData yet
-            0, // charisma - not in EnemyData yet
+            0, // willpower - can add to EnemyData later if needed
+            0, // charisma - can add to EnemyData later if needed
             data.baseDefense
         );
-
-        // Setup visuals
-        SpriteRenderer sr = enemyObj.GetComponent<SpriteRenderer>();
-        if (sr != null) sr.sprite = data.enemySprite;
 
         // Setup AI controller
         EnemyCombatController controller = enemyObj.GetComponent<EnemyCombatController>();
@@ -355,10 +426,13 @@ public class ExpeditionManager : MonoBehaviour
         }
         controller.Initialize(data);
 
+        // Add to active enemies list
         activeEnemies.Add(enemyObj);
 
         // Create health bar
         CombatUIManager.Instance?.CreateHealthBar(entity);
+
+        Debug.Log($"[Expedition] Spawned {data.enemyName} at position {position} using prefab: {data.enemyPrefab.name}");
     }
 
     public void OnWaveCleared()

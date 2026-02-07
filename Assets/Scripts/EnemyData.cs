@@ -1,13 +1,18 @@
-using NUnit.Framework.Interfaces;
+﻿using NUnit.Framework.Interfaces;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// ScriptableObject that defines an enemy type
+/// Create via: Right-click → Create → RPG → Enemy
+/// </summary>
 [CreateAssetMenu(fileName = "New Enemy", menuName = "RPG/Enemy")]
 public class EnemyData : ScriptableObject
 {
     [Header("Identity")]
     public string enemyName;
-    public Sprite enemySprite;
+    [Tooltip("The visual prefab for this enemy (with animations, sprite, etc.)")]
+    public GameObject enemyPrefab;
     public EnemyRole role;
 
     [Header("Stats")]
@@ -42,13 +47,20 @@ public class EnemyData : ScriptableObject
     public int xpReward = 25;
 }
 
+/// <summary>
+/// Defines a possible item drop with a chance
+/// </summary>
 [System.Serializable]
 public class ItemDropChance
 {
     public RPGItem item;
+    [Range(0f, 1f)]
     public float dropChance; // 0-1
 }
 
+/// <summary>
+/// Enemy role determines AI behavior
+/// </summary>
 public enum EnemyRole
 {
     Minion,      // Attack frontline, simple

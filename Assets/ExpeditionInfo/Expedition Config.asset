@@ -43,3 +43,14 @@ MonoBehaviour:
     bonusRareChance: 5
     bonusEpicChance: 1
     bonusLegendaryChance: 0
+  themedPools:
+  - themeName: Graveyard
+    themeDescription: Locals have sighted strange occurances in the nearby graveyard.
+      Dark powers are afoot here.
+    easyEnemies:
+    - {fileID: 11400000, guid: 89242d7961e34d844848cd4d7c1b56d9, type: 2}
+    - {fileID: 11400000, guid: 3d11567c87ed17548ae3b0d385f2d819, type: 2}
+    mediumEnemies: []
+    hardEnemies: []
+    deadlyEnemies: []
+    bossEnemies: []

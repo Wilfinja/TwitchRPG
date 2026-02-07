@@ -119,6 +119,54 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &104625421
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 104625423}
+  - component: {fileID: 104625422}
+  m_Layer: 0
+  m_Name: CombatTurnManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &104625422
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 104625421}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46755bc7f5bf43f4eaeb00022ae6ed43, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CombatTurnManager
+  combatActive: 0
+  playerTurn: 0
+  turnTimer: 0
+  maxTurnTime: 45
+--- !u!4 &104625423
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 104625421}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3.53612, y: -5.55284, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &173266575
 GameObject:
   m_ObjectHideFlags: 0
@@ -248,7 +296,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d07cf465c265044b93db43d930ac12b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatLog
-  logText: {fileID: 0}
+  logText: {fileID: 1013994385}
   maxLogEntries: 10
 --- !u!4 &300625210
 Transform:
@@ -730,6 +778,7 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 55174aa678959934eadd2986efd23403, type: 2}
   currentExpedition:
     difficulty: 0
+    theme: 
     participantUsernames: []
     participantUserIds: []
     currentWave: 0
@@ -753,7 +802,6 @@ MonoBehaviour:
   - {x: 12, y: -10, z: 0}
   - {x: 15, y: -10, z: 0}
   - {x: 18, y: -10, z: 0}
-  enemyCombatPrefab: {fileID: 6036980086267423090, guid: 27cf75924c0bcec47a5ccb9a387c1eec, type: 3}
 --- !u!114 &668260153
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1151,7 +1199,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0db9513f5039b7b42ab4dca50484ccf0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterSpawner
-  roguePrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
+  roguePrefab: {fileID: 3418356907080870833, guid: f65b06f9220841048b2551aef3f50d2d, type: 3}
   fighterPrefab: {fileID: 4424705616336512928, guid: 3cf0ee1c38ee41e4b9d1ef96dc796e41, type: 3}
   magePrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
   clericPrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
@@ -1716,7 +1764,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 96e36ff717786a146aafabc3c8a4e603, type: 2}
   - {fileID: 11400000, guid: 515587e6c3599df46963b44ad8e1f2ee, type: 2}
   mageAbilities: []
-  clericAbilities: []
+  clericAbilities:
+  - {fileID: 11400000, guid: 2e0d244cc58e01e4381f4409cafa6cba, type: 2}
+  - {fileID: 11400000, guid: 5dc3fe3e29184a94bb2c571ad15064e8, type: 2}
+  - {fileID: 11400000, guid: 394c9882ef94d114a95e6409a72dbaae, type: 2}
+  - {fileID: 11400000, guid: 8ea5a2b6a0d7ccb448ae6040e110074e, type: 2}
+  - {fileID: 11400000, guid: 506650a0b9de25d4d8cd130052f616c3, type: 2}
+  - {fileID: 11400000, guid: 0bcbaa4bb620d1b40a1c90afbf6d6bfd, type: 2}
   rangerAbilities: []
   enemyAbilities: []
 --- !u!4 &1786653726
@@ -2025,3 +2079,4 @@ SceneRoots:
   - {fileID: 983822569}
   - {fileID: 300625210}
   - {fileID: 1786653726}
+  - {fileID: 104625423}

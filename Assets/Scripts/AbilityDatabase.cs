@@ -7,7 +7,7 @@ using UnityEngine;
 /// </summary>
 public class AbilityDatabase : MonoBehaviour
 {
-    private static AbilityDatabase _instance;
+    public static AbilityDatabase Instance;
 
     [Header("Ability Lists")]
     public List<AbilityData> rogueAbilities = new List<AbilityData>();
@@ -19,16 +19,14 @@ public class AbilityDatabase : MonoBehaviour
 
     private Dictionary<string, AbilityData> abilityLookup = new Dictionary<string, AbilityData>();
 
-    public static AbilityDatabase Instance
+    void Awake()
     {
-        get
-        {
-            if (_instance == null)
-            {
-                _instance = FindFirstObjectByType<AbilityDatabase>();
-            }
-            return _instance;
-        }
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
+
+        BuildAbilityLookup();
     }
 
     void BuildAbilityLookup()

@@ -2,31 +2,28 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// Enhanced AbilityData with dual-stat scaling support
-/// BACKWARDS COMPATIBLE - old abilities will work without changes
+/// Enhanced AbilityData with dual-stat scaling, defense boosts, and stat boosts
+/// Defense and stat boosts can now SCALE with caster stats!
 /// </summary>
 [CreateAssetMenu(fileName = "New Ability", menuName = "RPG/Ability")]
 public class AbilityData : ScriptableObject
 {
     [Header("Basic Info")]
     public string abilityName;
-    public string commandName; // What players type: "quickcut", "strike", etc.
+    public string commandName;
     [TextArea(3, 5)]
     public string description;
     public CharacterClass requiredClass;
     public int levelRequired = 1;
 
     [Header("Ability Type")]
-    public AbilityCategory category; // Buff, Heal, Damage
+    public AbilityCategory category;
     public AbilityTargetType targetType;
 
     [Header("Primary Damage/Healing Scaling")]
-    public DamageStat scalingStat; // Primary stat (DEX, STR, INT, etc.)
-    public float statMultiplier = 1f; // Primary stat multiplier
+    public DamageStat scalingStat;
+    public float statMultiplier = 1f;
 
-    // ═══════════════════════════════════════════════════════════
-    // ✅ NEW: SECONDARY STAT SCALING
-    // ═══════════════════════════════════════════════════════════
     [Header("Secondary Scaling (Optional)")]
     [Tooltip("Enable dual-stat scaling (e.g., Flame Dagger = DEX + INT)")]
     public bool useSecondaryScaling = false;
@@ -37,11 +34,6 @@ public class AbilityData : ScriptableObject
     [Tooltip("Secondary stat multiplier")]
     public float secondaryStatMultiplier = 0f;
 
-    // ═══════════════════════════════════════════════════════════
-
-    // ═══════════════════════════════════════════════════════════
-    // ✅ NEW: SNEAK-BASED DAMAGE SCALING (ROGUE)
-    // ═══════════════════════════════════════════════════════════
     [Header("Sneak Damage Scaling (Rogue Only)")]
     [Tooltip("Damage scales based on CURRENT sneak points")]
     public bool scalesWithSneak = false;
@@ -54,39 +46,79 @@ public class AbilityData : ScriptableObject
 
     [Tooltip("Consume specific amount of sneak (0 = don't consume based on count)")]
     public int consumeSneakAmount = 0;
-    // ═══════════════════════════════════════════════════════════
 
     [Header("Base Damage/Healing")]
-    public int baseDamage; // Flat damage/healing added
+    public int baseDamage;
     public bool canCrit;
 
+    // ═══════════════════════════════════════════════════════════
+    // ✅ UPDATED: Defense Boost with Stat Scaling
+    // ═══════════════════════════════════════════════════════════
+    [Header("Defense Boost")]
+    [Tooltip("Grants temporary defense boost")]
+    public bool grantsDefenseBoost;
+
+    [Tooltip("Base defense amount (before scaling)")]
+    public int baseDefenseBoost;
+
+    [Tooltip("Which stat to scale defense boost with (None = no scaling, just use base)")]
+    public DamageStat defenseScalingStat = DamageStat.None;
+
+    [Tooltip("Defense scaling multiplier (e.g., 1.5 = defense = base + 1.5x CON)")]
+    public float defenseScalingMultiplier = 0f;
+
+    [Tooltip("Defense consumed after 1 hit (true) or lasts 1 turn (false)")]
+    public bool defenseConsumedOnHit;
+
+    // ═══════════════════════════════════════════════════════════
+    // ✅ UPDATED: Stat Boost with Stat Scaling
+    // ═══════════════════════════════════════════════════════════
+    [Header("Stat Boost")]
+    [Tooltip("Grants temporary stat boost")]
+    public bool grantsStatBoost;
+
+    [Tooltip("Which stat to boost")]
+    public BoostableStat statToBoost;
+
+    [Tooltip("Base stat boost amount (before scaling)")]
+    public int baseStatBoost;
+
+    [Tooltip("Which stat to scale the boost with (None = no scaling, just use base)")]
+    public DamageStat statBoostScalingStat = DamageStat.None;
+
+    [Tooltip("Stat boost scaling multiplier (e.g., 0.5 = boost = base + 0.5x CHA)")]
+    public float statBoostScalingMultiplier = 0f;
+
+    [Tooltip("How many turns the stat boost lasts")]
+    public int statBoostDuration = 1;
+
     [Header("Resource Cost")]
-    public int sneakCost; // Rogue
-    public int sneakGain; // Rogue
-    public bool requiresStance; // Fighter
-    public FighterStance requiredStance; // Fighter
-    public int manaCost; // Mage
-    public int wrathCost; // Cleric
-    public int wrathGain; // Cleric (from offensive abilities)
-    public int balanceCost; // Ranger
-    public int balanceGain; // Ranger
-    public int balanceRequirement; // Ranger (must be above/below this)
+    public int sneakCost;
+    public int sneakGain;
+    public bool requiresStance;
+    public FighterStance requiredStance;
+    public int manaCost;
+    public int wrathCost;
+    public int wrathGain;
+    public int balanceCost;
+    public int balanceGain;
+    public int balanceRequirement;
     public BalanceRequirementType balanceRequirementType;
 
     [Header("Targeting")]
     public bool canTargetAllies;
     public bool canTargetEnemies = true;
-    public int maxTargetPosition = 1; // Can hit positions 1-X
+    public int maxTargetPosition = 1;
     public int minTargetPosition = 1;
     public bool isAOE;
-    public int aoETargets = 1; // How many targets for AOE
+    public int aoETargets = 1;
 
     [Header("Cooldown")]
-    public int cooldown; // Turns
+    public int cooldown;
 
     [Header("Special Effects")]
     public List<StatusEffect> appliesEffects = new List<StatusEffect>();
-    public bool shiftPosition; // Move target forward/back
+    public bool shiftPosition;
     public int positionShift;
 
     [Header("Animation")]
@@ -94,12 +126,9 @@ public class AbilityData : ScriptableObject
     public GameObject particleEffect;
 
     // ═══════════════════════════════════════════════════════════
-    // ✅ HELPER METHODS FOR DUAL-STAT SCALING
+    // HELPER METHODS
     // ═══════════════════════════════════════════════════════════
 
-    /// <summary>
-    /// Returns true if this ability uses dual-stat scaling
-    /// </summary>
     public bool HasSecondaryScaling()
     {
         return useSecondaryScaling &&
@@ -107,22 +136,35 @@ public class AbilityData : ScriptableObject
                secondaryStatMultiplier > 0f;
     }
 
-    /// <summary>
-    /// Returns true if this ability scales damage with sneak points
-    /// </summary>
     public bool HasSneakScaling()
     {
         return scalesWithSneak && sneakDamageMultiplier > 0f;
     }
 
     /// <summary>
-    /// Get all scaling stats for this ability (for UI display)
+    /// Check if defense boost scales with a stat
     /// </summary>
+    public bool DefenseBoostScales()
+    {
+        return grantsDefenseBoost &&
+               defenseScalingStat != DamageStat.None &&
+               defenseScalingMultiplier > 0f;
+    }
+
+    /// <summary>
+    /// Check if stat boost scales with a stat
+    /// </summary>
+    public bool StatBoostScales()
+    {
+        return grantsStatBoost &&
+               statBoostScalingStat != DamageStat.None &&
+               statBoostScalingMultiplier > 0f;
+    }
+
     public string GetScalingDescription()
     {
         if (!HasSecondaryScaling() && !HasSneakScaling())
         {
-            // Single stat scaling (backwards compatible)
             return $"{statMultiplier:F2}x {scalingStat}";
         }
 
@@ -143,12 +185,9 @@ public class AbilityData : ScriptableObject
         return string.Join(" + ", parts);
     }
 
-    /// <summary>
-    /// Validate ability data on save (Unity Editor only)
-    /// </summary>
     private void OnValidate()
     {
-        // Prevent invalid secondary scaling configurations
+        // Validate secondary scaling
         if (useSecondaryScaling)
         {
             if (secondaryScalingStat == DamageStat.None)
@@ -183,6 +222,39 @@ public class AbilityData : ScriptableObject
             if (consumesAllSneak && consumeSneakAmount > 0)
             {
                 Debug.LogWarning($"[{abilityName}] Can't use both consumesAllSneak AND consumeSneakAmount!");
+            }
+        }
+
+        // Validate defense boost
+        if (grantsDefenseBoost)
+        {
+            if (baseDefenseBoost <= 0 && !DefenseBoostScales())
+            {
+                Debug.LogWarning($"[{abilityName}] Defense boost enabled but base amount is 0 and no scaling set!");
+            }
+
+            if (defenseScalingStat != DamageStat.None && defenseScalingMultiplier <= 0f)
+            {
+                Debug.LogWarning($"[{abilityName}] Defense scaling stat selected but multiplier is 0!");
+            }
+        }
+
+        // Validate stat boost
+        if (grantsStatBoost)
+        {
+            if (statToBoost == BoostableStat.None)
+            {
+                Debug.LogWarning($"[{abilityName}] Stat boost enabled but no stat selected!");
+            }
+
+            if (baseStatBoost <= 0 && !StatBoostScales())
+            {
+                Debug.LogWarning($"[{abilityName}] Stat boost enabled but base amount is 0 and no scaling set!");
+            }
+
+            if (statBoostScalingStat != DamageStat.None && statBoostScalingMultiplier <= 0f)
+            {
+                Debug.LogWarning($"[{abilityName}] Stat boost scaling stat selected but multiplier is 0!");
             }
         }
     }

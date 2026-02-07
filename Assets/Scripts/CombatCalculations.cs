@@ -8,7 +8,7 @@ public static class CombatCalculations
 {
     public static void ExecuteAbility(CombatEntity caster, CombatEntity target, AbilityData ability)
     {
-        // Consume upfront resources (sneakCost, manaCost, etc.)
+        // Consume upfront resources
         ConsumeUpfrontResources(caster, ability);
 
         // Apply damage or healing
@@ -16,8 +16,6 @@ public static class CombatCalculations
         {
             int damage = CalculateDamage(caster, target, ability);
             target.TakeDamage(damage, caster);
-
-            // ✅ CONSUME SNEAK AFTER DAMAGE (if ability uses sneak scaling)
             ConsumeSneakAfterDamage(caster, ability);
         }
         else if (ability.category == AbilityCategory.Heal)
@@ -28,6 +26,18 @@ public static class CombatCalculations
         else if (ability.category == AbilityCategory.Buff)
         {
             ApplyBuff(caster, target, ability);
+        }
+
+        // ✅ UPDATED: Pass caster to defense boost
+        if (ability.grantsDefenseBoost)
+        {
+            ApplyDefenseBoost(caster, target, ability);
+        }
+
+        // ✅ UPDATED: Pass caster to stat boost
+        if (ability.grantsStatBoost)
+        {
+            ApplyStatBoost(caster, target, ability);
         }
 
         // Grant resources
@@ -83,7 +93,7 @@ public static class CombatCalculations
         // Add base damage BEFORE sneak multiplier
         totalDamage += ability.baseDamage;
 
-        // ✅ SNEAK-BASED DAMAGE SCALING (applied as multiplier to total)
+
         if (ability.HasSneakScaling() && caster.characterClass == CharacterClass.Rogue)
         {
             int currentSneak = caster.sneakPoints;
@@ -153,30 +163,38 @@ public static class CombatCalculations
         CombatLog.Instance?.AddEntry($"{caster.entityName} buffed {target.entityName} with {ability.abilityName}!");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // ✅ ENHANCED: GET STAT VALUE WITH NONE HANDLING
-    // ═══════════════════════════════════════════════════════════════════════
     static int GetStatValue(CombatEntity entity, DamageStat stat)
     {
+        BoostableStat boostableStat;
+
         switch (stat)
         {
             case DamageStat.None:
-                return 0; // ← Backwards compatible
+                return 0;
             case DamageStat.Strength:
-                return entity.strength;
+                boostableStat = BoostableStat.Strength;
+                break;
             case DamageStat.Dexterity:
-                return entity.dexterity;
+                boostableStat = BoostableStat.Dexterity;
+                break;
             case DamageStat.Intelligence:
-                return entity.intelligence;
+                boostableStat = BoostableStat.Intelligence;
+                break;
             case DamageStat.Constitution:
-                return entity.constitution;
+                boostableStat = BoostableStat.Constitution;
+                break;
             case DamageStat.Willpower:
-                return entity.willpower;
+                boostableStat = BoostableStat.Willpower;
+                break;
             case DamageStat.Charisma:
-                return entity.charisma;
+                boostableStat = BoostableStat.Charisma;
+                break;
             default:
-                return entity.strength; // Fallback
+                boostableStat = BoostableStat.Strength;
+                break;
         }
+
+        return entity.GetBoostedStat(boostableStat);
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -341,5 +359,77 @@ public static class CombatCalculations
         {
             CombatLog.Instance?.AddEntry($"{cleric.entityName} gained {wrathGain} wrath.");
         }
+    }
+
+    /// <summary>
+    /// Apply temporary defense boost (can scale with caster's stats)
+    /// Example: Brace gives 0 base + 1.5x CON defense
+    /// </summary>
+    static void ApplyDefenseBoost(CombatEntity caster, CombatEntity target, AbilityData ability)
+    {
+        int defenseAmount = ability.baseDefenseBoost;
+
+        if (ability.DefenseBoostScales())
+        {
+            int statValue = GetStatValue(caster, ability.defenseScalingStat);
+            int scaledBonus = Mathf.RoundToInt(statValue * ability.defenseScalingMultiplier);
+            defenseAmount += scaledBonus;
+
+            Debug.Log($"[CombatCalc] Defense scaling: {ability.baseDefenseBoost} base + " +
+                      $"({statValue} {ability.defenseScalingStat} × {ability.defenseScalingMultiplier}) = {defenseAmount}");
+        }
+
+        // Ensure minimum of 1 if boost is granted
+        defenseAmount = Mathf.Max(1, defenseAmount);
+
+        StatusEffect defenseBoost = new StatusEffect
+        {
+            effectName = ability.defenseConsumedOnHit ? "Brace" : "Defense Up",
+            duration = ability.defenseConsumedOnHit ? 999 : 1,
+            temporaryDefenseBonus = defenseAmount,
+            consumedOnHit = ability.defenseConsumedOnHit
+        };
+
+        target.ApplyStatusEffect(defenseBoost);
+
+        string durationText = ability.defenseConsumedOnHit ? "vs next attack" : "for 1 turn";
+        CombatLog.Instance?.AddEntry($"{target.entityName} gained +{defenseAmount} defense {durationText}!");
+    }
+
+    /// <summary>
+    /// Apply temporary stat boost (can scale with caster's stats)
+    /// Example: Battle Cry gives 5 base + 0.5x CHA strength boost
+    /// </summary>
+    static void ApplyStatBoost(CombatEntity caster, CombatEntity target, AbilityData ability)
+    {
+        if (ability.statToBoost == BoostableStat.None) return;
+
+        int boostAmount = ability.baseStatBoost;
+
+        if (ability.StatBoostScales())
+        {
+            int statValue = GetStatValue(caster, ability.statBoostScalingStat);
+            int scaledBonus = Mathf.RoundToInt(statValue * ability.statBoostScalingMultiplier);
+            boostAmount += scaledBonus;
+
+            Debug.Log($"[CombatCalc] Stat boost scaling: {ability.baseStatBoost} base + " +
+                      $"({statValue} {ability.statBoostScalingStat} × {ability.statBoostScalingMultiplier}) = {boostAmount}");
+        }
+
+        // Ensure minimum of 1 if boost is granted
+        boostAmount = Mathf.Max(1, boostAmount);
+
+        StatusEffect statBoost = new StatusEffect
+        {
+            effectName = $"{ability.statToBoost} Boost",
+            duration = ability.statBoostDuration,
+            statBoostType = ability.statToBoost,
+            statBoostAmount = boostAmount
+        };
+
+        target.ApplyStatusEffect(statBoost);
+
+        string durationText = ability.statBoostDuration == 1 ? "for 1 turn" : $"for {ability.statBoostDuration} turns";
+        CombatLog.Instance?.AddEntry($"{target.entityName} gained +{boostAmount} {ability.statToBoost} {durationText}!");
     }
 }

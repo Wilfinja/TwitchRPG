@@ -197,20 +197,26 @@ public class CombatEntity : MonoBehaviour
             return;
         }
 
+        // ✅ UPDATED: Calculate total defense including temporary buffs
+        int totalDefense = defense + GetTemporaryDefenseBonus();
+
         // Apply defense
-        int finalDamage = Mathf.Max(0, damage - defense);
+        int finalDamage = Mathf.Max(0, damage - totalDefense);
         currentHealth -= finalDamage;
 
         // Show damage
         CombatVisualEffects.Instance?.ShowDamageNumber(transform.position, finalDamage);
 
-        if (defense > 0 && damage > finalDamage)
+        if (totalDefense > 0 && damage > finalDamage)
         {
             int blocked = damage - finalDamage;
             CombatVisualEffects.Instance?.ShowBlockedDamage(transform.position, blocked);
         }
 
         CombatLog.Instance?.AddEntry($"{attacker.entityName} hit {entityName} for {finalDamage} damage!");
+
+        // ✅ NEW: Consume one-hit defense boosts
+        ConsumeOneHitDefenseBoosts();
 
         // Grant wrath to cleric allies when player is hit
         if (isPlayer && finalDamage > 0)
@@ -517,5 +523,88 @@ public class CombatEntity : MonoBehaviour
             default:
                 return "No Stance";
         }
+    }
+
+    /// <summary>
+    /// Get total temporary defense from all active buffs
+    /// </summary>
+    int GetTemporaryDefenseBonus()
+    {
+        int bonus = 0;
+        foreach (StatusEffect effect in activeEffects)
+        {
+            bonus += effect.temporaryDefenseBonus;
+        }
+        return bonus;
+    }
+
+    /// <summary>
+    /// Remove defense buffs that are consumed on hit
+    /// </summary>
+    void ConsumeOneHitDefenseBoosts()
+    {
+        for (int i = activeEffects.Count - 1; i >= 0; i--)
+        {
+            StatusEffect effect = activeEffects[i];
+            if (effect.consumedOnHit && effect.temporaryDefenseBonus > 0)
+            {
+                CombatLog.Instance?.AddEntry($"{entityName}'s {effect.effectName} was consumed!");
+                activeEffects.RemoveAt(i);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Get a stat value with temporary boosts applied
+    /// </summary>
+    public int GetBoostedStat(BoostableStat stat)
+    {
+        int baseValue = 0;
+
+        // Get base stat value
+        switch (stat)
+        {
+            case BoostableStat.Strength:
+                baseValue = strength;
+                break;
+            case BoostableStat.Constitution:
+                baseValue = constitution;
+                break;
+            case BoostableStat.Dexterity:
+                baseValue = dexterity;
+                break;
+            case BoostableStat.Intelligence:
+                baseValue = intelligence;
+                break;
+            case BoostableStat.Willpower:
+                baseValue = willpower;
+                break;
+            case BoostableStat.Charisma:
+                baseValue = charisma;
+                break;
+            case BoostableStat.None:
+            default:
+                return 0;
+        }
+
+        // Add temporary boosts from status effects
+        int bonus = 0;
+        foreach (StatusEffect effect in activeEffects)
+        {
+            if (effect.statBoostType == stat)
+            {
+                bonus += effect.statBoostAmount;
+            }
+        }
+
+        int totalValue = baseValue + bonus;
+
+        // Debug log if boosted
+        if (bonus > 0)
+        {
+            Debug.Log($"[CombatEntity] {entityName} {stat}: {baseValue} + {bonus} = {totalValue}");
+        }
+
+        return totalValue;
     }
 }

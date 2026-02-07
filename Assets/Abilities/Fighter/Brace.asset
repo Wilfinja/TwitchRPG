@@ -20,10 +20,24 @@ MonoBehaviour:
   levelRequired: 1
   category: 2
   targetType: 2
-  scalingStat: 3
+  scalingStat: 6
   statMultiplier: 1.5
+  useSecondaryScaling: 0
+  secondaryScalingStat: 0
+  secondaryStatMultiplier: 0
+  scalesWithSneak: 0
+  sneakDamageMultiplier: 0
+  consumesAllSneak: 0
+  consumeSneakAmount: 0
   baseDamage: 0
   canCrit: 0
+  grantsDefenseBoost: 0
+  defenseBoostAmount: 0
+  defenseConsumedOnHit: 0
+  grantsStatBoost: 0
+  statToBoost: 0
+  statBoostAmount: 0
+  statBoostDuration: 1
   sneakCost: 0
   sneakGain: 0
   requiresStance: 0
@@ -42,7 +56,16 @@ MonoBehaviour:
   isAOE: 0
   aoETargets: 1
   cooldown: 3
-  appliesEffects: []
+  appliesEffects:
+  - effectName: Brace DEF UP
+    duration: 0
+    damageMultiplier: 0
+    defenseMultiplier: 0
+    damageOverTime: 0
+    temporaryDefenseBonus: 0
+    consumedOnHit: 0
+    statBoostType: 0
+    statBoostAmount: 0
   shiftPosition: 0
   positionShift: 0
   animationTrigger: Attack
