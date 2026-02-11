@@ -279,6 +279,10 @@ public class RPGItem
     public int requiredLevel;
     public int price;
 
+    public int maxManaBonus = 0;
+    public int manaRegenBonus = 0;
+    public float manaCostReduction = 0f;
+
     // WEAPON PROPERTIES
     public bool isTwoHanded = false;
     public WeaponCategory weaponCategory = WeaponCategory.None;
@@ -509,6 +513,42 @@ public class EquippedItems
         total.RecalculateHealth();
 
         return total;
+    }
+
+    public int GetTotalMaxManaBonus()
+    {
+        int total = 0;
+        RPGItem[] allItems = { head, chest, legs, arms, mainHand, offHand, feet };
+        foreach (var item in allItems)
+        {
+            if (item != null)
+                total += item.maxManaBonus;
+        }
+        return total;
+    }
+
+    public int GetTotalManaRegenBonus()
+    {
+        int total = 0;
+        RPGItem[] allItems = { head, chest, legs, arms, mainHand, offHand, feet };
+        foreach (var item in allItems)
+        {
+            if (item != null)
+                total += item.manaRegenBonus;
+        }
+        return total;
+    }
+
+    public float GetTotalManaCostReduction()
+    {
+        float total = 0f;
+        RPGItem[] allItems = { head, chest, legs, arms, mainHand, offHand, feet };
+        foreach (var item in allItems)
+        {
+            if (item != null)
+                total += item.manaCostReduction;
+        }
+        return Mathf.Clamp(total, 0f, 0.75f); // Max 75% reduction
     }
 
     public int GetTotalDamageBonus()

@@ -18,7 +18,7 @@ MonoBehaviour:
   requiredClass: 0
   levelRequired: 1
   category: 0
-  targetType: 0
+  targetType: 5
   scalingStat: 1
   statMultiplier: 1.5
   useSecondaryScaling: 0
@@ -30,6 +30,17 @@ MonoBehaviour:
   consumeSneakAmount: 0
   baseDamage: 0
   canCrit: 0
+  grantsDefenseBoost: 0
+  baseDefenseBoost: 0
+  defenseScalingStat: 0
+  defenseScalingMultiplier: 0
+  defenseConsumedOnHit: 0
+  grantsStatBoost: 0
+  statToBoost: 0
+  baseStatBoost: 0
+  statBoostScalingStat: 0
+  statBoostScalingMultiplier: 0
+  statBoostDuration: 1
   sneakCost: 0
   sneakGain: 0
   requiresStance: 0

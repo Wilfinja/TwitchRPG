@@ -39,6 +39,7 @@ public class OnScreenCharacter : MonoBehaviour
     [SerializeField] private float collectAnimationDuration = 0.5f;
 
     private Animator animator;
+    private Rigidbody2D rb;
     private bool facingRight = true;
     private string currentAnimation = "";
 
@@ -50,6 +51,7 @@ public class OnScreenCharacter : MonoBehaviour
     private void Awake()
     {
         animator = GetComponent<Animator>();
+        rb = GetComponent<Rigidbody2D>();
     }
 
     public void Initialize(string uid, string uname, CharacterClass charClass, int lvl, float homeX, float wanderRange)
@@ -233,6 +235,7 @@ public class OnScreenCharacter : MonoBehaviour
         }
     }
 
+    // ✅ FIX: Increased threshold and added snap to prevent jitter after coin collection
     private void IdleWander()
     {
         idleTimer -= Time.deltaTime;
@@ -241,14 +244,22 @@ public class OnScreenCharacter : MonoBehaviour
         {
             // Pick new random X position within idle range
             float randomX = homePositionX + Random.Range(-idleRangeX, idleRangeX);
-            targetXPosition = randomX;
+
+            // ✅ FIX: Only set new target if it's far enough away (dead zone)
+            float distToNewTarget = Mathf.Abs(randomX - transform.position.x);
+            if (distToNewTarget > 0.5f) // Minimum distance to bother moving
+            {
+                targetXPosition = randomX;
+            }
+
             idleTimer = idleWanderInterval;
         }
 
         float currentX = transform.position.x;
         float distToTarget = Mathf.Abs(targetXPosition - currentX);
 
-        if (distToTarget > 0.1f)
+        // ✅ FIX: Increased threshold from 0.1f to 0.3f to prevent floating-point jitter
+        if (distToTarget > 0.3f)
         {
             // Move toward target X
             float direction = Mathf.Sign(targetXPosition - currentX);
@@ -266,6 +277,16 @@ public class OnScreenCharacter : MonoBehaviour
         }
         else
         {
+            // ✅ FIX: Snap to exact target position to prevent drift
+            transform.position = new Vector3(targetXPosition, transform.position.y, transform.position.z);
+
+            // ✅ FIX: Force stop all physics to prevent micro-movements
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector2.zero;
+                rb.angularVelocity = 0f;
+            }
+
             // Standing still
             PlayAnimation(idleAnimationName);
         }
@@ -301,6 +322,13 @@ public class OnScreenCharacter : MonoBehaviour
     {
         isCollecting = true;
 
+        // ✅ FIX: Stop all physics before animation
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+        }
+
         // Play collect animation
         PlayAnimation(collectAnimationName);
 
@@ -322,6 +350,17 @@ public class OnScreenCharacter : MonoBehaviour
 
         // Destroy coin
         Destroy(coin);
+
+        // ✅ FIX: Reset idle state after collection
+        targetXPosition = transform.position.x; // Snap target to current position
+        idleTimer = idleWanderInterval;         // Reset wander timer
+
+        // ✅ FIX: Force stop physics again
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+        }
 
         // Resume normal behavior
         isCollecting = false;

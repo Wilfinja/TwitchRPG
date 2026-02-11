@@ -45,6 +45,10 @@ public class HybridItemSystem : MonoBehaviour
         CustomDragonscalePlate();
         CustomMeltysMelter();
         CustomKaptainsKillerKilt();
+        CustomMissBeeBanginBow();
+        CustomGormGauntlets();
+        CustomRozayPoutinePiercer();
+
     }
 
     // ============================================
@@ -224,6 +228,128 @@ public class HybridItemSystem : MonoBehaviour
             itemName = "Kaptain's Kilt of Killing",
             description = "A kilt formed from the down and feathers of seagulls. Vicious seagulls.",
             itemType = ItemType.LegArmor,
+            rarity = ItemRarity.Legendary,
+            requiredLevel = 0,
+            price = 6000,
+
+            strengthBonusPercent = 0.10f,
+            constitutionBonusPercent = 0.35f,
+            defenseBonus = 50,
+
+            allowedClasses = new List<CharacterClass> { CharacterClass.Fighter },
+
+            properties = new Dictionary<string, string>
+            {
+                { "FireResist", "+50%" },
+                { "Thorns", "Reflect 15% damage" }
+            },
+
+            // ===== ABILITY =====
+            abilities = new List<ItemAbility>
+            {
+                new ItemAbility
+                {
+                    abilityName = "Squawk",
+                    abilityDescription = "Release a legendary squawk, weakening all foes.",
+                    abilityCommand = "squawk",
+                    manaCost = 0,  // Fighters don't use mana
+                    cooldownTurns = 5
+                }
+            }
+        };
+
+        namedLegendaries.Add(killerkilt);
+    }
+
+    private void CustomMissBeeBanginBow()
+    {
+        RPGItem killerkilt = new RPGItem
+        {
+            itemName = "Kaptain's Kilt of Killing",
+            description = "A kilt formed from the down and feathers of seagulls. Vicious seagulls.",
+            itemType = ItemType.Weapon,
+            weaponCategory = WeaponCategory.Bow,
+            rarity = ItemRarity.Legendary,
+            requiredLevel = 0,
+            price = 6000,
+
+            strengthBonusPercent = 0.10f,
+            constitutionBonusPercent = 0.35f,
+            defenseBonus = 50,
+
+            allowedClasses = new List<CharacterClass> { CharacterClass.Fighter },
+
+            properties = new Dictionary<string, string>
+            {
+                { "FireResist", "+50%" },
+                { "Thorns", "Reflect 15% damage" }
+            },
+
+            // ===== ABILITY =====
+            abilities = new List<ItemAbility>
+            {
+                new ItemAbility
+                {
+                    abilityName = "Squawk",
+                    abilityDescription = "Release a legendary squawk, weakening all foes.",
+                    abilityCommand = "squawk",
+                    manaCost = 0,  // Fighters don't use mana
+                    cooldownTurns = 5
+                }
+            }
+        };
+
+        namedLegendaries.Add(killerkilt);
+    }
+
+    private void CustomGormGauntlets()
+    {
+        RPGItem killerkilt = new RPGItem
+        {
+            itemName = "Kaptain's Kilt of Killing",
+            description = "A kilt formed from the down and feathers of seagulls. Vicious seagulls.",
+            itemType = ItemType.ArmArmor,
+            rarity = ItemRarity.Legendary,
+            requiredLevel = 0,
+            price = 6000,
+
+            strengthBonusPercent = 0.10f,
+            constitutionBonusPercent = 0.35f,
+            defenseBonus = 50,
+
+            allowedClasses = new List<CharacterClass> { CharacterClass.Fighter },
+
+            properties = new Dictionary<string, string>
+            {
+                { "FireResist", "+50%" },
+                { "Thorns", "Reflect 15% damage" }
+            },
+
+            // ===== ABILITY =====
+            abilities = new List<ItemAbility>
+            {
+                new ItemAbility
+                {
+                    abilityName = "Squawk",
+                    abilityDescription = "Release a legendary squawk, weakening all foes.",
+                    abilityCommand = "squawk",
+                    manaCost = 0,  // Fighters don't use mana
+                    cooldownTurns = 5
+                }
+            }
+        };
+
+        namedLegendaries.Add(killerkilt);
+    }
+
+    private void CustomRozayPoutinePiercer()
+    {
+        RPGItem killerkilt = new RPGItem
+        {
+            itemName = "Rozay's Poutine Piercer",
+            description = "A trident forged to pierce the delicious and the deadly.",
+            itemType = ItemType.Weapon,
+            weaponCategory = WeaponCategory.Spear,
             rarity = ItemRarity.Legendary,
             requiredLevel = 0,
             price = 6000,

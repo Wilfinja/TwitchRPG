@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using static AbilityData;
 
 /// <summary>
 /// Enhanced combat calculations with dual-stat scaling support
@@ -11,12 +12,24 @@ public static class CombatCalculations
         // Consume upfront resources
         ConsumeUpfrontResources(caster, ability);
 
+        int hitCount = CombatCalculations.CalculateHitCount(caster, ability);
+        int totalDamage = 0;
         // Apply damage or healing
         if (ability.category == AbilityCategory.Damage)
         {
-            int damage = CalculateDamage(caster, target, ability);
-            target.TakeDamage(damage, caster);
-            ConsumeSneakAfterDamage(caster, ability);
+            for (int i = 0; i < hitCount; i++)
+            {
+                int damage = CalculateDamage(caster, target, ability);
+                target.TakeDamage(damage, caster);
+                ConsumeSneakAfterDamage(caster, ability);
+                totalDamage += damage;
+            }
+            if (ability.consumeResourceAfterHits)
+            {
+                ConsumeMultiHitResources(caster, ability, hitCount);
+            }
+            CombatLog.Instance.AddEntry($"{caster.entityName} hit {hitCount} times for {totalDamage} total damage!");
+
         }
         else if (ability.category == AbilityCategory.Heal)
         {
@@ -165,36 +178,25 @@ public static class CombatCalculations
 
     static int GetStatValue(CombatEntity entity, DamageStat stat)
     {
-        BoostableStat boostableStat;
-
         switch (stat)
         {
             case DamageStat.None:
                 return 0;
             case DamageStat.Strength:
-                boostableStat = BoostableStat.Strength;
-                break;
+                return entity.strength;
             case DamageStat.Dexterity:
-                boostableStat = BoostableStat.Dexterity;
-                break;
+                return entity.dexterity;
             case DamageStat.Intelligence:
-                boostableStat = BoostableStat.Intelligence;
-                break;
+                return entity.intelligence;
             case DamageStat.Constitution:
-                boostableStat = BoostableStat.Constitution;
-                break;
+                return entity.constitution;
             case DamageStat.Willpower:
-                boostableStat = BoostableStat.Willpower;
-                break;
+                return entity.GetBoostedWillpower(); // ✅ Use boosted version
             case DamageStat.Charisma:
-                boostableStat = BoostableStat.Charisma;
-                break;
+                return entity.charisma;
             default:
-                boostableStat = BoostableStat.Strength;
-                break;
+                return entity.strength;
         }
-
-        return entity.GetBoostedStat(boostableStat);
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -259,7 +261,26 @@ public static class CombatCalculations
                 break;
 
             case CharacterClass.Mage:
-                caster.mana -= ability.manaCost;
+                int manaCost = ability.manaCost;
+
+                // ✅ NEW: Apply cost reduction from equipment
+                if (caster.viewerData != null)
+                {
+                    float reduction = caster.viewerData.equipped.GetTotalManaCostReduction();
+                    if (reduction > 0)
+                    {
+                        int reducedCost = Mathf.RoundToInt(manaCost * (1f - reduction));
+                        int savedMana = manaCost - reducedCost;
+
+                        CombatLog.Instance?.AddEntry(
+                            $"{caster.entityName} saved {savedMana} mana ({reduction * 100:F0}% reduction)"
+                        );
+
+                        manaCost = reducedCost;
+                    }
+                }
+
+                caster.mana -= manaCost;
                 caster.mana = Mathf.Clamp(caster.mana, 0, 100);
                 break;
 
@@ -297,6 +318,85 @@ public static class CombatCalculations
                 caster.balance += ability.balanceGain;
                 caster.balance = Mathf.Clamp(caster.balance, -10, 10);
                 break;
+        }
+    }
+
+    public static int CalculateHitCount(CombatEntity actor, AbilityData ability)
+    {
+        if (!ability.isMultiHit)
+            return 1; // Single hit
+
+        int hits = ability.baseHitCount;
+
+        switch (ability.multiHitType)
+        {
+            case MultiHitType.None:
+                // Just use base count
+                break;
+
+            case MultiHitType.PerSneakPoint:
+                if (actor.GetCharacterClass() == CharacterClass.Rogue)
+                {
+                    hits = actor.sneakPoints;
+                }
+                break;
+
+            case MultiHitType.PerBalancePoint:
+                if (actor.GetCharacterClass() == CharacterClass.Ranger)
+                {
+                    int absBalance = Mathf.Abs(actor.balance);
+                    hits = absBalance / ability.resourcePerHit;
+                }
+                break;
+
+            case MultiHitType.IfAggressive:
+                if (actor.GetCharacterClass() == CharacterClass.Fighter)
+                {
+                    if (actor.currentStance == FighterStance.Aggressive)
+                    {
+                        hits++; // Add 1 extra hit
+                    }
+                }
+                break;
+
+            case MultiHitType.PerWrathTier:
+                if (actor.GetCharacterClass() == CharacterClass.Cleric)
+                {
+                    // Example: 1 hit per 25 wrath
+                    hits = actor.wrath / 25;
+                }
+                break;
+        }
+
+        // Apply limits
+        hits = Mathf.Max(hits, ability.baseHitCount); // Never below base
+        hits = Mathf.Min(hits, ability.maxHitCount);   // Never above max
+
+        return hits;
+    }
+
+    private void ConsumeMultiHitResources(CombatEntity actor, AbilityData ability, int hitCount)
+    {
+        switch (ability.multiHitType)
+        {
+            case MultiHitType.PerSneakPoint:
+                actor.sneakPoints = 0; // Consume all sneak
+                break;
+
+            case MultiHitType.PerBalancePoint:
+                // Shift balance toward neutral
+                int consumed = hitCount * ability.resourcePerHit;
+                if (actor.balance > 0)
+                {
+                    actor.balance = Mathf.Max(0, actor.balance - consumed);
+                }
+                else if (actor.balance < 0)
+                {
+                    actor.balance = Mathf.Min(0, actor.balance + consumed);
+                }
+                break;
+
+                // Others don't consume resources
         }
     }
 

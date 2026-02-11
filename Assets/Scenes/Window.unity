@@ -673,7 +673,7 @@ MonoBehaviour:
   greenGemprefab: {fileID: 7290568447636963890, guid: d85f2f35a621c894cbee6032e31bdd58, type: 3}
   blueGemPrefab: {fileID: 5769832422213337037, guid: 848fb2426b7f547418d1dfc02a0c259e, type: 3}
   purpleGemPrefab: {fileID: 2929610785478134322, guid: 19528f13f95837e42a8a84e970d73cb1, type: 3}
-  spawnWidth: 39
+  spawnWidth: 35
   spawnHeight: 12
   spawnParent: {fileID: 1074731430}
   coinLifetime: 6
@@ -724,7 +724,7 @@ Transform:
   m_GameObject: {fileID: 635347819}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -10, z: 0}
+  m_LocalPosition: {x: 10, y: -10, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1181,7 +1181,7 @@ Transform:
   m_GameObject: {fileID: 1076859028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -10, z: 0}
+  m_LocalPosition: {x: 10, y: -10, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1772,7 +1772,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 506650a0b9de25d4d8cd130052f616c3, type: 2}
   - {fileID: 11400000, guid: 0bcbaa4bb620d1b40a1c90afbf6d6bfd, type: 2}
   rangerAbilities: []
-  enemyAbilities: []
+  enemyAbilities:
+  - {fileID: 11400000, guid: 8980e86ef2a766e4f8671e36079d348e, type: 2}
+  - {fileID: 11400000, guid: 57b0e2e9ecefc2c4fbce106d2297d5ca, type: 2}
 --- !u!4 &1786653726
 Transform:
   m_ObjectHideFlags: 0

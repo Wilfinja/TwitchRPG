@@ -58,7 +58,7 @@ public class CombatEntity : MonoBehaviour
     private int baseDefense;
 
     // Reference to the ViewerData (for syncing back after combat)
-    private ViewerData viewerData;
+    public ViewerData viewerData;
 
     // Reference to OnScreenCharacter component
     private OnScreenCharacter onScreenChar;
@@ -197,7 +197,20 @@ public class CombatEntity : MonoBehaviour
             return;
         }
 
-        // ✅ UPDATED: Calculate total defense including temporary buffs
+        if (characterClass == CharacterClass.Rogue && sneakPoints > 0)
+        {
+            int reductionPercent = GetSneakDamageReduction();
+            int reducedAmount = Mathf.RoundToInt(damage * (reductionPercent / 100f));
+            damage -= reducedAmount;
+
+            CombatLog.Instance?.AddEntry(
+                $"{entityName}'s sneak reduced damage by {reducedAmount} ({reductionPercent}%)!"
+            );
+
+            // Optional: Consume 1 sneak point when hit
+            // sneakPoints = Mathf.Max(0, sneakPoints - 1);
+        }
+
         int totalDefense = defense + GetTemporaryDefenseBonus();
 
         // Apply defense
@@ -215,7 +228,6 @@ public class CombatEntity : MonoBehaviour
 
         CombatLog.Instance?.AddEntry($"{attacker.entityName} hit {entityName} for {finalDamage} damage!");
 
-        // ✅ NEW: Consume one-hit defense boosts
         ConsumeOneHitDefenseBoosts();
 
         // Grant wrath to cleric allies when player is hit
@@ -330,13 +342,33 @@ public class CombatEntity : MonoBehaviour
 
         if (characterClass == CharacterClass.Mage)
         {
-            int manaGain = Mathf.FloorToInt(intelligence * 0.1f); // 10% of INT per turn
-            mana += manaGain;
-            mana = Mathf.Clamp(mana, 0, 100);
+            // Base regen: 10% of INT
+            int baseRegen = Mathf.FloorToInt(intelligence * 0.1f);
 
-            if (manaGain > 0)
+            // ✅ NEW: Add equipment bonus
+            int equipmentBonus = 0;
+            if (viewerData != null)
             {
-                CombatLog.Instance?.AddEntry($"{entityName} regenerated {manaGain} mana");
+                equipmentBonus = viewerData.equipped.GetTotalManaRegenBonus();
+            }
+
+            int totalRegen = baseRegen + equipmentBonus;
+
+            // Apply max mana cap
+            int maxMana = 100;
+            if (viewerData != null)
+            {
+                maxMana += viewerData.equipped.GetTotalMaxManaBonus();
+            }
+
+            mana += totalRegen;
+            mana = Mathf.Clamp(mana, 0, maxMana);
+
+            if (totalRegen > 0)
+            {
+                CombatLog.Instance?.AddEntry(
+                    $"{entityName} regenerated {totalRegen} mana ({baseRegen} base + {equipmentBonus} bonus)"
+                );
             }
         }
     }
@@ -507,6 +539,26 @@ public class CombatEntity : MonoBehaviour
         }
     }
 
+    public int GetBoostedWillpower()
+    {
+        int baseWillpower = willpower;
+
+        // Cleric: Willpower bonus at high wrath
+        if (characterClass == CharacterClass.Cleric)
+        {
+            if (wrath >= 100)
+            {
+                return Mathf.RoundToInt(baseWillpower * 1.5f); // +50%
+            }
+            else if (wrath >= 75)
+            {
+                return Mathf.RoundToInt(baseWillpower * 1.25f); // +25%
+            }
+        }
+
+        return baseWillpower;
+    }
+
     public string GetCurrentStanceBonusText()
     {
         if (characterClass != CharacterClass.Fighter)
@@ -552,6 +604,15 @@ public class CombatEntity : MonoBehaviour
                 activeEffects.RemoveAt(i);
             }
         }
+    }
+
+    public int GetSneakDamageReduction()
+    {
+        if (characterClass != CharacterClass.Rogue) return 0;
+
+        // 10% reduction per sneak point
+        int reductionPercent = sneakPoints * 10;
+        return Mathf.Clamp(reductionPercent, 0, 60); // Max 60%
     }
 
     /// <summary>

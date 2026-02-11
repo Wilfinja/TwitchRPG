@@ -12,15 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
   m_Name: Minor Heal
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: 
-  commandName: 
-  description: 
-  requiredClass: 0
+  abilityName: Minor Heal
+  commandName: minorheal
+  description: Heals a friendly for 10 + 1.5x Willpower
+  requiredClass: 2
   levelRequired: 1
-  category: 0
-  targetType: 0
-  scalingStat: 0
-  statMultiplier: 1
+  category: 1
+  targetType: 1
+  scalingStat: 4
+  statMultiplier: 1.5
   useSecondaryScaling: 0
   secondaryScalingStat: 0
   secondaryStatMultiplier: 0
@@ -28,28 +28,39 @@ MonoBehaviour:
   sneakDamageMultiplier: 0
   consumesAllSneak: 0
   consumeSneakAmount: 0
-  baseDamage: 0
+  baseDamage: 10
   canCrit: 0
+  grantsDefenseBoost: 0
+  baseDefenseBoost: 0
+  defenseScalingStat: 0
+  defenseScalingMultiplier: 0
+  defenseConsumedOnHit: 0
+  grantsStatBoost: 0
+  statToBoost: 0
+  baseStatBoost: 0
+  statBoostScalingStat: 0
+  statBoostScalingMultiplier: 0
+  statBoostDuration: 1
   sneakCost: 0
   sneakGain: 0
   requiresStance: 0
   requiredStance: 0
   manaCost: 0
-  wrathCost: 0
+  wrathCost: 20
   wrathGain: 0
   balanceCost: 0
   balanceGain: 0
   balanceRequirement: 0
   balanceRequirementType: 0
-  canTargetAllies: 0
-  canTargetEnemies: 1
-  maxTargetPosition: 1
+  canTargetAllies: 1
+  canTargetEnemies: 0
+  maxTargetPosition: 4
   minTargetPosition: 1
   isAOE: 0
   aoETargets: 1
-  cooldown: 0
+  cooldown: 3
   appliesEffects: []
   shiftPosition: 0
   positionShift: 0
-  animationTrigger: Attack
-  particleEffect: {fileID: 0}
+  animationTrigger: Heal
+  particleEffect: {fileID: 9017484664307500583, guid: 1245b8d2997d5b34fb1637be70a7eb05, type: 3}

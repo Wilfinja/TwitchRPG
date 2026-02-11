@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
   m_Name: Inspire
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: 
-  commandName: 
-  description: 
+  abilityName: Inspire
+  commandName: inspire
+  description: The cleric inspires the target, granting 5 + 0.5x WILL bonus to their
+    STR for 2 turns.
   requiredClass: 0
   levelRequired: 1
   category: 0
@@ -30,12 +31,23 @@ MonoBehaviour:
   consumeSneakAmount: 0
   baseDamage: 0
   canCrit: 0
+  grantsDefenseBoost: 0
+  baseDefenseBoost: 0
+  defenseScalingStat: 0
+  defenseScalingMultiplier: 0
+  defenseConsumedOnHit: 0
+  grantsStatBoost: 1
+  statToBoost: 1
+  baseStatBoost: 5
+  statBoostScalingStat: 4
+  statBoostScalingMultiplier: 0.5
+  statBoostDuration: 2
   sneakCost: 0
   sneakGain: 0
   requiresStance: 0
   requiredStance: 0
   manaCost: 0
-  wrathCost: 0
+  wrathCost: 30
   wrathGain: 0
   balanceCost: 0
   balanceGain: 0
@@ -48,7 +60,16 @@ MonoBehaviour:
   isAOE: 0
   aoETargets: 1
   cooldown: 0
-  appliesEffects: []
+  appliesEffects:
+  - effectName: Inspired
+    duration: 2
+    damageMultiplier: 0
+    defenseMultiplier: 0
+    damageOverTime: 0
+    temporaryDefenseBonus: 0
+    consumedOnHit: 0
+    statBoostType: 1
+    statBoostAmount: 0
   shiftPosition: 0
   positionShift: 0
   animationTrigger: Attack

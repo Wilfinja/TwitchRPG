@@ -10,18 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Brace
+  m_Name: Cleave
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Brace
-  commandName: brace
-  description: The fighter braces against the attacks of the enemy. +1.5x CON in
-    Defense.
-  requiredClass: 3
+  abilityName: 
+  commandName: 
+  description: 
+  requiredClass: 0
   levelRequired: 1
-  category: 2
-  targetType: 2
-  scalingStat: 6
-  statMultiplier: 1.5
+  category: 0
+  targetType: 0
+  scalingStat: 0
+  statMultiplier: 1
   useSecondaryScaling: 0
   secondaryScalingStat: 0
   secondaryStatMultiplier: 0
@@ -54,23 +53,14 @@ MonoBehaviour:
   balanceRequirement: 0
   balanceRequirementType: 0
   canTargetAllies: 0
-  canTargetEnemies: 0
+  canTargetEnemies: 1
   maxTargetPosition: 1
   minTargetPosition: 1
   isAOE: 0
   aoETargets: 1
-  cooldown: 3
-  appliesEffects:
-  - effectName: Brace DEF UP
-    duration: 2
-    damageMultiplier: 0
-    defenseMultiplier: 0
-    damageOverTime: 0
-    temporaryDefenseBonus: 20
-    consumedOnHit: 0
-    statBoostType: 0
-    statBoostAmount: 0
+  cooldown: 0
+  appliesEffects: []
   shiftPosition: 0
   positionShift: 0
   animationTrigger: Attack
-  particleEffect: {fileID: 6424583148328831481, guid: d2ffbc8b168cdf74a9dbb7c6c1cfdf2f, type: 3}
+  particleEffect: {fileID: 0}

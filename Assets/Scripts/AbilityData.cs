@@ -51,6 +51,25 @@ public class AbilityData : ScriptableObject
     public int baseDamage;
     public bool canCrit;
 
+    [Header("Multi-Hit (Multiple Strikes Per Use)")]
+    [Tooltip("Enable multiple hits in one attack")]
+    public bool isMultiHit = false;
+
+    [Tooltip("Base number of hits (minimum)")]
+    public int baseHitCount = 1;
+
+    [Tooltip("Additional hits based on class resource")]
+    public MultiHitType multiHitType = MultiHitType.None;
+
+    [Tooltip("Resource-to-hit conversion (e.g., 1 sneak = 1 hit)")]
+    public int resourcePerHit = 1;
+
+    [Tooltip("Maximum total hits allowed")]
+    public int maxHitCount = 5;
+
+    [Tooltip("Consume the resource after hitting?")]
+    public bool consumeResourceAfterHits = false;
+
     // ═══════════════════════════════════════════════════════════
     // ✅ UPDATED: Defense Boost with Stat Scaling
     // ═══════════════════════════════════════════════════════════
@@ -128,6 +147,15 @@ public class AbilityData : ScriptableObject
     // ═══════════════════════════════════════════════════════════
     // HELPER METHODS
     // ═══════════════════════════════════════════════════════════
+
+    public enum MultiHitType
+    {
+        None,              // No resource scaling
+        PerSneakPoint,     // Rogue: 1 hit per sneak point
+        PerBalancePoint,   // Ranger: 1 hit per +2 balance (until neutral)
+        IfAggressive,      // Fighter: +1 hit if in Aggressive stance
+        PerWrathTier       // Cleric: Hits based on wrath level
+    }
 
     public bool HasSecondaryScaling()
     {
