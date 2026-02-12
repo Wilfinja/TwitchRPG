@@ -764,7 +764,8 @@ public class RPGChatCommands : MonoBehaviour
             return $"{viewer.username}: Choose a class first with !class";
         }
 
-        string result = $"═══ {viewer.username}'s Abilities ═══\n";
+        int playerLevel = viewer.baseStats.level;
+        string result = $"═══ {viewer.username}'s Abilities (Lv {playerLevel}) ═══\n";
 
         // Get class combat abilities
         List<AbilityData> classAbilities = new List<AbilityData>();
@@ -775,10 +776,41 @@ public class RPGChatCommands : MonoBehaviour
 
             if (classAbilities.Count > 0)
             {
-                result += "\n[CLASS ABILITIES]\n";
+                // Separate available and locked abilities
+                List<AbilityData> availableAbilities = new List<AbilityData>();
+                List<AbilityData> lockedAbilities = new List<AbilityData>();
+
                 foreach (var ability in classAbilities)
                 {
-                    result += $"• {ability.abilityName} (use: !queue {ability.commandName})\n";
+                    if (playerLevel >= ability.levelRequired)
+                    {
+                        availableAbilities.Add(ability);
+                    }
+                    else
+                    {
+                        lockedAbilities.Add(ability);
+                    }
+                }
+
+                // Show available abilities
+                if (availableAbilities.Count > 0)
+                {
+                    result += "\n[UNLOCKED ABILITIES]\n";
+                    foreach (var ability in availableAbilities)
+                    {
+                        string levelTag = ability.levelRequired > 1 ? $" [Lv{ability.levelRequired}]" : "";
+                        result += $"✓ {ability.abilityName}{levelTag} (!queue {ability.commandName})\n";
+                    }
+                }
+
+                // Show locked abilities
+                if (lockedAbilities.Count > 0)
+                {
+                    result += "\n[LOCKED ABILITIES]\n";
+                    foreach (var ability in lockedAbilities.OrderBy(a => a.levelRequired))
+                    {
+                        result += $"🔒 {ability.abilityName} [Requires Lv{ability.levelRequired}]\n";
+                    }
                 }
             }
         }
@@ -786,10 +818,10 @@ public class RPGChatCommands : MonoBehaviour
         // Get abilities from equipped items
         List<ItemAbility> equippedAbilities = new List<ItemAbility>();
         RPGItem[] allEquipped = {
-            viewer.equipped.head, viewer.equipped.chest, viewer.equipped.arms,
-            viewer.equipped.legs, viewer.equipped.mainHand, viewer.equipped.offHand,
-            viewer.equipped.feet
-        };
+        viewer.equipped.head, viewer.equipped.chest, viewer.equipped.arms,
+        viewer.equipped.legs, viewer.equipped.mainHand, viewer.equipped.offHand,
+        viewer.equipped.feet
+    };
 
         foreach (var item in allEquipped)
         {
@@ -804,7 +836,7 @@ public class RPGChatCommands : MonoBehaviour
             result += "\n[ITEM ABILITIES]\n";
             foreach (var ability in equippedAbilities)
             {
-                result += $"• {ability.abilityName}\n";
+                result += $"⚡ {ability.abilityName}\n";
             }
         }
 

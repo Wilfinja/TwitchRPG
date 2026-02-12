@@ -487,6 +487,8 @@ public class ExpeditionManager : MonoBehaviour
             GrantPartialRewards();
         }
 
+        CombatUIManager.Instance?.HideCombatUI(); // ← ADD THIS LINE
+
         StartCoroutine(CleanupExpedition());
     }
 
@@ -529,6 +531,7 @@ public class ExpeditionManager : MonoBehaviour
             OnScreenNotification.Instance?.ShowInfo($"{viewer.username} earned {coinReward} coins for participating.");
         }
     }
+
 
     IEnumerator CleanupExpedition()
     {
@@ -598,13 +601,15 @@ public class ExpeditionManager : MonoBehaviour
 
     public void CancelExpedition()
     {
-        if (!expeditionQueued && !currentExpedition.isActive)
+        if (currentExpedition == null)
         {
-            OnScreenNotification.Instance?.ShowError("No active expedition to cancel.");
+            OnScreenNotification.Instance?.ShowNotification("No active expedition to cancel.");
             return;
         }
 
         OnScreenNotification.Instance?.ShowNotification("Expedition has been cancelled.");
+
+        CombatUIManager.Instance?.HideCombatUI(); // ← ADD THIS LINE
 
         if (currentExpedition.isActive)
         {

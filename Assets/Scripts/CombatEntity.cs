@@ -56,6 +56,7 @@ public class CombatEntity : MonoBehaviour
     private int baseStrength;
     private int baseConstitution;
     private int baseDefense;
+    private int baseMaxHealth;
 
     // Reference to the ViewerData (for syncing back after combat)
     public ViewerData viewerData;
@@ -113,9 +114,9 @@ public class CombatEntity : MonoBehaviour
         }
 
         // Copy stats from ViewerData
-        strength = viewerData.baseStats.strength;
-        constitution = viewerData.baseStats.constitution;
-        defense = viewerData.equipped.GetTotalDefenseBonus();
+        //strength = viewerData.baseStats.strength;
+        //constitution = viewerData.baseStats.constitution;
+        //defense = viewerData.equipped.GetTotalDefenseBonus();
 
         // ✅ NEW: Save base stats before any modifiers
         InitializeBaseStats();
@@ -480,34 +481,56 @@ public class CombatEntity : MonoBehaviour
         baseStrength = strength;
         baseConstitution = constitution;
         baseDefense = defense;
+        baseMaxHealth = maxHealth;
+
+        Debug.Log($"[CombatEntity] Base stats saved - STR: {baseStrength}, CON: {baseConstitution}, DEF: {baseDefense}, MaxHP: {baseMaxHealth}");
     }
 
     public void RecalculateStatsWithStance()
     {
+        Debug.Log($"[Stance] Recalculating stats. Old - STR: {strength}, CON: {constitution}, DEF: {defense}, MaxHP: {maxHealth}");
+
         // Reset to base stats
         strength = baseStrength;
         constitution = baseConstitution;
         defense = baseDefense;
+        maxHealth = baseMaxHealth;
+
+        // Store old health for percentage calculation
+        float healthPercent = maxHealth > 0 ? (float)currentHealth / maxHealth : 1f;
 
         // Apply stance bonuses
         switch (currentStance)
         {
             case FighterStance.Aggressive:
-                strength = Mathf.RoundToInt(baseStrength * 1.1f);
+                strength = Mathf.RoundToInt(baseStrength * 1.1f); // +10% STR
+                Debug.Log($"[Stance] Aggressive: STR {baseStrength} → {strength}");
                 break;
 
             case FighterStance.Defensive:
-                constitution = Mathf.RoundToInt(baseConstitution * 1.1f);
-                int oldMaxHealth = maxHealth;
-                maxHealth = constitution * 10;
-                float healthPercent = (float)currentHealth / oldMaxHealth;
+                constitution = Mathf.RoundToInt(baseConstitution * 1.1f); // +10% CON
+
+                // ✅ FIX: Calculate maxHealth change based on CON difference
+                int conDifference = constitution - baseConstitution;
+                maxHealth = baseMaxHealth + (conDifference * 10);
+
+                // Maintain health percentage (so current health scales with new max)
                 currentHealth = Mathf.RoundToInt(maxHealth * healthPercent);
+
+                Debug.Log($"[Stance] Defensive: CON {baseConstitution} → {constitution}, MaxHP {baseMaxHealth} → {maxHealth}, CurrentHP: {currentHealth}");
                 break;
 
             case FighterStance.Reflective:
-                defense = baseDefense + 10;
+                defense = baseDefense + 10; // +10 flat DEF
+                Debug.Log($"[Stance] Reflective: DEF {baseDefense} → {defense}");
+                break;
+
+            case FighterStance.None:
+                Debug.Log($"[Stance] No stance - using base stats");
                 break;
         }
+
+        Debug.Log($"[Stance] Final - STR: {strength}, CON: {constitution}, DEF: {defense}, MaxHP: {maxHealth}, CurrentHP: {currentHealth}");
 
         UpdateHealthBar();
     }

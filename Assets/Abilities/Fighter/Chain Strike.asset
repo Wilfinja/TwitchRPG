@@ -10,18 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Cleave
+  m_Name: Chain Strike
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Cleave
-  commandName: cleave
-  description: The fighter cleaves the first two enemies in the formation, dealing
-    5 + .75x STR damage to both.
+  abilityName: Chain Strike
+  commandName: chainstrike
+  description: The fighter strings two attacks, dealing 1x STR damage or if they
+    are in the aggressive stance, they strike three times for the same amount of
+    damage.
   requiredClass: 3
-  levelRequired: 3
+  levelRequired: 5
   category: 0
   targetType: 5
   scalingStat: 1
-  statMultiplier: 0.75
+  statMultiplier: 1
   useSecondaryScaling: 0
   secondaryScalingStat: 0
   secondaryStatMultiplier: 0
@@ -31,11 +32,11 @@ MonoBehaviour:
   consumeSneakAmount: 0
   baseDamage: 5
   canCrit: 0
-  isMultiHit: 0
-  baseHitCount: 1
-  multiHitType: 0
-  resourcePerHit: 1
-  maxHitCount: 5
+  isMultiHit: 1
+  baseHitCount: 2
+  multiHitType: 3
+  resourcePerHit: 0
+  maxHitCount: 3
   consumeResourceAfterHits: 0
   grantsDefenseBoost: 0
   baseDefenseBoost: 0
@@ -61,11 +62,11 @@ MonoBehaviour:
   balanceRequirementType: 0
   canTargetAllies: 0
   canTargetEnemies: 1
-  maxTargetPosition: 2
+  maxTargetPosition: 1
   minTargetPosition: 1
-  isAOE: 1
-  aoETargets: 2
-  cooldown: 2
+  isAOE: 0
+  aoETargets: 1
+  cooldown: 3
   appliesEffects: []
   shiftPosition: 0
   positionShift: 0

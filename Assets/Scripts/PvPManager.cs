@@ -414,6 +414,8 @@ public class PvPManager : MonoBehaviour
     {
         if (!pvpActive || currentMatch == null) return;
 
+        CombatUIManager.Instance?.HideCombatUI();
+
         string winnerUsername = winnerUserId == currentMatch.fighter1UserId
             ? currentMatch.fighter1Username
             : currentMatch.fighter2Username;

@@ -36,13 +36,13 @@ public class CombatTurnManager : MonoBehaviour
         {
             turnTimer -= Time.deltaTime;
             CombatUIManager.Instance?.UpdateTurnTimer(turnTimer, maxTurnTime);
+        }
 
-            if (turnTimer <= 0)
-            {
-                // Time's up! Auto-submit default actions for players who haven't acted
-                AutoSubmitDefaultActions();
-                ExecutePlayerTurn();
-            }
+        if (turnTimer <= 0)
+        {
+            // Time's up! Auto-submit default actions for players who haven't acted
+            AutoSubmitDefaultActions();
+            ExecutePlayerTurn();
         }
     }
 
@@ -52,6 +52,8 @@ public class CombatTurnManager : MonoBehaviour
     {
         combatActive = true;
         queuedActions.Clear();
+
+        CombatUIManager.Instance?.ShowCombatUI();
 
         OnScreenNotification.Instance?.ShowNotification("⚔️ Combat begins! Players, queue your actions with !queue <ability> [target]");
 
@@ -81,20 +83,28 @@ public class CombatTurnManager : MonoBehaviour
         CombatUIManager.Instance?.ShowTurnIndicator(false);
 
         StartCoroutine(ExecutePlayerActions());
+
+        Debug.Log("Player turn coming up!");
     }
 
     IEnumerator ExecutePlayerActions()
     {
+        Debug.Log("[Combat] ═══ STARTING PLAYER TURN EXECUTION ═══");
+
         List<CombatEntity> players = ExpeditionManager.Instance.GetAllPlayerEntities();
+        Debug.Log($"[Combat] Found {players.Count} alive players");
 
         // Organize actions by category: Buffs -> Heals -> Damage
         List<QueuedAction> buffActions = new List<QueuedAction>();
         List<QueuedAction> healActions = new List<QueuedAction>();
         List<QueuedAction> damageActions = new List<QueuedAction>();
 
+        Debug.Log($"[Combat] Total queued actions: {queuedActions.Count}");
+
         foreach (var kvp in queuedActions)
         {
             QueuedAction action = kvp.Value;
+            Debug.Log($"[Combat] Action: {action.caster.entityName} → {action.ability.abilityName} → {action.target.entityName}");
 
             if (action.ability.category == AbilityCategory.Buff)
                 buffActions.Add(action);
@@ -104,31 +114,41 @@ public class CombatTurnManager : MonoBehaviour
                 damageActions.Add(action);
         }
 
+        Debug.Log($"[Combat] Organized: {buffActions.Count} buffs, {healActions.Count} heals, {damageActions.Count} damage");
+
         // Sort each category by position (1 -> 4)
         buffActions = buffActions.OrderBy(a => a.caster.position).ToList();
         healActions = healActions.OrderBy(a => a.caster.position).ToList();
         damageActions = damageActions.OrderBy(a => a.caster.position).ToList();
 
         // Execute buffs
+        Debug.Log("[Combat] Executing BUFF actions...");
         foreach (QueuedAction action in buffActions)
         {
+            Debug.Log($"[Combat] → Executing buff: {action.ability.abilityName}");
             yield return StartCoroutine(ExecuteAction(action));
             yield return new WaitForSeconds(0.5f);
         }
 
         // Execute heals
+        Debug.Log("[Combat] Executing HEAL actions...");
         foreach (QueuedAction action in healActions)
         {
+            Debug.Log($"[Combat] → Executing heal: {action.ability.abilityName}");
             yield return StartCoroutine(ExecuteAction(action));
             yield return new WaitForSeconds(0.5f);
         }
 
         // Execute damage
+        Debug.Log("[Combat] Executing DAMAGE actions...");
         foreach (QueuedAction action in damageActions)
         {
+            Debug.Log($"[Combat] → Executing damage: {action.ability.abilityName}");
             yield return StartCoroutine(ExecuteAction(action));
             yield return new WaitForSeconds(0.5f);
         }
+
+        Debug.Log("[Combat] All actions executed!");
 
         // Process status effects for all players
         foreach (CombatEntity player in players)
@@ -139,6 +159,8 @@ public class CombatTurnManager : MonoBehaviour
         // Check if wave is cleared
         if (CheckWaveCleared())
         {
+            Debug.Log("[Combat] WAVE CLEARED!");
+
             // Check if this is PvP
             if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
             {
@@ -158,12 +180,16 @@ public class CombatTurnManager : MonoBehaviour
             yield break;
         }
 
+        Debug.Log("[Combat] Wave not cleared, starting enemy turn...");
+
         // Enemy turn
         yield return StartCoroutine(ExecuteEnemyTurn());
 
         // Check for player wipe
         if (CheckPlayerWipe())
         {
+            Debug.Log("[Combat] PLAYER WIPE!");
+
             // Check if this is PvP
             if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
             {
@@ -191,6 +217,8 @@ public class CombatTurnManager : MonoBehaviour
             }
             yield break;
         }
+
+        Debug.Log("[Combat] Starting next player turn...");
 
         // Start next player turn
         StartPlayerTurn();
@@ -266,10 +294,16 @@ public class CombatTurnManager : MonoBehaviour
             return false;
         }
 
-        // Check if player can use this ability
+        // Check if player can use this ability (CLASS)
         if (ability.requiredClass != caster.characterClass)
         {
             OnScreenNotification.Instance?.ShowNotification($"@{username} You can't use that ability!");
+            return false;
+        }
+
+        // ✅ NEW: Check LEVEL requirement
+        if (!CheckLevelRequirement(caster, ability, username))
+        {
             return false;
         }
 
@@ -340,8 +374,39 @@ public class CombatTurnManager : MonoBehaviour
         if (confirmedCount >= alivePlayers.Count)
         {
             OnScreenNotification.Instance?.ShowNotification("All players ready! Executing actions...");
-            turnTimer = 0; // Trigger immediate execution
+
+            ExecutePlayerTurn();
         }
+    }
+
+    /// <summary>
+    /// Check if the caster meets the level requirement for an ability
+    /// </summary>
+    bool CheckLevelRequirement(CombatEntity caster, AbilityData ability, string username)
+    {
+        // Get player's ViewerData to check level
+        ViewerData viewer = RPGManager.Instance?.GetViewer(caster.userId);
+
+        if (viewer == null)
+        {
+            Debug.LogWarning($"[Combat] Could not find ViewerData for {username}");
+            return true; // Fallback: allow if we can't check
+        }
+
+        int playerLevel = viewer.baseStats.level;
+        int requiredLevel = ability.levelRequired;
+
+        // Check level requirement
+        if (playerLevel < requiredLevel)
+        {
+            OnScreenNotification.Instance?.ShowNotification(
+                $"@{username} {ability.abilityName} requires Level {requiredLevel}! " +
+                $"(You are Level {playerLevel})"
+            );
+            return false;
+        }
+
+        return true;
     }
 
     void AutoSubmitDefaultActions()
@@ -389,22 +454,37 @@ public class CombatTurnManager : MonoBehaviour
         CombatEntity target = action.target;
         AbilityData ability = action.ability;
 
+        Debug.Log($"[ExecuteAction] {caster.entityName} using {ability.abilityName} on {target.entityName}");
+        Debug.Log($"[ExecuteAction] Caster dead? {caster.isDead}, Target dead? {target.isDead}");
+
         if (caster.isDead || target.isDead)
+        {
+            Debug.LogWarning($"[ExecuteAction] SKIPPED - Caster or target is dead");
             yield break;
+        }
 
         // Trigger animation
         caster.animator?.SetTrigger(ability.animationTrigger);
+        Debug.Log($"[ExecuteAction] Animation triggered: {ability.animationTrigger}");
 
         yield return new WaitForSeconds(0.3f);
 
+        Debug.Log($"[ExecuteAction] Calling CombatCalculations.ExecuteAbility...");
+
         // Calculate and apply effect
         CombatCalculations.ExecuteAbility(caster, target, ability);
+
+        Debug.Log($"[ExecuteAction] ExecuteAbility complete!");
+
+        yield return new WaitForSeconds(0.5f);
 
         // Track action for XP
         if (ExpeditionManager.Instance.currentExpedition.actionsPerformed.ContainsKey(caster.entityName))
         {
             ExpeditionManager.Instance.currentExpedition.actionsPerformed[caster.entityName]++;
         }
+
+        Debug.Log($"[ExecuteAction] Action complete for {caster.entityName}");
     }
 
     #endregion

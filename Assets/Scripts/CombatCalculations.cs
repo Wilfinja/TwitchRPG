@@ -9,35 +9,49 @@ public static class CombatCalculations
 {
     public static void ExecuteAbility(CombatEntity caster, CombatEntity target, AbilityData ability)
     {
+        Debug.Log($"[CombatCalc] ExecuteAbility called: {caster.entityName} → {ability.abilityName} → {target.entityName}");
+
         // Consume upfront resources
         ConsumeUpfrontResources(caster, ability);
 
         int hitCount = CombatCalculations.CalculateHitCount(caster, ability);
         int totalDamage = 0;
+
+        Debug.Log($"[CombatCalc] Hit count: {hitCount}, Category: {ability.category}");
+
         // Apply damage or healing
         if (ability.category == AbilityCategory.Damage)
         {
+            Debug.Log($"[CombatCalc] Starting damage loop...");
+
             for (int i = 0; i < hitCount; i++)
             {
                 int damage = CalculateDamage(caster, target, ability);
+                Debug.Log($"[CombatCalc] Hit {i + 1}/{hitCount}: {damage} damage");
+
                 target.TakeDamage(damage, caster);
                 ConsumeSneakAfterDamage(caster, ability);
                 totalDamage += damage;
             }
+
             if (ability.consumeResourceAfterHits)
             {
                 ConsumeMultiHitResources(caster, ability, hitCount);
             }
-            CombatLog.Instance.AddEntry($"{caster.entityName} hit {hitCount} times for {totalDamage} total damage!");
 
+            // ✅ FIX: Add null-safe operator
+            CombatLog.Instance?.AddEntry($"{caster.entityName} hit {hitCount} times for {totalDamage} total damage!");
+            Debug.Log($"[CombatCalc] Total damage dealt: {totalDamage}");
         }
         else if (ability.category == AbilityCategory.Heal)
         {
+            Debug.Log($"[CombatCalc] Executing heal...");
             int healing = CalculateHealing(caster, ability);
             target.Heal(healing, caster);
         }
         else if (ability.category == AbilityCategory.Buff)
         {
+            Debug.Log($"[CombatCalc] Executing buff...");
             ApplyBuff(caster, target, ability);
         }
 
@@ -75,6 +89,8 @@ public static class CombatCalculations
         {
             UpdateRangerCombo(caster, ability);
         }
+
+        Debug.Log($"[CombatCalc] ExecuteAbility complete!");
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -105,6 +121,8 @@ public static class CombatCalculations
 
         // Add base damage BEFORE sneak multiplier
         totalDamage += ability.baseDamage;
+
+        totalDamage += caster.damageBonus;
 
 
         if (ability.HasSneakScaling() && caster.characterClass == CharacterClass.Rogue)
@@ -375,24 +393,24 @@ public static class CombatCalculations
         return hits;
     }
 
-    private void ConsumeMultiHitResources(CombatEntity actor, AbilityData ability, int hitCount)
+    static void ConsumeMultiHitResources(CombatEntity caster, AbilityData ability, int hitCount)
     {
         switch (ability.multiHitType)
         {
             case MultiHitType.PerSneakPoint:
-                actor.sneakPoints = 0; // Consume all sneak
+                caster.sneakPoints = 0; // Consume all sneak
                 break;
 
             case MultiHitType.PerBalancePoint:
                 // Shift balance toward neutral
                 int consumed = hitCount * ability.resourcePerHit;
-                if (actor.balance > 0)
+                if (caster.balance > 0)
                 {
-                    actor.balance = Mathf.Max(0, actor.balance - consumed);
+                    caster.balance = Mathf.Max(0, caster.balance - consumed);
                 }
-                else if (actor.balance < 0)
+                else if (caster.balance < 0)
                 {
-                    actor.balance = Mathf.Min(0, actor.balance + consumed);
+                    caster.balance = Mathf.Min(0, caster.balance + consumed);
                 }
                 break;
 

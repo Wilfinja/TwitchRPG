@@ -23,7 +23,8 @@ MonoBehaviour:
   baseDefense: 5
   healthScaling: 1.2
   damageScaling: 1.1
-  abilities: []
+  abilities:
+  - {fileID: 11400000, guid: 8980e86ef2a766e4f8671e36079d348e, type: 2}
   basicAttackCooldown: 0
   prioritizeLowHP: 0
   prioritizeHighDefense: 0
@@ -41,6 +42,9 @@ MonoBehaviour:
       rarity: 0
       requiredLevel: 1
       price: 50
+      maxManaBonus: 0
+      manaRegenBonus: 0
+      manaCostReduction: 0
       isTwoHanded: 0
       weaponCategory: 3
       strengthBonusPercent: 0.05
