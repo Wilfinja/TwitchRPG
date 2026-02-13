@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -73,10 +74,21 @@ public class OnScreenNotification : MonoBehaviour
         while (messageQueue.Count > 0)
         {
             string message = messageQueue.Dequeue();
-            yield return StartCoroutine(DisplayMessage(message));
+
+            // ✅ Use null checks - no try-catch!
+            if (notificationPrefab != null && notificationContainer != null)
+            {
+                yield return StartCoroutine(DisplayMessage(message));
+            }
+            else
+            {
+                Debug.LogError($"[Notification] Missing components - skipping message");
+                yield return new WaitForSeconds(0.5f);
+            }
         }
 
-        isShowingMessage = false;
+        isShowingMessage = false;  // ✅ Always resets
+        Debug.Log("[Notification] Queue processing complete");
     }
 
     private IEnumerator DisplayMessage(string message)

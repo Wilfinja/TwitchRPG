@@ -165,7 +165,7 @@ public class TwitchOverlayManager : MonoBehaviour
             if (message.StartsWith("!"))
             {
                 string[] parts = message.TrimStart('!').Split(' ');
-                command = parts[0].ToLower();
+                command = parts[0].ToLower(); // ← This already converts to lowercase, so "!JOIN" becomes "join"
                 string[] args = parts.Length > 1 ? parts.Skip(1).ToArray() : new string[0];
                 string userId = e.ChatMessage.UserId;
                 string username = e.ChatMessage.Username;
@@ -174,31 +174,39 @@ public class TwitchOverlayManager : MonoBehaviour
                 // WRAP EVERYTHING IN THE DISPATCHER! 
                 UnityMainThreadDispatcher.Instance().Enqueue(() =>
                 {
-                    // Try RPG commands first
-                    string rpgResponse = rpgCommands.HandleRPGCommand(command, userId, username, args);
-                    if (rpgResponse != null)
+                    try  // ✅ ADD: Wrap in try-catch
                     {
-                        Debug.Log($"[TwitchOverlay] RPG Response: {rpgResponse}");
-                        OnScreenNotification.Instance.ShowInfo(rpgResponse);
-                        return;
-                    }
-
-                    // Try admin commands  
-                    if (isBroadcaster)
-                    {
-                        string adminResponse = rpgCommands.HandleAdminCommand(command, args, true);
-                        if (adminResponse != null)
+                        // Try RPG commands first
+                        string rpgResponse = rpgCommands.HandleRPGCommand(command, userId, username, args);
+                        if (rpgResponse != null)
                         {
-                            OnScreenNotification.Instance.ShowSuccess(adminResponse);
+                            Debug.Log($"[TwitchOverlay] RPG Response: {rpgResponse}");
+                            OnScreenNotification.Instance?.ShowInfo(rpgResponse);  // ✅ ADD: ?.
                             return;
                         }
+
+                        // Try admin commands  
+                        if (isBroadcaster)
+                        {
+                            string adminResponse = rpgCommands.HandleAdminCommand(command, args, true);
+                            if (adminResponse != null)
+                            {
+                                OnScreenNotification.Instance?.ShowSuccess(adminResponse);  // ✅ ADD: ?.
+                                return;
+                            }
+                        }
+                    }
+                    catch (Exception ex)  // ✅ ADD: Error handling
+                    {
+                        Debug.LogError($"[TwitchOverlay] Error handling command '{command}': {ex.Message}\n{ex.StackTrace}");
+                        OnScreenNotification.Instance?.ShowError($"Command error: {command}");
                     }
                 });
             }
         }
         catch (Exception ex)
         {
-            Debug.LogWarning($"[TwitchOverlay] Could not parse command: {ex.Message}");
+            Debug.LogError($"[TwitchOverlay] Could not parse command: {ex.Message}\n{ex.StackTrace}");
         }
 
         return Task.CompletedTask;
