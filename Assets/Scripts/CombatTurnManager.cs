@@ -454,37 +454,81 @@ public class CombatTurnManager : MonoBehaviour
         CombatEntity target = action.target;
         AbilityData ability = action.ability;
 
-        Debug.Log($"[ExecuteAction] {caster.entityName} using {ability.abilityName} on {target.entityName}");
-        Debug.Log($"[ExecuteAction] Caster dead? {caster.isDead}, Target dead? {target.isDead}");
-
         if (caster.isDead || target.isDead)
-        {
-            Debug.LogWarning($"[ExecuteAction] SKIPPED - Caster or target is dead");
             yield break;
-        }
 
         // Trigger animation
         caster.animator?.SetTrigger(ability.animationTrigger);
-        Debug.Log($"[ExecuteAction] Animation triggered: {ability.animationTrigger}");
 
         yield return new WaitForSeconds(0.3f);
 
-        Debug.Log($"[ExecuteAction] Calling CombatCalculations.ExecuteAbility...");
+        // ✅ NEW: Check if AOE ability
+        if (ability.isAOE)
+        {
+            // Get multiple targets
+            List<CombatEntity> targets = GetAOETargets(ability, target);
 
-        // Calculate and apply effect
-        CombatCalculations.ExecuteAbility(caster, target, ability);
-
-        Debug.Log($"[ExecuteAction] ExecuteAbility complete!");
-
-        yield return new WaitForSeconds(0.5f);
+            // Execute ability on each target
+            foreach (CombatEntity aoeTarget in targets)
+            {
+                if (!aoeTarget.isDead)
+                {
+                    CombatCalculations.ExecuteAbility(caster, aoeTarget, ability);
+                }
+            }
+        }
+        else
+        {
+            // Single target (existing code)
+            CombatCalculations.ExecuteAbility(caster, target, ability);
+        }
 
         // Track action for XP
         if (ExpeditionManager.Instance.currentExpedition.actionsPerformed.ContainsKey(caster.entityName))
         {
             ExpeditionManager.Instance.currentExpedition.actionsPerformed[caster.entityName]++;
         }
+    }
 
-        Debug.Log($"[ExecuteAction] Action complete for {caster.entityName}");
+    /// <summary>
+    /// Get multiple targets for AOE abilities
+    /// </summary>
+    List<CombatEntity> GetAOETargets(AbilityData ability, CombatEntity primaryTarget)
+    {
+        List<CombatEntity> targets = new List<CombatEntity>();
+
+        if (ability.canTargetEnemies)
+        {
+            // Get all alive enemies
+            List<CombatEntity> allEnemies = ExpeditionManager.Instance.GetAllEnemyEntities();
+
+            // Get enemies in position range
+            for (int i = 0; i < Mathf.Min(ability.aoETargets, allEnemies.Count); i++)
+            {
+                CombatEntity enemy = allEnemies[i];
+
+                // Check if enemy is in valid position range
+                if (enemy.position >= ability.minTargetPosition &&
+                    enemy.position <= ability.maxTargetPosition)
+                {
+                    targets.Add(enemy);
+                }
+            }
+        }
+        else if (ability.canTargetAllies)
+        {
+            // Get all alive players (for AOE heals/buffs)
+            List<CombatEntity> allPlayers = ExpeditionManager.Instance.GetAllPlayerEntities();
+
+            for (int i = 0; i < Mathf.Min(ability.aoETargets, allPlayers.Count); i++)
+            {
+                targets.Add(allPlayers[i]);
+            }
+        }
+
+        Debug.Log($"[Combat] AOE targeting {targets.Count} targets for {ability.abilityName}");
+
+        return targets;
     }
 
     #endregion

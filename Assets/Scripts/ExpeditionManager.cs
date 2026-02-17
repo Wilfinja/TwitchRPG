@@ -698,6 +698,8 @@ public class ExpeditionManager : MonoBehaviour
     {
         Debug.Log($"[Expedition] Enemy {enemy.entityName} defeated");
         // Enemy death is handled by wave completion check
+
+        ShiftEnemyPositionsForward();
     }
 
     void ShiftPositionsForward()
@@ -714,6 +716,68 @@ public class ExpeditionManager : MonoBehaviour
                 character.EnterCombatMode(playerCombatPositions[i]);
             }
         }
+    }
+
+    /// <summary>
+    /// Shift enemies forward when front enemy dies
+    /// </summary>
+    public void ShiftEnemyPositionsForward()
+    {
+        List<CombatEntity> aliveEnemies = GetAllEnemyEntities();
+
+        if (aliveEnemies.Count == 0)
+        {
+            Debug.Log("[Expedition] No enemies left to shift");
+            return;
+        }
+
+        Debug.Log($"[Expedition] Shifting {aliveEnemies.Count} enemies forward");
+
+        // Sort by current position
+        aliveEnemies = aliveEnemies.OrderBy(e => e.position).ToList();
+
+        // Reassign positions starting from 1
+        for (int i = 0; i < aliveEnemies.Count; i++)
+        {
+            int oldPosition = aliveEnemies[i].position;
+            int newPosition = i + 1;
+
+            aliveEnemies[i].position = newPosition;
+
+            // Move enemy GameObject to new position
+            Transform enemyTransform = aliveEnemies[i].transform;
+            if (enemyTransform != null && newPosition <= enemyPositions.Length)
+            {
+                // Smoothly move to new position
+                StartCoroutine(SmoothMoveEnemy(enemyTransform, enemyPositions[newPosition - 1]));
+            }
+
+            Debug.Log($"[Expedition] {aliveEnemies[i].entityName}: Position {oldPosition} → {newPosition}");
+        }
+    }
+
+    /// <summary>
+    /// Smoothly move enemy to new position
+    /// </summary>
+    IEnumerator SmoothMoveEnemy(Transform enemy, Vector3 targetPosition)
+    {
+        float duration = 0.5f;
+        float elapsed = 0f;
+        Vector3 startPosition = enemy.position;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+
+            // Ease-out interpolation
+            t = 1f - Mathf.Pow(1f - t, 3f);
+
+            enemy.position = Vector3.Lerp(startPosition, targetPosition, t);
+            yield return null;
+        }
+
+        enemy.position = targetPosition;
     }
 
     #endregion
