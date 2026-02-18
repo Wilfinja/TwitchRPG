@@ -127,6 +127,16 @@ public class CombatEntity : MonoBehaviour
             currentStance = FighterStance.None;
         }
 
+        if (characterClass == CharacterClass.Mage)
+        {
+            MageChargeSystem chargeSystem = gameObject.GetComponent<MageChargeSystem>();
+            if (chargeSystem == null)
+            {
+                chargeSystem = gameObject.AddComponent<MageChargeSystem>();
+            }
+            Debug.Log($"[CombatEntity] Added MageChargeSystem to {entityName}");
+        }
+
         animator = GetComponent<Animator>();
     }
 

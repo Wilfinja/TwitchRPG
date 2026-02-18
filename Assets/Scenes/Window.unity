@@ -167,6 +167,51 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &112329015
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 112329017}
+  - component: {fileID: 112329016}
+  m_Layer: 0
+  m_Name: MageChargeDatabase
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &112329016
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 112329015}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1a44fb7caa57e343b7f71cccfaa3bec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MageComboDatabase
+  allCombos: []
+--- !u!4 &112329017
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 112329015}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4.81035, y: -1.7523, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &173266575
 GameObject:
   m_ObjectHideFlags: 0
@@ -1204,6 +1249,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1436,6 +1482,7 @@ MonoBehaviour:
   m_VerticalAlignment: 1024
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1741,6 +1788,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -2359,7 +2407,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 515587e6c3599df46963b44ad8e1f2ee, type: 2}
   - {fileID: 11400000, guid: 845f3ead92b8696458b01116d80b25f0, type: 2}
   - {fileID: 11400000, guid: 51a06c65dd06cfa4f92ef1248cb2cabd, type: 2}
-  mageAbilities: []
+  mageAbilities:
+  - {fileID: 11400000, guid: ecf56a095941ec74c801432a63df5e97, type: 2}
+  - {fileID: 11400000, guid: 8fd51a715cdcfcf49ae06f83d9f45531, type: 2}
   clericAbilities:
   - {fileID: 11400000, guid: 2e0d244cc58e01e4381f4409cafa6cba, type: 2}
   - {fileID: 11400000, guid: 5dc3fe3e29184a94bb2c571ad15064e8, type: 2}
@@ -2481,6 +2531,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -2891,3 +2942,4 @@ SceneRoots:
   - {fileID: 104625423}
   - {fileID: 568326704}
   - {fileID: 1303425155}
+  - {fileID: 112329017}

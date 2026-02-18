@@ -462,7 +462,24 @@ public class CombatTurnManager : MonoBehaviour
 
         yield return new WaitForSeconds(0.3f);
 
-        // ✅ NEW: Check if AOE ability
+        if (ability.particleEffect != null)
+        {
+            Vector3 particlePosition = target.transform.position;
+            GameObject particle = Instantiate(ability.particleEffect, particlePosition, Quaternion.identity);
+
+            ParticleSystem ps = particle.GetComponent<ParticleSystem>();
+            if (ps != null)
+            {
+                ps.Play();
+                float lifetime = ps.main.duration + ps.main.startLifetime.constantMax;
+                Destroy(particle, lifetime);
+            }
+            else
+            {
+                Destroy(particle, 2f);
+            }
+        }
+
         if (ability.isAOE)
         {
             // Get multiple targets

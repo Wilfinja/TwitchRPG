@@ -70,6 +70,10 @@ public class AbilityData : ScriptableObject
     [Tooltip("Consume the resource after hitting?")]
     public bool consumeResourceAfterHits = false;
 
+    [Header("Mage Elemental Charge")]
+    [Tooltip("What element charge does this ability grant? (Mage only)")]
+    public ElementType elementType = ElementType.None;
+
     // ═══════════════════════════════════════════════════════════
     // ✅ UPDATED: Defense Boost with Stat Scaling
     // ═══════════════════════════════════════════════════════════

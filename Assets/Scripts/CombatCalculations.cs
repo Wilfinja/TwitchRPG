@@ -90,6 +90,15 @@ public static class CombatCalculations
             UpdateRangerCombo(caster, ability);
         }
 
+        if (ability.elementType != ElementType.None && caster.characterClass == CharacterClass.Mage)
+        {
+            MageChargeSystem chargeSystem = caster.GetComponent<MageChargeSystem>();
+            if (chargeSystem != null)
+            {
+                chargeSystem.AddCharge(ability.elementType);
+            }
+        }
+
         Debug.Log($"[CombatCalc] ExecuteAbility complete!");
     }
 

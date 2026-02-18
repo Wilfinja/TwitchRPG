@@ -635,43 +635,52 @@ public class ExpeditionManager : MonoBehaviour
         return null;
     }
 
+    /// <summary>
+    /// Get all living player entities
+    /// </summary>
     public List<CombatEntity> GetAllPlayerEntities()
     {
-        List<CombatEntity> entities = new List<CombatEntity>();
+        List<CombatEntity> players = new List<CombatEntity>();
 
-        foreach (string userId in currentExpedition.participantUserIds)
+        foreach (string username in currentExpedition.participantUsernames)
         {
+            string userId = currentExpedition.participantUserIds[
+                currentExpedition.participantUsernames.IndexOf(username)
+            ];
+
             OnScreenCharacter character = CharacterSpawner.Instance?.GetCharacter(userId);
             if (character != null)
             {
                 CombatEntity entity = character.GetComponent<CombatEntity>();
                 if (entity != null && !entity.isDead)
                 {
-                    entities.Add(entity);
+                    players.Add(entity);
                 }
             }
         }
 
-        return entities.OrderBy(e => e.position).ToList();
+        return players;
     }
 
+    /// <summary>
+    /// Get all living enemy entities
+    /// </summary>
     public List<CombatEntity> GetAllEnemyEntities()
     {
-        List<CombatEntity> entities = new List<CombatEntity>();
+        List<CombatEntity> enemies = new List<CombatEntity>();
 
-        foreach (var enemy in activeEnemies)
+        foreach (GameObject enemyObj in activeEnemies)
         {
-            if (enemy != null)
+            if (enemyObj == null) continue;
+
+            CombatEntity entity = enemyObj.GetComponent<CombatEntity>();
+            if (entity != null && !entity.isDead)
             {
-                CombatEntity entity = enemy.GetComponent<CombatEntity>();
-                if (entity != null && !entity.isDead)
-                {
-                    entities.Add(entity);
-                }
+                enemies.Add(entity);
             }
         }
 
-        return entities.OrderBy(e => e.position).ToList();
+        return enemies;
     }
 
     public void OnPlayerDeath(string userId)
@@ -781,4 +790,27 @@ public class ExpeditionManager : MonoBehaviour
     }
 
     #endregion
+
+    /// <summary>
+    /// Get the frontmost (lowest position) living enemy
+    /// </summary>
+    public CombatEntity GetFrontmostEnemy()
+    {
+        CombatEntity frontEnemy = null;
+        int lowestPosition = int.MaxValue;
+
+        foreach (GameObject enemyObj in activeEnemies)
+        {
+            if (enemyObj == null) continue;
+
+            CombatEntity entity = enemyObj.GetComponent<CombatEntity>();
+            if (entity != null && !entity.isDead && entity.position < lowestPosition)
+            {
+                frontEnemy = entity;
+                lowestPosition = entity.position;
+            }
+        }
+
+        return frontEnemy;
+    }
 }
