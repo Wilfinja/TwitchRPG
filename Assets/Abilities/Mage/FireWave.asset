@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Gather
+  m_Name: FireWave
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: 
-  commandName: 
-  description: 
-  requiredClass: 0
+  abilityName: Fire Wave
+  commandName: firewave
+  description: The Mage  deals 5 + 1x INT Damage to the first two enemies.
+  requiredClass: 5
   levelRequired: 1
   category: 0
   targetType: 0
-  scalingStat: 0
+  scalingStat: 3
   statMultiplier: 1
   useSecondaryScaling: 0
   secondaryScalingStat: 0
@@ -36,7 +36,7 @@ MonoBehaviour:
   resourcePerHit: 1
   maxHitCount: 5
   consumeResourceAfterHits: 0
-  elementType: 0
+  elementType: 1
   grantsDefenseBoost: 0
   baseDefenseBoost: 0
   defenseScalingStat: 0
@@ -63,11 +63,20 @@ MonoBehaviour:
   canTargetEnemies: 1
   maxTargetPosition: 1
   minTargetPosition: 1
-  isAOE: 0
-  aoETargets: 1
+  isAOE: 1
+  aoETargets: 2
   cooldown: 0
-  appliesEffects: []
+  appliesEffects:
+  - effectName: Burn
+    duration: 2
+    damageMultiplier: 0
+    defenseMultiplier: 0
+    damageOverTime: 5
+    temporaryDefenseBonus: 0
+    consumedOnHit: 0
+    statBoostType: 0
+    statBoostAmount: 0
   shiftPosition: 0
   positionShift: 0
   animationTrigger: Attack
-  particleEffect: {fileID: 0}
+  particleEffect: {fileID: 8764043878647920493, guid: c4ed38c72957f2241ad144a1614956d9, type: 3}

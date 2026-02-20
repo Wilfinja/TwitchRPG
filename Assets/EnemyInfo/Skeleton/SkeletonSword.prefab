@@ -20,6 +20,10 @@ PrefabInstance:
       propertyPath: m_FlipX
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3626916397498700004, guid: 40b0f99464ccc7d4db2fecf1b4673ede, type: 3}
+      propertyPath: m_SpriteSortPoint
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7878350319992209165, guid: 40b0f99464ccc7d4db2fecf1b4673ede, type: 3}
       propertyPath: m_LocalScale.x
       value: 6
@@ -34,11 +38,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7878350319992209165, guid: 40b0f99464ccc7d4db2fecf1b4673ede, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -6.71
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7878350319992209165, guid: 40b0f99464ccc7d4db2fecf1b4673ede, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -10.24
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7878350319992209165, guid: 40b0f99464ccc7d4db2fecf1b4673ede, type: 3}
       propertyPath: m_LocalPosition.z

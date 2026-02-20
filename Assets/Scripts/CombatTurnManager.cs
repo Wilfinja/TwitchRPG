@@ -156,65 +156,62 @@ public class CombatTurnManager : MonoBehaviour
             player.ProcessStatusEffects();
         }
 
+        // ✅ FIX: Check for PvP FIRST, before wave cleared check
+        if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
+        {
+            Debug.Log("[Combat] PvP mode - checking for match end");
+
+            // In PvP, match ends when only 1 player remains
+            List<CombatEntity> alivePlayers = ExpeditionManager.Instance.GetAllPlayerEntities();
+
+            if (alivePlayers.Count <= 1)
+            {
+                Debug.Log($"[Combat] PvP match over! {alivePlayers.Count} player(s) remaining");
+
+                if (alivePlayers.Count == 1)
+                {
+                    // Winner!
+                    PvPManager.Instance.OnPvPMatchEnd(alivePlayers[0].userId);
+                }
+                else
+                {
+                    // Draw (both died somehow) - shouldn't happen but handle it
+                    Debug.LogWarning("[Combat] PvP ended in a draw!");
+                    PvPManager.Instance.OnPvPMatchEnd(null); // You'll need to handle null in OnPvPMatchEnd
+                }
+
+                combatActive = false;
+                yield break;
+            }
+
+            // Match continues - skip enemy turn (no enemies in PvP)
+            Debug.Log("[Combat] PvP continuing - both players alive, starting next player turn");
+            yield return new WaitForSeconds(0.5f);
+            StartPlayerTurn();
+            yield break;
+        }
+
+        // ✅ EXISTING CODE: PvE expedition logic (only runs if NOT PvP)
         // Check if wave is cleared
         if (CheckWaveCleared())
         {
             Debug.Log("[Combat] WAVE CLEARED!");
-
-            // Check if this is PvP
-            if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
-            {
-                // PvP match end - determine winner
-                List<CombatEntity> pvpplayers = ExpeditionManager.Instance.GetAllPlayerEntities();
-                if (pvpplayers.Count > 0)
-                {
-                    PvPManager.Instance.OnPvPMatchEnd(pvpplayers[0].userId);
-                }
-                combatActive = false;
-            }
-            else
-            {
-                // Expedition wave cleared
-                ExpeditionManager.Instance.OnWaveCleared();
-            }
+            // Expedition wave cleared
+            ExpeditionManager.Instance.OnWaveCleared();
             yield break;
         }
 
         Debug.Log("[Combat] Wave not cleared, starting enemy turn...");
 
-        // Enemy turn
+        // Enemy turn (PvE only)
         yield return StartCoroutine(ExecuteEnemyTurn());
 
-        // Check for player wipe
+        // Check for player wipe (PvE only)
         if (CheckPlayerWipe())
         {
             Debug.Log("[Combat] PLAYER WIPE!");
-
-            // Check if this is PvP
-            if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
-            {
-                // PvP match end - determine winner (the one still alive)
-                List<CombatEntity> allPlayers = ExpeditionManager.Instance.GetAllPlayerEntities();
-                List<CombatEntity> enemies = ExpeditionManager.Instance.GetAllEnemyEntities();
-
-                // In PvP, "enemies" are actually the other player
-                if (allPlayers.Count > 0)
-                {
-                    PvPManager.Instance.OnPvPMatchEnd(allPlayers[0].userId);
-                }
-                else if (enemies.Count > 0)
-                {
-                    // The "enemy" player won
-                    PvPManager.Instance.OnPvPMatchEnd(enemies[0].userId);
-                }
-
-                combatActive = false;
-            }
-            else
-            {
-                // Expedition failure
-                ExpeditionManager.Instance.CompleteExpedition(false);
-            }
+            // Expedition failure
+            ExpeditionManager.Instance.CompleteExpedition(false);
             yield break;
         }
 

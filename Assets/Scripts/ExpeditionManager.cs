@@ -479,6 +479,13 @@ public class ExpeditionManager : MonoBehaviour
         if (victory)
         {
             OnScreenNotification.Instance?.ShowNotification("🎉 Victory! The expedition is complete!");
+
+            // ✅ NEW: Trigger burst effect
+            if (ParticleEffectManager.Instance != null)
+            {
+                ParticleEffectManager.Instance.TriggerBurst();
+            }
+
             GrantRewards();
         }
         else
@@ -487,7 +494,7 @@ public class ExpeditionManager : MonoBehaviour
             GrantPartialRewards();
         }
 
-        CombatUIManager.Instance?.HideCombatUI(); // ← ADD THIS LINE
+        CombatUIManager.Instance?.HideCombatUI();
 
         StartCoroutine(CleanupExpedition());
     }

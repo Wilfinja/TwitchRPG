@@ -133,6 +133,25 @@ public static class CombatCalculations
 
         totalDamage += caster.damageBonus;
 
+        bool didCrit = false;
+        if (ability.canCrit)
+        {
+            float critChance = 0.1f; // 10% base crit
+            if (Random.value < critChance)
+            {
+                totalDamage *= 1.5f; // 150% damage
+                didCrit = true;
+
+
+                Debug.Log($"[Damage] CRITICAL HIT! {totalDamage} damage");
+
+                // ✅ NEW: Show crit particle
+                if (target != null && CombatVisualEffects.Instance != null)
+                {
+                    CombatVisualEffects.Instance.PlayCriticalEffect(target.transform.position);
+                }
+            }
+        }
 
         if (ability.HasSneakScaling() && caster.characterClass == CharacterClass.Rogue)
         {
@@ -199,6 +218,13 @@ public static class CombatCalculations
 
     static void ApplyBuff(CombatEntity caster, CombatEntity target, AbilityData ability)
     {
+        if (target != null && CombatVisualEffects.Instance != null)
+        {
+            CombatVisualEffects.Instance.PlayBuffEffect(target.transform.position);
+        }
+
+        Debug.Log($"[Buff] {caster.entityName} buffed {target.entityName}");
+
         // Buffs are handled through status effects in ability.appliesEffects
         CombatLog.Instance?.AddEntry($"{caster.entityName} buffed {target.entityName} with {ability.abilityName}!");
     }
@@ -518,6 +544,11 @@ public static class CombatCalculations
         };
 
         target.ApplyStatusEffect(defenseBoost);
+
+        if (CombatVisualEffects.Instance != null)
+        {
+            CombatVisualEffects.Instance.PlayBuffEffect(target.transform.position);
+        }
 
         string durationText = ability.defenseConsumedOnHit ? "vs next attack" : "for 1 turn";
         CombatLog.Instance?.AddEntry($"{target.entityName} gained +{defenseAmount} defense {durationText}!");

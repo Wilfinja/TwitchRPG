@@ -122,7 +122,7 @@ ScriptedImporter:
     generateIndividualEvents: 1
     generateSpriteAtlas: 1
   importFileNodeState: 1
-  platformSettingsDirtyTick: 639041389679732744
+  platformSettingsDirtyTick: 639071169523748112
   textureAssetName: 
   singleSpriteImportData:
   - name: 
@@ -901,7 +901,7 @@ ScriptedImporter:
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 29
@@ -910,7 +910,7 @@ ScriptedImporter:
       frameIndex: 1
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 30
@@ -919,7 +919,7 @@ ScriptedImporter:
       frameIndex: 2
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 31
@@ -928,7 +928,7 @@ ScriptedImporter:
       frameIndex: 3
       additiveSortOrder: 0
       cellRect:
-        x: 6
+        x: 22
         y: 1
         width: 17
         height: 31
@@ -937,7 +937,7 @@ ScriptedImporter:
       frameIndex: 4
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 30
@@ -946,7 +946,7 @@ ScriptedImporter:
       frameIndex: 5
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 29
@@ -955,7 +955,7 @@ ScriptedImporter:
       frameIndex: 6
       additiveSortOrder: 0
       cellRect:
-        x: 8
+        x: 24
         y: 1
         width: 16
         height: 29
@@ -964,7 +964,7 @@ ScriptedImporter:
       frameIndex: 7
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 16
         height: 28
@@ -973,7 +973,7 @@ ScriptedImporter:
       frameIndex: 8
       additiveSortOrder: 0
       cellRect:
-        x: 10
+        x: 26
         y: 1
         width: 8
         height: 29
@@ -982,7 +982,7 @@ ScriptedImporter:
       frameIndex: 9
       additiveSortOrder: 0
       cellRect:
-        x: 9
+        x: 25
         y: 1
         width: 14
         height: 30
@@ -991,7 +991,7 @@ ScriptedImporter:
       frameIndex: 10
       additiveSortOrder: 0
       cellRect:
-        x: 8
+        x: 24
         y: 1
         width: 16
         height: 29
@@ -1000,7 +1000,7 @@ ScriptedImporter:
       frameIndex: 11
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 16
         height: 28
@@ -1009,7 +1009,7 @@ ScriptedImporter:
       frameIndex: 12
       additiveSortOrder: 0
       cellRect:
-        x: 10
+        x: 26
         y: 1
         width: 8
         height: 29
@@ -1018,7 +1018,7 @@ ScriptedImporter:
       frameIndex: 13
       additiveSortOrder: 0
       cellRect:
-        x: 9
+        x: 25
         y: 1
         width: 15
         height: 30
@@ -1027,7 +1027,7 @@ ScriptedImporter:
       frameIndex: 14
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 29
@@ -1036,7 +1036,7 @@ ScriptedImporter:
       frameIndex: 15
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 29
@@ -1045,7 +1045,7 @@ ScriptedImporter:
       frameIndex: 16
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 29
@@ -1054,7 +1054,7 @@ ScriptedImporter:
       frameIndex: 17
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 29
@@ -1063,7 +1063,7 @@ ScriptedImporter:
       frameIndex: 18
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 29
@@ -1072,7 +1072,7 @@ ScriptedImporter:
       frameIndex: 19
       additiveSortOrder: 0
       cellRect:
-        x: 8
+        x: 24
         y: 1
         width: 16
         height: 29
@@ -1081,7 +1081,7 @@ ScriptedImporter:
       frameIndex: 20
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 19
         height: 29
@@ -1090,7 +1090,7 @@ ScriptedImporter:
       frameIndex: 21
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 20
         height: 29
@@ -1099,7 +1099,7 @@ ScriptedImporter:
       frameIndex: 22
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 19
         height: 29
@@ -1108,7 +1108,7 @@ ScriptedImporter:
       frameIndex: 23
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 29
@@ -1117,7 +1117,7 @@ ScriptedImporter:
       frameIndex: 24
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 29
@@ -1126,7 +1126,7 @@ ScriptedImporter:
       frameIndex: 25
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 29
@@ -1135,7 +1135,7 @@ ScriptedImporter:
       frameIndex: 26
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 29
@@ -1144,7 +1144,7 @@ ScriptedImporter:
       frameIndex: 27
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 29
@@ -1153,7 +1153,7 @@ ScriptedImporter:
       frameIndex: 28
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 29
@@ -1162,7 +1162,7 @@ ScriptedImporter:
       frameIndex: 29
       additiveSortOrder: 0
       cellRect:
-        x: 7
+        x: 23
         y: 1
         width: 15
         height: 29
@@ -1171,7 +1171,7 @@ ScriptedImporter:
       frameIndex: 30
       additiveSortOrder: 0
       cellRect:
-        x: 6
+        x: 22
         y: 1
         width: 16
         height: 29
@@ -1180,7 +1180,7 @@ ScriptedImporter:
       frameIndex: 31
       additiveSortOrder: 0
       cellRect:
-        x: 6
+        x: 22
         y: 1
         width: 16
         height: 29
@@ -1189,7 +1189,7 @@ ScriptedImporter:
       frameIndex: 32
       additiveSortOrder: 0
       cellRect:
-        x: 6
+        x: 22
         y: 1
         width: 16
         height: 29
@@ -1198,7 +1198,7 @@ ScriptedImporter:
       frameIndex: 33
       additiveSortOrder: 0
       cellRect:
-        x: 6
+        x: 22
         y: 1
         width: 16
         height: 29
@@ -1207,7 +1207,7 @@ ScriptedImporter:
       frameIndex: 34
       additiveSortOrder: 0
       cellRect:
-        x: 6
+        x: 22
         y: 1
         width: 16
         height: 29
@@ -1245,5 +1245,5 @@ ScriptedImporter:
   generatePhysicsShape: 0
   secondarySpriteTextures: []
   spritePackingTag: 
-  canvasSize: {x: 32, y: 32}
+  canvasSize: {x: 64, y: 64}
   previousTextureSize: {x: 256, y: 256}

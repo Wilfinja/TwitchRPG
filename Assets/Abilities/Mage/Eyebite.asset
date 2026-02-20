@@ -10,25 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Frost Shield
+  m_Name: Eyebite
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Frost Shield
-  commandName: frostshield
-  description: The Mage increases their defense by 20 for the next hit.
+  abilityName: Eyebite
+  commandName: eyebite
+  description: The mage deals .75x INT + .5 WIL damage and inflicts the BLIND condition
+    for 2 turns.
   requiredClass: 5
-  levelRequired: 1
-  category: 2
-  targetType: 2
-  scalingStat: 0
-  statMultiplier: 0
-  useSecondaryScaling: 0
-  secondaryScalingStat: 0
-  secondaryStatMultiplier: 0
+  levelRequired: 5
+  category: 0
+  targetType: 0
+  scalingStat: 3
+  statMultiplier: 0.75
+  useSecondaryScaling: 1
+  secondaryScalingStat: 4
+  secondaryStatMultiplier: 0.5
   scalesWithSneak: 0
   sneakDamageMultiplier: 0
   consumesAllSneak: 0
   consumeSneakAmount: 0
-  baseDamage: 0
+  baseDamage: 5
   canCrit: 0
   isMultiHit: 0
   baseHitCount: 1
@@ -36,12 +37,12 @@ MonoBehaviour:
   resourcePerHit: 1
   maxHitCount: 5
   consumeResourceAfterHits: 0
-  elementType: 2
-  grantsDefenseBoost: 1
+  elementType: 6
+  grantsDefenseBoost: 0
   baseDefenseBoost: 0
-  defenseScalingStat: 3
-  defenseScalingMultiplier: 2
-  defenseConsumedOnHit: 1
+  defenseScalingStat: 0
+  defenseScalingMultiplier: 0
+  defenseConsumedOnHit: 0
   grantsStatBoost: 0
   statToBoost: 0
   baseStatBoost: 0
@@ -52,7 +53,7 @@ MonoBehaviour:
   sneakGain: 0
   requiresStance: 0
   requiredStance: 0
-  manaCost: 25
+  manaCost: 15
   wrathCost: 0
   wrathGain: 0
   balanceCost: 0
@@ -60,14 +61,23 @@ MonoBehaviour:
   balanceRequirement: 0
   balanceRequirementType: 0
   canTargetAllies: 0
-  canTargetEnemies: 0
-  maxTargetPosition: 1
+  canTargetEnemies: 1
+  maxTargetPosition: 2
   minTargetPosition: 1
   isAOE: 0
   aoETargets: 1
-  cooldown: 0
-  appliesEffects: []
+  cooldown: 2
+  appliesEffects:
+  - effectName: Blind
+    duration: 2
+    damageMultiplier: 0.75
+    defenseMultiplier: 0
+    damageOverTime: 0
+    temporaryDefenseBonus: 0
+    consumedOnHit: 0
+    statBoostType: 0
+    statBoostAmount: 0
   shiftPosition: 0
   positionShift: 0
-  animationTrigger: SelfBuff
+  animationTrigger: Attack
   particleEffect: {fileID: 0}

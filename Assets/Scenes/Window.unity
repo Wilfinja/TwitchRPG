@@ -908,7 +908,7 @@ Transform:
   m_GameObject: {fileID: 635347819}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 10, y: -10, z: 0}
+  m_LocalPosition: {x: 10, y: -11, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1053,17 +1053,17 @@ MonoBehaviour:
   expeditionQueued: 0
   acceptingJoins: 0
   playerCombatPositions:
-  - {x: -3, y: -10, z: 0}
-  - {x: -6, y: -10, z: 0}
-  - {x: -9, y: -10, z: 0}
-  - {x: -12, y: -10, z: 0}
+  - {x: -3, y: -10.5, z: 0}
+  - {x: -6, y: -10.5, z: 0}
+  - {x: -9, y: -10.5, z: 0}
+  - {x: -12, y: -10.5, z: 0}
   enemyPositions:
-  - {x: 3, y: -10, z: 0}
-  - {x: 6, y: -10, z: 0}
-  - {x: 9, y: -10, z: 0}
-  - {x: 12, y: -10, z: 0}
-  - {x: 15, y: -10, z: 0}
-  - {x: 18, y: -10, z: 0}
+  - {x: 3, y: -10.5, z: 0}
+  - {x: 6, y: -10.5, z: 0}
+  - {x: 9, y: -10.5, z: 0}
+  - {x: 12, y: -10.5, z: 0}
+  - {x: 15, y: -10.5, z: 0}
+  - {x: 18, y: -10.5, z: 0}
 --- !u!114 &668260153
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1090,20 +1090,20 @@ MonoBehaviour:
   winnerXP: 50
   loserXP: 25
   voteCost: 25
-  fighter1Position: {x: -2, y: 0, z: 0}
-  fighter2Position: {x: 2, y: 0, z: 0}
+  fighter1Position: {x: -2, y: -10.5, z: 0}
+  fighter2Position: {x: 2, y: -10.5, z: 0}
   leftSpectatorPositions:
-  - {x: -12, y: -10, z: 0}
-  - {x: -14, y: -10, z: 0}
-  - {x: -16, y: -10, z: 0}
-  - {x: -18, y: -10, z: 0}
-  - {x: -20, y: -10, z: 0}
+  - {x: -12, y: -10.5, z: 0}
+  - {x: -14, y: -10.5, z: 0}
+  - {x: -16, y: -10.5, z: 0}
+  - {x: -18, y: -10.5, z: 0}
+  - {x: -20, y: -10.5, z: 0}
   rightSpectatorPositions:
-  - {x: 12, y: -10, z: 0}
-  - {x: 14, y: -10, z: 0}
-  - {x: 16, y: -10, z: 0}
-  - {x: 18, y: -10, z: 0}
-  - {x: 20, y: -10, z: 0}
+  - {x: 12, y: -10.5, z: 0}
+  - {x: 14, y: -10.5, z: 0}
+  - {x: 16, y: -10.5, z: 0}
+  - {x: 18, y: -10.5, z: 0}
+  - {x: 20, y: -10.5, z: 0}
 --- !u!1 &688515458
 GameObject:
   m_ObjectHideFlags: 0
@@ -1581,7 +1581,7 @@ Transform:
   m_GameObject: {fileID: 1076859028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 10, y: -10, z: 0}
+  m_LocalPosition: {x: 10, y: -10.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1604,8 +1604,8 @@ MonoBehaviour:
   magePrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
   clericPrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
   rangerPrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
-  spawnYPosition: -10
-  spawnSpacing: 10
+  spawnYPosition: -10.5
+  spawnSpacing: 15
   idleRangeX: 8
   characterParent: {fileID: 635347820}
   screenLeftBound: -9.5
@@ -2410,6 +2410,9 @@ MonoBehaviour:
   mageAbilities:
   - {fileID: 11400000, guid: ecf56a095941ec74c801432a63df5e97, type: 2}
   - {fileID: 11400000, guid: 8fd51a715cdcfcf49ae06f83d9f45531, type: 2}
+  - {fileID: 11400000, guid: 81504be1c2bb8844ca3dd169a9c834d5, type: 2}
+  - {fileID: 11400000, guid: 29c2888e5f7abd44796abefbf8fa38fe, type: 2}
+  - {fileID: 11400000, guid: 869b953e0f5738248b9fc13b829d8350, type: 2}
   clericAbilities:
   - {fileID: 11400000, guid: 2e0d244cc58e01e4381f4409cafa6cba, type: 2}
   - {fileID: 11400000, guid: 5dc3fe3e29184a94bb2c571ad15064e8, type: 2}
@@ -2417,7 +2420,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8ea5a2b6a0d7ccb448ae6040e110074e, type: 2}
   - {fileID: 11400000, guid: 506650a0b9de25d4d8cd130052f616c3, type: 2}
   - {fileID: 11400000, guid: 0bcbaa4bb620d1b40a1c90afbf6d6bfd, type: 2}
-  rangerAbilities: []
+  rangerAbilities:
+  - {fileID: 11400000, guid: a374b354d622e4b478d909cac6eda5a5, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   enemyAbilities:
   - {fileID: 11400000, guid: 8980e86ef2a766e4f8671e36079d348e, type: 2}
   - {fileID: 11400000, guid: 57b0e2e9ecefc2c4fbce106d2297d5ca, type: 2}

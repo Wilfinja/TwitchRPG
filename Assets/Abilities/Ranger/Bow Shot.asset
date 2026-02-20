@@ -10,38 +10,39 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Frost Shield
+  m_Name: Bow Shot
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Frost Shield
-  commandName: frostshield
-  description: The Mage increases their defense by 20 for the next hit.
-  requiredClass: 5
+  abilityName: Bow Shot
+  commandName: bowshot
+  description: The ranger fires a ranged shot at an enemy in position 1-3, dealing
+    .75x DEX + .75x STR Damage.
+  requiredClass: 4
   levelRequired: 1
-  category: 2
-  targetType: 2
-  scalingStat: 0
-  statMultiplier: 0
-  useSecondaryScaling: 0
-  secondaryScalingStat: 0
-  secondaryStatMultiplier: 0
+  category: 0
+  targetType: 0
+  scalingStat: 2
+  statMultiplier: 0.75
+  useSecondaryScaling: 1
+  secondaryScalingStat: 1
+  secondaryStatMultiplier: 0.75
   scalesWithSneak: 0
   sneakDamageMultiplier: 0
   consumesAllSneak: 0
   consumeSneakAmount: 0
-  baseDamage: 0
-  canCrit: 0
+  baseDamage: 5
+  canCrit: 1
   isMultiHit: 0
   baseHitCount: 1
   multiHitType: 0
   resourcePerHit: 1
   maxHitCount: 5
   consumeResourceAfterHits: 0
-  elementType: 2
-  grantsDefenseBoost: 1
+  elementType: 0
+  grantsDefenseBoost: 0
   baseDefenseBoost: 0
-  defenseScalingStat: 3
-  defenseScalingMultiplier: 2
-  defenseConsumedOnHit: 1
+  defenseScalingStat: 0
+  defenseScalingMultiplier: 0
+  defenseConsumedOnHit: 0
   grantsStatBoost: 0
   statToBoost: 0
   baseStatBoost: 0
@@ -52,16 +53,16 @@ MonoBehaviour:
   sneakGain: 0
   requiresStance: 0
   requiredStance: 0
-  manaCost: 25
+  manaCost: 0
   wrathCost: 0
   wrathGain: 0
   balanceCost: 0
-  balanceGain: 0
-  balanceRequirement: 0
-  balanceRequirementType: 0
+  balanceGain: 2
+  balanceRequirement: 5
+  balanceRequirementType: 2
   canTargetAllies: 0
-  canTargetEnemies: 0
-  maxTargetPosition: 1
+  canTargetEnemies: 1
+  maxTargetPosition: 3
   minTargetPosition: 1
   isAOE: 0
   aoETargets: 1
@@ -69,5 +70,5 @@ MonoBehaviour:
   appliesEffects: []
   shiftPosition: 0
   positionShift: 0
-  animationTrigger: SelfBuff
+  animationTrigger: Attack
   particleEffect: {fileID: 0}

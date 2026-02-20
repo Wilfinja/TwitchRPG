@@ -85,6 +85,11 @@ public class ExperienceManager : MonoBehaviour
         // Save progress
         RPGManager.Instance.SaveGameData();
 
+        if (ParticleEffectManager.Instance != null)
+        {
+            ParticleEffectManager.Instance.TriggerConfetti();
+        }
+
         Debug.Log($"[XP] {viewer.username} leveled up to {viewer.baseStats.level}!");
     }
 

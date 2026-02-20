@@ -416,6 +416,40 @@ public class PvPManager : MonoBehaviour
 
         CombatUIManager.Instance?.HideCombatUI();
 
+        // ✅ NEW: Handle draw case
+        if (string.IsNullOrEmpty(winnerUserId))
+        {
+            OnScreenNotification.Instance?.ShowNotification("⚔️ PvP Match ended in a DRAW!");
+
+            // Return wagers to both fighters
+            ViewerData fighter1 = RPGManager.Instance.GetViewer(currentMatch.fighter1UserId);
+            ViewerData fighter2 = RPGManager.Instance.GetViewer(currentMatch.fighter2UserId);
+
+            if (fighter1 != null)
+            {
+                fighter1.coins += currentMatch.wager;
+            }
+
+            if (fighter2 != null)
+            {
+                fighter2.coins += currentMatch.wager;
+            }
+
+            // Return all bets
+            foreach (var bet in currentMatch.bets.Values)
+            {
+                ViewerData bettor = RPGManager.Instance.GetViewer(bet.bettorUserId);
+                if (bettor != null)
+                {
+                    bettor.coins += bet.amount;
+                }
+            }
+
+            RPGManager.Instance.SaveGameData();
+            StartCoroutine(CleanupPvP());
+            return;
+        }
+
         string winnerUsername = winnerUserId == currentMatch.fighter1UserId
             ? currentMatch.fighter1Username
             : currentMatch.fighter2Username;

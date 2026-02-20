@@ -10,17 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Frost Shield
+  m_Name: Quick Slice
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Frost Shield
-  commandName: frostshield
-  description: The Mage increases their defense by 20 for the next hit.
-  requiredClass: 5
+  abilityName: Quick Slice
+  commandName: quickslice
+  description: The ranger slices at the first enemy in the line. They deal 1.25x
+    DEX damage and lower balance by 2. Can only cast if balance is above -5.
+  requiredClass: 4
   levelRequired: 1
-  category: 2
-  targetType: 2
-  scalingStat: 0
-  statMultiplier: 0
+  category: 0
+  targetType: 5
+  scalingStat: 2
+  statMultiplier: 1.25
   useSecondaryScaling: 0
   secondaryScalingStat: 0
   secondaryStatMultiplier: 0
@@ -28,20 +29,20 @@ MonoBehaviour:
   sneakDamageMultiplier: 0
   consumesAllSneak: 0
   consumeSneakAmount: 0
-  baseDamage: 0
-  canCrit: 0
+  baseDamage: 5
+  canCrit: 1
   isMultiHit: 0
   baseHitCount: 1
   multiHitType: 0
   resourcePerHit: 1
   maxHitCount: 5
   consumeResourceAfterHits: 0
-  elementType: 2
-  grantsDefenseBoost: 1
+  elementType: 0
+  grantsDefenseBoost: 0
   baseDefenseBoost: 0
-  defenseScalingStat: 3
-  defenseScalingMultiplier: 2
-  defenseConsumedOnHit: 1
+  defenseScalingStat: 0
+  defenseScalingMultiplier: 0
+  defenseConsumedOnHit: 0
   grantsStatBoost: 0
   statToBoost: 0
   baseStatBoost: 0
@@ -52,15 +53,15 @@ MonoBehaviour:
   sneakGain: 0
   requiresStance: 0
   requiredStance: 0
-  manaCost: 25
+  manaCost: 0
   wrathCost: 0
   wrathGain: 0
-  balanceCost: 0
+  balanceCost: 2
   balanceGain: 0
-  balanceRequirement: 0
-  balanceRequirementType: 0
+  balanceRequirement: -5
+  balanceRequirementType: 1
   canTargetAllies: 0
-  canTargetEnemies: 0
+  canTargetEnemies: 1
   maxTargetPosition: 1
   minTargetPosition: 1
   isAOE: 0
@@ -69,5 +70,5 @@ MonoBehaviour:
   appliesEffects: []
   shiftPosition: 0
   positionShift: 0
-  animationTrigger: SelfBuff
-  particleEffect: {fileID: 0}
+  animationTrigger: Attack
+  particleEffect: {fileID: 919132149155446097, guid: ce274bd34d1b1d24f831cdd3e246a4e8, type: 3}
