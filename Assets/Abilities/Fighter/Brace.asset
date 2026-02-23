@@ -31,10 +31,17 @@ MonoBehaviour:
   consumeSneakAmount: 0
   baseDamage: 0
   canCrit: 0
-  grantsDefenseBoost: 0
+  isMultiHit: 0
+  baseHitCount: 1
+  multiHitType: 0
+  resourcePerHit: 1
+  maxHitCount: 5
+  consumeResourceAfterHits: 0
+  elementType: 0
+  grantsDefenseBoost: 1
   baseDefenseBoost: 0
-  defenseScalingStat: 0
-  defenseScalingMultiplier: 0
+  defenseScalingStat: 6
+  defenseScalingMultiplier: 1.5
   defenseConsumedOnHit: 0
   grantsStatBoost: 0
   statToBoost: 0
@@ -60,16 +67,7 @@ MonoBehaviour:
   isAOE: 0
   aoETargets: 1
   cooldown: 3
-  appliesEffects:
-  - effectName: Brace DEF UP
-    duration: 2
-    damageMultiplier: 0
-    defenseMultiplier: 0
-    damageOverTime: 0
-    temporaryDefenseBonus: 20
-    consumedOnHit: 0
-    statBoostType: 0
-    statBoostAmount: 0
+  appliesEffects: []
   shiftPosition: 0
   positionShift: 0
   animationTrigger: Attack

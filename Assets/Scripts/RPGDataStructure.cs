@@ -149,6 +149,28 @@ public class StatusEffect
 
     [Tooltip("Amount the stat is boosted")]
     public int statBoostAmount;
+
+    [Tooltip("Percentage of damage dealt that heals the attacker (0.0-1.0)")]
+    [Range(0f, 1f)]
+    public float lifestealPercent = 0f;
+
+    [Tooltip("Marks this effect as a Riposte. When the bearer takes damage, a counter-attack fires.")]
+    public bool isRiposte = false;
+
+    [Tooltip("Percent of incoming final damage (post-defense) reflected as counter damage. 1.0 = 100%.")]
+    public float riposteDamagePercent = 0f;
+
+    [Tooltip("Flat bonus damage added to the riposte counter.")]
+    public int riposteFlatBonus = 0;
+
+    [Tooltip("Stat used for additional riposte scaling. Looked up on the entity when the counter fires.")]
+    public DamageStat riposteScalingStat = DamageStat.None;
+
+    [Tooltip("Multiplier applied to the riposteScalingStat value.")]
+    public float riposteScalingMultiplier = 0f;
+
+    [Tooltip("If true, this Riposte effect is removed after the first successful counter-attack.")]
+    public bool riposteConsumedOnUse = true;
 }
 
 public enum AbilityCategory

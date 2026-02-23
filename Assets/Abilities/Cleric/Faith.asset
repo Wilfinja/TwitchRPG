@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
   abilityName: Faith
   commandName: faith
-  description: The Cleric imbues a friend with defense to resist the next attack.
-    Defense is increased by 1.0x WILL for one round.
+  description: The Cleric buffs a single ally to have 1x WIL DEF for the next attack.
   requiredClass: 2
   levelRequired: 1
   category: 2
@@ -31,13 +30,32 @@ MonoBehaviour:
   consumeSneakAmount: 0
   baseDamage: 0
   canCrit: 0
-  grantsDefenseBoost: 0
-  defenseBoostAmount: 0
-  defenseConsumedOnHit: 0
+  isMultiHit: 0
+  baseHitCount: 1
+  multiHitType: 0
+  resourcePerHit: 1
+  maxHitCount: 5
+  consumeResourceAfterHits: 0
+  multiHitTargetMode: 0
+  elementType: 0
+  grantsDefenseBoost: 1
+  baseDefenseBoost: 0
+  defenseScalingStat: 4
+  defenseScalingMultiplier: 1
+  defenseConsumedOnHit: 1
   grantsStatBoost: 0
   statToBoost: 0
-  statBoostAmount: 0
+  baseStatBoost: 0
+  statBoostScalingStat: 0
+  statBoostScalingMultiplier: 0
   statBoostDuration: 1
+  grantsRiposte: 0
+  riposteDamagePercent: 0.5
+  riposteFlatBonus: 0
+  riposteScalingStat: 0
+  riposteScalingMultiplier: 0
+  riposteDuration: 1
+  riposteConsumedOnUse: 1
   sneakCost: 0
   sneakGain: 0
   requiresStance: 0
@@ -49,24 +67,20 @@ MonoBehaviour:
   balanceGain: 0
   balanceRequirement: 0
   balanceRequirementType: 0
-  canTargetAllies: 0
-  canTargetEnemies: 1
-  maxTargetPosition: 1
+  canTargetAllies: 1
+  canTargetEnemies: 0
+  maxTargetPosition: 4
   minTargetPosition: 1
   isAOE: 0
   aoETargets: 1
   cooldown: 1
-  appliesEffects:
-  - effectName: Def Up (Faith)
-    duration: 1
-    damageMultiplier: 0
-    defenseMultiplier: 0
-    damageOverTime: 0
-    temporaryDefenseBonus: 30
-    consumedOnHit: 1
-    statBoostType: 0
-    statBoostAmount: 0
+  appliesEffects: []
   shiftPosition: 0
   positionShift: 0
+  grantsLifesteal: 0
+  lifestealPercent: 0
+  lifestealDuration: 1
   animationTrigger: BuffCast
   particleEffect: {fileID: 0}
+  projectilePrefab: {fileID: 0}
+  projectileSpeed: 0.3

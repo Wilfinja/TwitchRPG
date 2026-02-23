@@ -36,6 +36,7 @@ MonoBehaviour:
   resourcePerHit: 1
   maxHitCount: 5
   consumeResourceAfterHits: 0
+  multiHitTargetMode: 0
   elementType: 2
   grantsDefenseBoost: 1
   baseDefenseBoost: 0
@@ -48,6 +49,13 @@ MonoBehaviour:
   statBoostScalingStat: 0
   statBoostScalingMultiplier: 0
   statBoostDuration: 1
+  grantsRiposte: 0
+  riposteDamagePercent: 0.5
+  riposteFlatBonus: 0
+  riposteScalingStat: 0
+  riposteScalingMultiplier: 0
+  riposteDuration: 1
+  riposteConsumedOnUse: 1
   sneakCost: 0
   sneakGain: 0
   requiresStance: 0
@@ -65,9 +73,14 @@ MonoBehaviour:
   minTargetPosition: 1
   isAOE: 0
   aoETargets: 1
-  cooldown: 0
+  cooldown: 2
   appliesEffects: []
   shiftPosition: 0
   positionShift: 0
+  grantsLifesteal: 0
+  lifestealPercent: 0
+  lifestealDuration: 1
   animationTrigger: SelfBuff
   particleEffect: {fileID: 0}
+  projectilePrefab: {fileID: 0}
+  projectileSpeed: 0.3

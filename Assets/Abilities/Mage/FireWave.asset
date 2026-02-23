@@ -36,6 +36,7 @@ MonoBehaviour:
   resourcePerHit: 1
   maxHitCount: 5
   consumeResourceAfterHits: 0
+  multiHitTargetMode: 0
   elementType: 1
   grantsDefenseBoost: 0
   baseDefenseBoost: 0
@@ -48,6 +49,13 @@ MonoBehaviour:
   statBoostScalingStat: 0
   statBoostScalingMultiplier: 0
   statBoostDuration: 1
+  grantsRiposte: 0
+  riposteDamagePercent: 0.5
+  riposteFlatBonus: 0
+  riposteScalingStat: 0
+  riposteScalingMultiplier: 0
+  riposteDuration: 1
+  riposteConsumedOnUse: 1
   sneakCost: 0
   sneakGain: 0
   requiresStance: 0
@@ -69,14 +77,26 @@ MonoBehaviour:
   appliesEffects:
   - effectName: Burn
     duration: 2
-    damageMultiplier: 0
-    defenseMultiplier: 0
+    damageMultiplier: 1
+    defenseMultiplier: 1
     damageOverTime: 5
     temporaryDefenseBonus: 0
     consumedOnHit: 0
     statBoostType: 0
     statBoostAmount: 0
+    lifestealPercent: 0
+    isRiposte: 0
+    riposteDamagePercent: 0
+    riposteFlatBonus: 0
+    riposteScalingStat: 0
+    riposteScalingMultiplier: 0
+    riposteConsumedOnUse: 1
   shiftPosition: 0
   positionShift: 0
+  grantsLifesteal: 0
+  lifestealPercent: 0
+  lifestealDuration: 1
   animationTrigger: Attack
   particleEffect: {fileID: 8764043878647920493, guid: c4ed38c72957f2241ad144a1614956d9, type: 3}
+  projectilePrefab: {fileID: 0}
+  projectileSpeed: 0.3

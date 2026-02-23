@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 using System.Collections.Generic;
 
 /// <summary>
@@ -14,7 +13,7 @@ public class MageChargeUI : MonoBehaviour
 
     [Header("UI Elements")]
     private GameObject chargeContainer;
-    private List<Image> chargePips = new List<Image>();
+    private List<SpriteRenderer> chargePips = new List<SpriteRenderer>();
 
     [Header("Positioning")]
     public Vector3 offset = new Vector3(0, -2f, 0); // Below health bar
@@ -41,6 +40,11 @@ public class MageChargeUI : MonoBehaviour
     /// </summary>
     void InitializeElementColors()
     {
+        if (elementColors == null)
+        {
+            elementColors = new Dictionary<ElementType, Color>();
+        }
+
         elementColors[ElementType.Fire] = new Color(1f, 0.3f, 0f);        // Orange-red
         elementColors[ElementType.Frost] = new Color(0.3f, 0.7f, 1f);     // Light blue
         elementColors[ElementType.Arcane] = new Color(0.7f, 0.3f, 1f);    // Purple
@@ -56,6 +60,12 @@ public class MageChargeUI : MonoBehaviour
     /// </summary>
     void CreateChargeUI()
     {
+        if (combatEntity == null)
+        {
+            Debug.LogError("[MageChargeUI] CombatEntity is null! Cannot create charge UI.");
+            return;
+        }
+
         // Create container GameObject
         chargeContainer = new GameObject($"{combatEntity.entityName}_ChargeUI");
         chargeContainer.transform.SetParent(transform);
@@ -67,10 +77,18 @@ public class MageChargeUI : MonoBehaviour
         for (int i = 0; i < MageChargeSystem.MAX_CHARGES; i++)
         {
             GameObject pipObj = CreateChargePip(i, startX + (i * pipSpacing));
-            chargePips.Add(pipObj.GetComponent<Image>());
+            SpriteRenderer spriteRenderer = pipObj.GetComponent<SpriteRenderer>();
+            if (spriteRenderer != null)
+            {
+                chargePips.Add(spriteRenderer);
+            }
         }
 
-        UpdateDisplay();
+        // Only update display if we successfully created pips
+        if (chargePips.Count > 0)
+        {
+            UpdateDisplay();
+        }
     }
 
     /// <summary>
@@ -78,6 +96,12 @@ public class MageChargeUI : MonoBehaviour
     /// </summary>
     GameObject CreateChargePip(int index, float xOffset)
     {
+        // Ensure colors are initialized
+        if (elementColors == null || elementColors.Count == 0)
+        {
+            InitializeElementColors();
+        }
+
         // Create pip GameObject
         GameObject pipObj = new GameObject($"ChargePip_{index}");
         pipObj.transform.SetParent(chargeContainer.transform);
@@ -89,10 +113,6 @@ public class MageChargeUI : MonoBehaviour
         spriteRenderer.sprite = CreateCircleSprite();
         spriteRenderer.color = elementColors[ElementType.None]; // Start empty
         spriteRenderer.sortingOrder = 10; // Above characters
-
-        // Alternative: Use UI Image if you want canvas-based UI
-        // This would require creating a Canvas component
-        // For now, using SpriteRenderer for simplicity
 
         return pipObj;
     }
@@ -144,6 +164,8 @@ public class MageChargeUI : MonoBehaviour
 
         for (int i = 0; i < MageChargeSystem.MAX_CHARGES; i++)
         {
+            if (i >= chargePips.Count) continue;
+
             ElementalCharge charge = chargeSystem.GetCharge(i);
 
             if (charge != null)
@@ -152,22 +174,13 @@ public class MageChargeUI : MonoBehaviour
                 ElementType element = charge.element;
                 if (elementColors.ContainsKey(element))
                 {
-                    // Get the SpriteRenderer from the pip GameObject
-                    SpriteRenderer spriteRenderer = chargePips[i].transform.GetComponent<SpriteRenderer>();
-                    if (spriteRenderer != null)
-                    {
-                        spriteRenderer.color = elementColors[element];
-                    }
+                    chargePips[i].color = elementColors[element];
                 }
             }
             else
             {
                 // Empty pip - show gray
-                SpriteRenderer spriteRenderer = chargePips[i].transform.GetComponent<SpriteRenderer>();
-                if (spriteRenderer != null)
-                {
-                    spriteRenderer.color = elementColors[ElementType.None];
-                }
+                chargePips[i].color = elementColors[ElementType.None];
             }
         }
     }

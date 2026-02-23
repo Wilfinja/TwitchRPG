@@ -70,6 +70,9 @@ public class AbilityData : ScriptableObject
     [Tooltip("Consume the resource after hitting?")]
     public bool consumeResourceAfterHits = false;
 
+    [Tooltip("How to select targets for each hit")]
+    public MultiHitTargetMode multiHitTargetMode = MultiHitTargetMode.SameTarget;
+
     [Header("Mage Elemental Charge")]
     [Tooltip("What element charge does this ability grant? (Mage only)")]
     public ElementType elementType = ElementType.None;
@@ -115,6 +118,35 @@ public class AbilityData : ScriptableObject
     [Tooltip("How many turns the stat boost lasts")]
     public int statBoostDuration = 1;
 
+    // ═══════════════════════════════════════════════════════════
+    // ✅ NEW: Riposte
+    // ═══════════════════════════════════════════════════════════
+    [Header("Riposte")]
+    [Tooltip("When hit, automatically counter-attack the attacker for a portion of the damage received.")]
+    public bool grantsRiposte = false;
+
+    [Tooltip("Percentage of the incoming final damage (after defense) reflected back as counter damage. " +
+             "1.0 = 100%. Stacks on top of riposteFlatBonus.")]
+    [Range(0f, 3f)]
+    public float riposteDamagePercent = 0.5f;
+
+    [Tooltip("Flat counter-attack damage added regardless of incoming damage.")]
+    public int riposteFlatBonus = 0;
+
+    [Tooltip("Optional stat that adds bonus counter damage. Useful for class-flavour (e.g. DEX for Fighters).")]
+    public DamageStat riposteScalingStat = DamageStat.None;
+
+    [Tooltip("Multiplier applied to the chosen riposteScalingStat value.")]
+    [Range(0f, 3f)]
+    public float riposteScalingMultiplier = 0f;
+
+    [Tooltip("How many turns the Riposte buff lasts before it expires without triggering.")]
+    public int riposteDuration = 1;
+
+    [Tooltip("If true, the Riposte effect is consumed immediately after the first counter-attack. " +
+             "If false, it counters every hit for the full duration.")]
+    public bool riposteConsumedOnUse = true;
+
     [Header("Resource Cost")]
     public int sneakCost;
     public int sneakGain;
@@ -144,9 +176,27 @@ public class AbilityData : ScriptableObject
     public bool shiftPosition;
     public int positionShift;
 
+    [Header("Lifesteal")]
+    [Tooltip("Grants lifesteal buff to target")]
+    public bool grantsLifesteal = false;
+
+    [Tooltip("Percentage of damage that heals (0.0 = 0%, 1.0 = 100%)")]
+    [Range(0f, 1f)]
+    public float lifestealPercent = 0f;
+
+    [Tooltip("How many turns the lifesteal buff lasts")]
+    public int lifestealDuration = 1;
+
     [Header("Animation")]
     public string animationTrigger = "Attack";
     public GameObject particleEffect;
+
+    [Tooltip("Projectile prefab that travels from caster to target (optional)")]
+    public GameObject projectilePrefab;
+
+    [Tooltip("How fast the projectile travels (seconds)")]
+    [Range(0.1f, 1f)]
+    public float projectileSpeed = 0.3f;
 
     // ═══════════════════════════════════════════════════════════
     // HELPER METHODS
@@ -159,6 +209,13 @@ public class AbilityData : ScriptableObject
         PerBalancePoint,   // Ranger: 1 hit per +2 balance (until neutral)
         IfAggressive,      // Fighter: +1 hit if in Aggressive stance
         PerWrathTier       // Cleric: Hits based on wrath level
+    }
+
+    public enum MultiHitTargetMode
+    {
+        SameTarget,      // All hits on initial target (default)
+        RandomInRange,   // Each hit picks random target within position range
+        TrulyRandom      // Each hit picks any alive enemy
     }
 
     public bool HasSecondaryScaling()
@@ -191,6 +248,17 @@ public class AbilityData : ScriptableObject
         return grantsStatBoost &&
                statBoostScalingStat != DamageStat.None &&
                statBoostScalingMultiplier > 0f;
+    }
+
+    /// <summary>
+    /// Returns true if this ability grants a Riposte condition
+    /// and has at least some counter-damage configured.
+    /// </summary>
+    public bool HasRiposte()
+    {
+        return grantsRiposte &&
+               (riposteDamagePercent > 0f || riposteFlatBonus > 0 ||
+               (riposteScalingStat != DamageStat.None && riposteScalingMultiplier > 0f));
     }
 
     public string GetScalingDescription()
@@ -288,6 +356,24 @@ public class AbilityData : ScriptableObject
             {
                 Debug.LogWarning($"[{abilityName}] Stat boost scaling stat selected but multiplier is 0!");
             }
+        }
+
+        // Validate Riposte
+        if (grantsRiposte)
+        {
+            if (riposteDamagePercent <= 0f && riposteFlatBonus <= 0 &&
+                (riposteScalingStat == DamageStat.None || riposteScalingMultiplier <= 0f))
+            {
+                Debug.LogWarning($"[{abilityName}] Riposte enabled but no damage source configured! " +
+                                 "Set riposteDamagePercent, riposteFlatBonus, or a riposteScalingStat.");
+            }
+
+            if (riposteDuration <= 0)
+                Debug.LogWarning($"[{abilityName}] Riposte duration should be at least 1!");
+
+            if (category != AbilityCategory.Buff)
+                Debug.LogWarning($"[{abilityName}] Riposte abilities should have category set to Buff " +
+                                 "so they target self and apply the buff correctly.");
         }
     }
 }

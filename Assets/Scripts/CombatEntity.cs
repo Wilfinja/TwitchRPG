@@ -200,7 +200,7 @@ public class CombatEntity : MonoBehaviour
     {
         if (isDead) return;
 
-        // Check evasion
+        // ── Evasion ──────────────────────────────────────────────────────────────
         if (Random.value < EvasionChance)
         {
             CombatVisualEffects.Instance?.ShowEvadeText(transform.position);
@@ -208,6 +208,7 @@ public class CombatEntity : MonoBehaviour
             return;
         }
 
+        // ── Rogue sneak damage reduction ──────────────────────────────────────────
         if (characterClass == CharacterClass.Rogue && sneakPoints > 0)
         {
             int reductionPercent = GetSneakDamageReduction();
@@ -217,18 +218,14 @@ public class CombatEntity : MonoBehaviour
             CombatLog.Instance?.AddEntry(
                 $"{entityName}'s sneak reduced damage by {reducedAmount} ({reductionPercent}%)!"
             );
-
-            // Optional: Consume 1 sneak point when hit
-            // sneakPoints = Mathf.Max(0, sneakPoints - 1);
         }
 
+        // ── Defense ───────────────────────────────────────────────────────────────
         int totalDefense = defense + GetTemporaryDefenseBonus();
-
-        // Apply defense
         int finalDamage = Mathf.Max(0, damage - totalDefense);
         currentHealth -= finalDamage;
 
-        // Show damage
+        // ── Visuals ───────────────────────────────────────────────────────────────
         CombatVisualEffects.Instance?.ShowDamageNumber(transform.position, finalDamage);
 
         if (totalDefense > 0 && damage > finalDamage)
@@ -239,18 +236,24 @@ public class CombatEntity : MonoBehaviour
 
         CombatLog.Instance?.AddEntry($"{attacker.entityName} hit {entityName} for {finalDamage} damage!");
 
+        // ── Consume one-hit defense boosts ────────────────────────────────────────
         ConsumeOneHitDefenseBoosts();
 
-        // Grant wrath to cleric allies when player is hit
+        // ── Grant wrath to cleric allies ─────────────────────────────────────────
         if (isPlayer && finalDamage > 0)
-        {
             GrantWrathToClericAllies(finalDamage);
-        }
 
-        // Trigger hit animation
+        // ── Trigger hit animation ─────────────────────────────────────────────────
         animator?.SetTrigger("Hit");
 
-        // Check for death
+        // ── ✅ NEW: Riposte counter-attack ─────────────────────────────────────────
+        // Only fires when we actually took damage and the attacker is still alive.
+        if (finalDamage > 0 && attacker != null && !attacker.isDead)
+        {
+            TriggerRiposte(finalDamage, attacker);
+        }
+
+        // ── Death check ───────────────────────────────────────────────────────────
         if (currentHealth <= 0)
         {
             currentHealth = 0;
@@ -700,5 +703,91 @@ public class CombatEntity : MonoBehaviour
         }
 
         return totalValue;
+    }
+
+    /// <summary>
+    /// Scans active effects for any Riposte buff. When found, calculates and
+    /// deals a counter-attack to <paramref name="attacker"/>.
+    /// </summary>
+    /// <param name="finalDamageReceived">Damage that actually landed (post-defense).</param>
+    /// <param name="attacker">The entity that struck us.</param>
+    private void TriggerRiposte(int finalDamageReceived, CombatEntity attacker)
+    {
+        for (int i = activeEffects.Count - 1; i >= 0; i--)
+        {
+            StatusEffect effect = activeEffects[i];
+            if (!effect.isRiposte) continue;
+
+            // ── Calculate counter damage ──────────────────────────────────────────
+            float counterDamage = 0f;
+
+            // 1) Reflect portion of incoming damage
+            counterDamage += finalDamageReceived * effect.riposteDamagePercent;
+
+            // 2) Flat bonus
+            counterDamage += effect.riposteFlatBonus;
+
+            // 3) Stat scaling (e.g. DEX for a fencer-style Fighter)
+            if (effect.riposteScalingStat != DamageStat.None && effect.riposteScalingMultiplier > 0f)
+            {
+                int statValue = GetStatValueForRiposte(effect.riposteScalingStat);
+                counterDamage += statValue * effect.riposteScalingMultiplier;
+            }
+
+            int finalCounter = Mathf.Max(1, Mathf.RoundToInt(counterDamage));
+
+            // ── Apply counter to the attacker ────────────────────────────────────
+            // Use a raw health deduction so we don't re-trigger Riposte chains.
+            int counterAfterDefense = Mathf.Max(0, finalCounter - attacker.defense);
+            attacker.currentHealth -= counterAfterDefense;
+
+            CombatVisualEffects.Instance?.ShowDamageNumber(attacker.transform.position, counterAfterDefense);
+            CombatLog.Instance?.AddEntry(
+                $"⚔️ {entityName} RIPOSTES {attacker.entityName} for {counterAfterDefense} damage!"
+            );
+            Debug.Log($"[Riposte] {entityName} countered {attacker.entityName} " +
+                      $"(raw: {finalCounter}, after def: {counterAfterDefense})");
+
+            attacker.animator?.SetTrigger("Hit");
+
+            if (attacker.currentHealth <= 0)
+            {
+                attacker.currentHealth = 0;
+                attacker.Die();
+            }
+            else
+            {
+                attacker.UpdateHealthBar();
+            }
+
+            // ── Consume if needed ─────────────────────────────────────────────────
+            if (effect.riposteConsumedOnUse)
+            {
+                CombatLog.Instance?.AddEntry($"{entityName}'s {effect.effectName} was consumed!");
+                activeEffects.RemoveAt(i);
+            }
+
+            // Only one Riposte triggers per hit (the first one found).
+            // Remove this break if you want stacked Ripostes to all fire.
+            break;
+        }
+    }
+
+    /// <summary>
+    /// Returns the raw stat value from this entity for Riposte scaling.
+    /// Mirrors CombatCalculations.GetStatValue but accessible on the entity.
+    /// </summary>
+    private int GetStatValueForRiposte(DamageStat stat)
+    {
+        switch (stat)
+        {
+            case DamageStat.Strength: return strength;
+            case DamageStat.Dexterity: return dexterity;
+            case DamageStat.Intelligence: return intelligence;
+            case DamageStat.Willpower: return willpower;
+            case DamageStat.Charisma: return charisma;
+            case DamageStat.Constitution: return constitution;
+            default: return 0;
+        }
     }
 }

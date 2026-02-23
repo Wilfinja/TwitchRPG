@@ -196,7 +196,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1a44fb7caa57e343b7f71cccfaa3bec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MageComboDatabase
-  allCombos: []
+  allCombos:
+  - {fileID: 11400000, guid: 729c5f6d1735f9449a3bc07455096d32, type: 2}
 --- !u!4 &112329017
 Transform:
   m_ObjectHideFlags: 0

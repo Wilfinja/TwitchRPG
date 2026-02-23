@@ -31,21 +31,32 @@ MonoBehaviour:
   consumeSneakAmount: 0
   baseDamage: 0
   canCrit: 0
-  canDefense: 0
-  defenseAmount: 0
-  increaseStat:
-    strength: 1
-    constitution: 1
-    dexterity: 1
-    willpower: 1
-    charisma: 1
-    intelligence: 1
-    maxHealth: 100
-    currentHealth: 100
-    level: 1
-    experience: 0
-    unallocatedStatPoints: 0
-  increaseStatAmount: 0
+  isMultiHit: 0
+  baseHitCount: 1
+  multiHitType: 0
+  resourcePerHit: 1
+  maxHitCount: 5
+  consumeResourceAfterHits: 0
+  multiHitTargetMode: 0
+  elementType: 0
+  grantsDefenseBoost: 0
+  baseDefenseBoost: 0
+  defenseScalingStat: 0
+  defenseScalingMultiplier: 0
+  defenseConsumedOnHit: 0
+  grantsStatBoost: 0
+  statToBoost: 0
+  baseStatBoost: 0
+  statBoostScalingStat: 0
+  statBoostScalingMultiplier: 0
+  statBoostDuration: 1
+  grantsRiposte: 0
+  riposteDamagePercent: 0.5
+  riposteFlatBonus: 0
+  riposteScalingStat: 0
+  riposteScalingMultiplier: 0
+  riposteDuration: 1
+  riposteConsumedOnUse: 1
   sneakCost: 0
   sneakGain: 0
   requiresStance: 0
@@ -59,7 +70,7 @@ MonoBehaviour:
   balanceRequirementType: 0
   canTargetAllies: 0
   canTargetEnemies: 1
-  maxTargetPosition: 1
+  maxTargetPosition: 2
   minTargetPosition: 1
   isAOE: 0
   aoETargets: 1
@@ -67,5 +78,10 @@ MonoBehaviour:
   appliesEffects: []
   shiftPosition: 0
   positionShift: 0
+  grantsLifesteal: 0
+  lifestealPercent: 0
+  lifestealDuration: 1
   animationTrigger: Attack
   particleEffect: {fileID: 8194992990867289339, guid: 99bc28c0d45f51c4fbac01080b73edc7, type: 3}
+  projectilePrefab: {fileID: 0}
+  projectileSpeed: 0.3

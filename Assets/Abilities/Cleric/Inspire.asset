@@ -16,12 +16,12 @@ MonoBehaviour:
   commandName: inspire
   description: The cleric inspires the target, granting 5 + 0.5x WILL bonus to their
     STR for 2 turns.
-  requiredClass: 0
-  levelRequired: 1
-  category: 0
-  targetType: 0
-  scalingStat: 0
-  statMultiplier: 1
+  requiredClass: 2
+  levelRequired: 3
+  category: 2
+  targetType: 1
+  scalingStat: 4
+  statMultiplier: 0.5
   useSecondaryScaling: 0
   secondaryScalingStat: 0
   secondaryStatMultiplier: 0
@@ -31,6 +31,14 @@ MonoBehaviour:
   consumeSneakAmount: 0
   baseDamage: 0
   canCrit: 0
+  isMultiHit: 0
+  baseHitCount: 1
+  multiHitType: 0
+  resourcePerHit: 1
+  maxHitCount: 5
+  consumeResourceAfterHits: 0
+  multiHitTargetMode: 0
+  elementType: 0
   grantsDefenseBoost: 0
   baseDefenseBoost: 0
   defenseScalingStat: 0
@@ -42,6 +50,13 @@ MonoBehaviour:
   statBoostScalingStat: 4
   statBoostScalingMultiplier: 0.5
   statBoostDuration: 2
+  grantsRiposte: 0
+  riposteDamagePercent: 0.5
+  riposteFlatBonus: 0
+  riposteScalingStat: 0
+  riposteScalingMultiplier: 0
+  riposteDuration: 1
+  riposteConsumedOnUse: 1
   sneakCost: 0
   sneakGain: 0
   requiresStance: 0
@@ -60,17 +75,13 @@ MonoBehaviour:
   isAOE: 0
   aoETargets: 1
   cooldown: 0
-  appliesEffects:
-  - effectName: Inspired
-    duration: 2
-    damageMultiplier: 0
-    defenseMultiplier: 0
-    damageOverTime: 0
-    temporaryDefenseBonus: 0
-    consumedOnHit: 0
-    statBoostType: 1
-    statBoostAmount: 0
+  appliesEffects: []
   shiftPosition: 0
   positionShift: 0
+  grantsLifesteal: 0
+  lifestealPercent: 0
+  lifestealDuration: 1
   animationTrigger: Attack
   particleEffect: {fileID: 0}
+  projectilePrefab: {fileID: 0}
+  projectileSpeed: 0.3

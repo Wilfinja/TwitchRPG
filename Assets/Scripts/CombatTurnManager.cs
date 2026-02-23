@@ -156,28 +156,30 @@ public class CombatTurnManager : MonoBehaviour
             player.ProcessStatusEffects();
         }
 
-        // ✅ FIX: Check for PvP FIRST, before wave cleared check
+        // ✅ FIX v2: Check for PvP FIRST, use correct method to get fighters
         if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
         {
             Debug.Log("[Combat] PvP mode - checking for match end");
 
-            // In PvP, match ends when only 1 player remains
-            List<CombatEntity> alivePlayers = ExpeditionManager.Instance.GetAllPlayerEntities();
+            // ✅ CORRECTED: Use GetAllLivingCombatants() instead of GetAllPlayerEntities()
+            List<CombatEntity> aliveFighters = GetAllLivingCombatants();
 
-            if (alivePlayers.Count <= 1)
+            Debug.Log($"[Combat] PvP fighters alive: {aliveFighters.Count}");
+
+            if (aliveFighters.Count <= 1)
             {
-                Debug.Log($"[Combat] PvP match over! {alivePlayers.Count} player(s) remaining");
+                Debug.Log($"[Combat] PvP match over! {aliveFighters.Count} fighter(s) remaining");
 
-                if (alivePlayers.Count == 1)
+                if (aliveFighters.Count == 1)
                 {
                     // Winner!
-                    PvPManager.Instance.OnPvPMatchEnd(alivePlayers[0].userId);
+                    PvPManager.Instance.OnPvPMatchEnd(aliveFighters[0].userId);
                 }
                 else
                 {
-                    // Draw (both died somehow) - shouldn't happen but handle it
+                    // Draw (both died somehow)
                     Debug.LogWarning("[Combat] PvP ended in a draw!");
-                    PvPManager.Instance.OnPvPMatchEnd(null); // You'll need to handle null in OnPvPMatchEnd
+                    PvPManager.Instance.OnPvPMatchEnd(null);
                 }
 
                 combatActive = false;
@@ -185,7 +187,7 @@ public class CombatTurnManager : MonoBehaviour
             }
 
             // Match continues - skip enemy turn (no enemies in PvP)
-            Debug.Log("[Combat] PvP continuing - both players alive, starting next player turn");
+            Debug.Log("[Combat] PvP continuing - both fighters alive, starting next player turn");
             yield return new WaitForSeconds(0.5f);
             StartPlayerTurn();
             yield break;
@@ -254,6 +256,29 @@ public class CombatTurnManager : MonoBehaviour
         }
 
         yield return new WaitForSeconds(0.5f);
+    }
+
+    /// <summary>
+    /// Get all living combatants (works for both PvE and PvP)
+    /// </summary>
+    List<CombatEntity> GetAllLivingCombatants()
+    {
+        List<CombatEntity> entities = new List<CombatEntity>();
+
+        // Get all characters on screen
+        List<OnScreenCharacter> allCharacters = CharacterSpawner.Instance?.GetAllCharacters();
+        if (allCharacters == null) return entities;
+
+        foreach (var character in allCharacters)
+        {
+            CombatEntity entity = character.GetComponent<CombatEntity>();
+            if (entity != null && !entity.isDead && entity.isPlayer)
+            {
+                entities.Add(entity);
+            }
+        }
+
+        return entities;
     }
 
     #endregion
@@ -364,16 +389,32 @@ public class CombatTurnManager : MonoBehaviour
 
     void CheckAllPlayersReady()
     {
-        List<CombatEntity> alivePlayers = ExpeditionManager.Instance.GetAllPlayerEntities();
-
-        int confirmedCount = queuedActions.Values.Count(a => a.confirmed);
-
-        if (confirmedCount >= alivePlayers.Count)
+        if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
         {
-            OnScreenNotification.Instance?.ShowNotification("All players ready! Executing actions...");
 
-            ExecutePlayerTurn();
+            int confirmedCount = queuedActions.Values.Count(a => a.confirmed);
+
+            if (confirmedCount >= 2)
+            {
+                OnScreenNotification.Instance?.ShowNotification("All players ready! Executing actions...");
+
+                ExecutePlayerTurn();
+            }
         }
+        else
+        {
+            List<CombatEntity> alivePlayers = ExpeditionManager.Instance.GetAllPlayerEntities();
+
+            int confirmedCount = queuedActions.Values.Count(a => a.confirmed);
+
+            if (confirmedCount >= alivePlayers.Count)
+            {
+                OnScreenNotification.Instance?.ShowNotification("All players ready! Executing actions...");
+
+                ExecutePlayerTurn();
+            }
+        }
+        
     }
 
     /// <summary>
@@ -432,11 +473,11 @@ public class CombatTurnManager : MonoBehaviour
     {
         switch (charClass)
         {
-            case CharacterClass.Rogue: return "quickcut";
+            case CharacterClass.Rogue: return "quickstrike";
             case CharacterClass.Fighter: return "strike";
-            case CharacterClass.Mage: return "bolt";
-            case CharacterClass.Cleric: return "crush";
-            case CharacterClass.Ranger: return "shot";
+            case CharacterClass.Mage: return "arcaneblast";
+            case CharacterClass.Cleric: return "slam";
+            case CharacterClass.Ranger: return "quickslice";
             default: return "strike";
         }
     }
@@ -457,8 +498,21 @@ public class CombatTurnManager : MonoBehaviour
         // Trigger animation
         caster.animator?.SetTrigger(ability.animationTrigger);
 
-        yield return new WaitForSeconds(0.3f);
+        // ✅ NEW: Spawn projectile if ability has one
+        if (ability.projectilePrefab != null)
+        {
+            SpawnProjectile(caster, target, ability);
 
+            // Wait for projectile to arrive
+            yield return new WaitForSeconds(ability.projectileSpeed);
+        }
+        else
+        {
+            // No projectile, just short delay
+            yield return new WaitForSeconds(0.3f);
+        }
+
+        // ✅ Spawn ability particle effect at target (if assigned)
         if (ability.particleEffect != null)
         {
             Vector3 particlePosition = target.transform.position;
@@ -477,30 +531,19 @@ public class CombatTurnManager : MonoBehaviour
             }
         }
 
-        if (ability.isAOE)
-        {
-            // Get multiple targets
-            List<CombatEntity> targets = GetAOETargets(ability, target);
+        // Calculate and apply effect
+        CombatCalculations.ExecuteAbility(caster, target, ability);
 
-            // Execute ability on each target
-            foreach (CombatEntity aoeTarget in targets)
-            {
-                if (!aoeTarget.isDead)
-                {
-                    CombatCalculations.ExecuteAbility(caster, aoeTarget, ability);
-                }
-            }
-        }
-        else
-        {
-            // Single target (existing code)
-            CombatCalculations.ExecuteAbility(caster, target, ability);
-        }
+        yield return new WaitForSeconds(0.5f);
 
         // Track action for XP
         if (ExpeditionManager.Instance.currentExpedition.actionsPerformed.ContainsKey(caster.entityName))
         {
             ExpeditionManager.Instance.currentExpedition.actionsPerformed[caster.entityName]++;
+        }
+        else
+        {
+            ExpeditionManager.Instance.currentExpedition.actionsPerformed[caster.entityName] = 1;
         }
     }
 
@@ -543,6 +586,27 @@ public class CombatTurnManager : MonoBehaviour
         Debug.Log($"[Combat] AOE targeting {targets.Count} targets for {ability.abilityName}");
 
         return targets;
+    }
+
+    /// <summary>
+    /// Spawn and launch a projectile from caster to target
+    /// </summary>
+    void SpawnProjectile(CombatEntity caster, CombatEntity target, AbilityData ability)
+    {
+        Vector3 startPos = caster.transform.position;
+        Vector3 endPos = target.transform.position;
+
+        GameObject projectileObj = Instantiate(ability.projectilePrefab, startPos, Quaternion.identity);
+
+        Projectile projectile = projectileObj.GetComponent<Projectile>();
+        if (projectile == null)
+        {
+            projectile = projectileObj.AddComponent<Projectile>();
+        }
+
+        projectile.Launch(startPos, endPos, ability.projectileSpeed);
+
+        Debug.Log($"[Projectile] {caster.entityName} fired projectile at {target.entityName}");
     }
 
     #endregion
@@ -602,27 +666,109 @@ public class CombatTurnManager : MonoBehaviour
         {
             if (ability.canTargetAllies)
             {
-                List<CombatEntity> allies = ExpeditionManager.Instance.GetAllPlayerEntities();
-                CombatEntity ally = allies.Find(a => a.entityName.ToLower() == targetName.ToLower());
-                if (ally != null && !ally.isDead)
-                    return ally;
+                // ✅ NEW: Check PvP first for ally targeting
+                if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
+                {
+                    // In PvP, only valid ally is yourself
+                    if (targetName.ToLower() == caster.entityName.ToLower())
+                    {
+                        return caster;
+                    }
+                }
+                else
+                {
+                    // Normal expedition ally targeting
+                    List<CombatEntity> allies = ExpeditionManager.Instance.GetAllPlayerEntities();
+                    CombatEntity ally = allies.Find(a => a.entityName.ToLower() == targetName.ToLower());
+                    if (ally != null && !ally.isDead)
+                        return ally;
+                }
             }
 
             if (ability.canTargetEnemies)
             {
-                List<CombatEntity> enemies = ExpeditionManager.Instance.GetAllEnemyEntities();
-                CombatEntity enemy = enemies.Find(e => e.entityName.ToLower() == targetName.ToLower());
-                if (enemy != null && !enemy.isDead)
-                    return enemy;
+                // ✅ NEW: Check PvP first for enemy targeting
+                if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
+                {
+                    // In PvP, get the opponent
+                    CombatEntity opponent = GetPvPOpponent(caster);
+                    if (opponent != null && opponent.entityName.ToLower() == targetName.ToLower())
+                    {
+                        return opponent;
+                    }
+                }
+                else
+                {
+                    // Normal expedition enemy targeting
+                    List<CombatEntity> enemies = ExpeditionManager.Instance.GetAllEnemyEntities();
+                    CombatEntity enemy = enemies.Find(e => e.entityName.ToLower() == targetName.ToLower());
+                    if (enemy != null && !enemy.isDead)
+                        return enemy;
+                }
             }
         }
 
-        // Default targeting: front-most enemy
+        // ✅ NEW: Default targeting - check PvP mode
         if (ability.canTargetEnemies)
         {
-            List<CombatEntity> enemies = ExpeditionManager.Instance.GetAllEnemyEntities();
-            if (enemies.Count > 0)
-                return enemies[0]; // Front-most
+            if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
+            {
+                // PvP: target the opponent
+                return GetPvPOpponent(caster);
+            }
+            else
+            {
+                // PvE: target front-most enemy
+                List<CombatEntity> enemies = ExpeditionManager.Instance.GetAllEnemyEntities();
+                if (enemies.Count > 0)
+                    return enemies[0];
+            }
+        }
+
+        /// <summary>
+        /// Get the opponent in a PvP match
+        /// </summary>
+        CombatEntity GetPvPOpponent(CombatEntity caster)
+        {
+            if (PvPManager.Instance == null || !PvPManager.Instance.pvpActive)
+                return null;
+
+            PvPMatch match = PvPManager.Instance.currentMatch;
+            if (match == null) return null;
+
+            // Determine which fighter the caster is, return the other one
+            string opponentUserId;
+
+            if (caster.userId == match.fighter1UserId)
+            {
+                opponentUserId = match.fighter2UserId;
+            }
+            else if (caster.userId == match.fighter2UserId)
+            {
+                opponentUserId = match.fighter1UserId;
+            }
+            else
+            {
+                Debug.LogError($"[PvP] {caster.entityName} is not in the current PvP match!");
+                return null;
+            }
+
+            // Get the opponent's character
+            OnScreenCharacter opponentChar = CharacterSpawner.Instance?.GetCharacter(opponentUserId);
+            if (opponentChar == null)
+            {
+                Debug.LogError($"[PvP] Opponent character not found for userId: {opponentUserId}");
+                return null;
+            }
+
+            CombatEntity opponent = opponentChar.GetComponent<CombatEntity>();
+            if (opponent == null)
+            {
+                Debug.LogError($"[PvP] Opponent has no CombatEntity component!");
+                return null;
+            }
+
+            return opponent;
         }
 
         // Default targeting: self for ally abilities

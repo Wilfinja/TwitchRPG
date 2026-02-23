@@ -17,7 +17,7 @@ MonoBehaviour:
   description: The mage launches a lance made from lightning, dealing .75x INT damage
     to the first three enemies.
   requiredClass: 5
-  levelRequired: 2
+  levelRequired: 3
   category: 0
   targetType: 6
   scalingStat: 3

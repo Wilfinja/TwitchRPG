@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using static AbilityData;
 
 /// <summary>
@@ -24,14 +25,39 @@ public static class CombatCalculations
         {
             Debug.Log($"[CombatCalc] Starting damage loop...");
 
-            for (int i = 0; i < hitCount; i++)
+            if (ability.isMultiHit && ability.multiHitTargetMode != MultiHitTargetMode.SameTarget)
             {
-                int damage = CalculateDamage(caster, target, ability);
-                Debug.Log($"[CombatCalc] Hit {i + 1}/{hitCount}: {damage} damage");
+                // Random targeting mode
+                for (int i = 0; i < hitCount; i++)
+                {
+                    // Pick random target for each hit
+                    CombatEntity randomTarget = GetRandomTarget(ability);
 
-                target.TakeDamage(damage, caster);
-                ConsumeSneakAfterDamage(caster, ability);
-                totalDamage += damage;
+                    if (randomTarget != null && !randomTarget.isDead)
+                    {
+                        int damage = CalculateDamage(caster, randomTarget, ability);
+                        Debug.Log($"[CombatCalc] Hit {i + 1}/{hitCount}: {damage} damage to {randomTarget.entityName}");
+
+                        randomTarget.TakeDamage(damage, caster);
+                        CheckAndApplyLifesteal(caster, damage);
+                        ConsumeSneakAfterDamage(caster, ability);
+                        totalDamage += damage;
+                    }
+                }
+            }
+            else
+            {
+                // Standard targeting: all hits on same target
+                for (int i = 0; i < hitCount; i++)
+                {
+                    int damage = CalculateDamage(caster, target, ability);
+                    Debug.Log($"[CombatCalc] Hit {i + 1}/{hitCount}: {damage} damage");
+
+                    target.TakeDamage(damage, caster);
+                    CheckAndApplyLifesteal(caster, damage); // ✅ NEW
+                    ConsumeSneakAfterDamage(caster, ability);
+                    totalDamage += damage;
+                }
             }
 
             if (ability.consumeResourceAfterHits)
@@ -65,6 +91,13 @@ public static class CombatCalculations
         if (ability.grantsStatBoost)
         {
             ApplyStatBoost(caster, target, ability);
+        }
+
+        ApplyRiposte(caster, ability);
+
+        if (ability.grantsLifesteal)
+        {
+            ApplyLifesteal(caster, target, ability);
         }
 
         // Grant resources
@@ -450,6 +483,129 @@ public static class CombatCalculations
                 break;
 
                 // Others don't consume resources
+        }
+    }
+
+    /// <summary>
+    /// Check if caster has lifesteal and heal them based on damage dealt
+    /// </summary>
+    static void CheckAndApplyLifesteal(CombatEntity caster, int damageDealt)
+    {
+        if (caster == null || caster.isDead) return;
+
+        float totalLifestealPercent = 0f;
+
+        // Check all active effects for lifesteal
+        foreach (StatusEffect effect in caster.activeEffects)
+        {
+            if (effect.lifestealPercent > 0f)
+            {
+                totalLifestealPercent += effect.lifestealPercent;
+            }
+        }
+
+        if (totalLifestealPercent > 0f)
+        {
+            int healAmount = Mathf.RoundToInt(damageDealt * totalLifestealPercent);
+            healAmount = Mathf.Max(1, healAmount); // Minimum 1 HP heal
+
+            // Don't overheal
+            int actualHeal = Mathf.Min(healAmount, caster.maxHealth - caster.currentHealth);
+
+            if (actualHeal > 0)
+            {
+                caster.Heal(actualHeal, caster);
+                CombatLog.Instance?.AddEntry($"{caster.entityName} drained {actualHeal} HP! ({totalLifestealPercent * 100:F0}% lifesteal)");
+
+                Debug.Log($"[Lifesteal] {caster.entityName} healed {actualHeal} HP from {damageDealt} damage ({totalLifestealPercent * 100:F0}%)");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Apply lifesteal buff to target
+    /// </summary>
+    static void ApplyLifesteal(CombatEntity caster, CombatEntity target, AbilityData ability)
+    {
+        if (!ability.grantsLifesteal || ability.lifestealPercent <= 0f) return;
+
+        StatusEffect lifestealBuff = new StatusEffect
+        {
+            effectName = "Vampiric",
+            duration = ability.lifestealDuration,
+            lifestealPercent = ability.lifestealPercent
+        };
+
+        target.ApplyStatusEffect(lifestealBuff);
+
+        if (CombatVisualEffects.Instance != null)
+        {
+            CombatVisualEffects.Instance.PlayBuffEffect(target.transform.position);
+        }
+
+        string durationText = ability.lifestealDuration == 1 ? "for 1 turn" : $"for {ability.lifestealDuration} turns";
+        CombatLog.Instance?.AddEntry($"{target.entityName} gained {ability.lifestealPercent * 100:F0}% lifesteal {durationText}!");
+    }
+
+    /// <summary>
+    /// If the ability grants a Riposte, build a StatusEffect and apply it to the
+    /// caster so that CombatEntity.TakeDamage can fire the counter automatically.
+    /// Call this from ExecuteAbility() alongside ApplyDefenseBoost / ApplyStatBoost.
+    /// </summary>
+    static void ApplyRiposte(CombatEntity caster, AbilityData ability)
+    {
+        if (!ability.HasRiposte()) return;
+
+        StatusEffect riposte = new StatusEffect
+        {
+            effectName = $"Riposte ({ability.abilityName})",
+            duration = ability.riposteDuration,
+
+            // Counter-attack payload – read by CombatEntity.TakeDamage
+            isRiposte = true,
+            riposteDamagePercent = ability.riposteDamagePercent,
+            riposteFlatBonus = ability.riposteFlatBonus,
+            riposteScalingStat = ability.riposteScalingStat,
+            riposteScalingMultiplier = ability.riposteScalingMultiplier,
+            riposteConsumedOnUse = ability.riposteConsumedOnUse,
+
+            // Leave regular effect fields at neutral defaults
+            damageMultiplier = 1f,
+            defenseMultiplier = 1f,
+        };
+
+        caster.ApplyStatusEffect(riposte);
+        CombatLog.Instance?.AddEntry($"⚔️ {caster.entityName} is ready to Riposte!");
+        Debug.Log($"[CombatCalc] Riposte applied to {caster.entityName} " +
+                  $"({ability.riposteDamagePercent * 100:F0}% reflect, {ability.riposteFlatBonus} flat, " +
+                  $"{ability.riposteDuration} turn(s))");
+    }
+
+    /// <summary>
+    /// Get a random target based on ability's target mode
+    /// </summary>
+    static CombatEntity GetRandomTarget(AbilityData ability)
+    {
+        List<CombatEntity> enemies = ExpeditionManager.Instance.GetAllEnemyEntities();
+
+        if (enemies.Count == 0) return null;
+
+        if (ability.multiHitTargetMode == MultiHitTargetMode.RandomInRange)
+        {
+            // Filter by position range
+            List<CombatEntity> validTargets = enemies.FindAll(e =>
+                e.position >= ability.minTargetPosition &&
+                e.position <= ability.maxTargetPosition
+            );
+
+            if (validTargets.Count == 0) return null;
+
+            return validTargets[Random.Range(0, validTargets.Count)];
+        }
+        else // TrulyRandom
+        {
+            // Any alive enemy
+            return enemies[Random.Range(0, enemies.Count)];
         }
     }
 

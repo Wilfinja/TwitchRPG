@@ -17,7 +17,7 @@ MonoBehaviour:
   description: The mage deals .75x INT + .5 WIL damage and inflicts the BLIND condition
     for 2 turns.
   requiredClass: 5
-  levelRequired: 5
+  levelRequired: 3
   category: 0
   targetType: 0
   scalingStat: 3
@@ -37,6 +37,7 @@ MonoBehaviour:
   resourcePerHit: 1
   maxHitCount: 5
   consumeResourceAfterHits: 0
+  multiHitTargetMode: 0
   elementType: 6
   grantsDefenseBoost: 0
   baseDefenseBoost: 0
@@ -49,6 +50,13 @@ MonoBehaviour:
   statBoostScalingStat: 0
   statBoostScalingMultiplier: 0
   statBoostDuration: 1
+  grantsRiposte: 0
+  riposteDamagePercent: 0.5
+  riposteFlatBonus: 0
+  riposteScalingStat: 0
+  riposteScalingMultiplier: 0
+  riposteDuration: 1
+  riposteConsumedOnUse: 1
   sneakCost: 0
   sneakGain: 0
   requiresStance: 0
@@ -71,13 +79,25 @@ MonoBehaviour:
   - effectName: Blind
     duration: 2
     damageMultiplier: 0.75
-    defenseMultiplier: 0
+    defenseMultiplier: 1
     damageOverTime: 0
     temporaryDefenseBonus: 0
     consumedOnHit: 0
     statBoostType: 0
     statBoostAmount: 0
+    lifestealPercent: 0
+    isRiposte: 0
+    riposteDamagePercent: 0
+    riposteFlatBonus: 0
+    riposteScalingStat: 0
+    riposteScalingMultiplier: 0
+    riposteConsumedOnUse: 1
   shiftPosition: 0
   positionShift: 0
+  grantsLifesteal: 0
+  lifestealPercent: 0
+  lifestealDuration: 1
   animationTrigger: Attack
   particleEffect: {fileID: 0}
+  projectilePrefab: {fileID: 0}
+  projectileSpeed: 0.3
