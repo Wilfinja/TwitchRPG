@@ -132,8 +132,28 @@ public enum BoostableStat
 [Serializable]
 public class StatusEffect
 {
+    // ── Core ─────────────────────────────────────────────────────────────────
     public string effectName;
     public int duration;
+
+    // ── Proc Chance ──────────────────────────────────────────────────────────
+    [Tooltip("Probability this effect is applied when triggered. 1.0 = always, 0.5 = 50% chance.")]
+    [Range(0f, 1f)]
+    public float applicationChance = 1f;
+
+    [Tooltip("Mark TRUE for any effect that harms or restricts the target: " +
+             "Stun, Silence, Bleed, Curse, Exposed, Marked, Enrage, Taunt, or any DoT. " +
+             "Leave FALSE for beneficial effects: Barrier, Haste, stat buffs, Riposte, Lifesteal. " +
+             "\n\nWhen true, the target's Status Resistance (derived from Willpower) is " +
+             "rolled against AFTER the applicationChance roll. Both must pass for the effect to land.")]
+    public bool isNegativeEffect = false;
+
+    [Tooltip("Flat bonus added to the bearer's Status Resistance while this effect is active. " +
+             "Use on buff abilities like 'Iron Will' or 'Fortify' to grant extra resist chance. " +
+             "0.1 = +10% resistance. Stacks additively with other bonuses before the 75% cap.")]
+    public float statusResistanceBonus = 0f;
+
+    // ── Original Multipliers ─────────────────────────────────────────────────
     public float damageMultiplier = 1f;
     public float defenseMultiplier = 1f;
     public int damageOverTime;
@@ -154,6 +174,7 @@ public class StatusEffect
     [Range(0f, 1f)]
     public float lifestealPercent = 0f;
 
+    // ── Riposte (from previous session) ──────────────────────────────────────
     [Tooltip("Marks this effect as a Riposte. When the bearer takes damage, a counter-attack fires.")]
     public bool isRiposte = false;
 
@@ -171,6 +192,113 @@ public class StatusEffect
 
     [Tooltip("If true, this Riposte effect is removed after the first successful counter-attack.")]
     public bool riposteConsumedOnUse = true;
+
+    // ── Stun ─────────────────────────────────────────────────────────────────
+    [Header("Stun")]
+    [Tooltip("Entity skips their entire next turn. Action is wasted; cooldowns still tick.")]
+    public bool isStun = false;
+
+    // ── Silence ───────────────────────────────────────────────────────────────
+    [Header("Silence")]
+    [Tooltip("Entity cannot use class abilities. Auto-submit forces their default basic attack.")]
+    public bool isSilence = false;
+
+    // ── Bleed ────────────────────────────────────────────────────────────────
+    [Header("Bleed")]
+    [Tooltip("Damage-over-time that is paused (does not tick) on any turn the entity is healed.")]
+    public bool isBleed = false;
+
+    [Tooltip("Damage dealt per turn by the bleed. Separate from damageOverTime so both can coexist.")]
+    public int bleedDamagePerTurn = 0;
+
+    // ── Barrier ───────────────────────────────────────────────────────────────
+    [Header("Barrier")]
+    [Tooltip("Absorbs this much damage before any HP is lost. Depletes as it absorbs, then expires.")]
+    public bool isBarrier = false;
+
+    [Tooltip("Current remaining barrier HP. Set this equal to barrierMaxAmount when the effect is created.")]
+    public int barrierCurrentAmount = 0;
+
+    [Tooltip("Maximum barrier HP (used for display / reference).")]
+    public int barrierMaxAmount = 0;
+
+    // ── Marked ───────────────────────────────────────────────────────────────
+    [Header("Marked")]
+    [Tooltip("Target receives increased damage from ALL sources while Marked.")]
+    public bool isMark = false;
+
+    [Tooltip("Multiplier applied to ALL incoming damage (e.g., 1.25 = 25% more damage taken).")]
+    [Range(1f, 3f)]
+    public float markedDamageMultiplier = 1.25f;
+
+    // ── Taunt ────────────────────────────────────────────────────────────────
+    [Header("Taunt")]
+    [Tooltip("Forces THIS entity to direct all attacks at the taunter for the duration.")]
+    public bool isTaunt = false;
+
+    [Tooltip("The entityName of the entity that must be targeted while this Taunt is active.")]
+    public string tauntTargetEntityName = "";
+
+    // ── Curse (Healing Reduction) ─────────────────────────────────────────────
+    [Header("Curse")]
+    [Tooltip("Reduces all healing received by this entity.")]
+    public bool isCurse = false;
+
+    [Tooltip("Fraction of healing that is negated. 0.5 = 50% of healing is lost.")]
+    [Range(0f, 1f)]
+    public float healingReductionPercent = 0.5f;
+
+    // ── Exposed ───────────────────────────────────────────────────────────────
+    [Header("Exposed")]
+    [Tooltip("Flat defense reduction while this effect is active. Stacks with other reductions.")]
+    public bool isExposed = false;
+
+    [Tooltip("How many defense points are subtracted from the entity's total defense.")]
+    public int exposedDefenseReduction = 0;
+
+    // ── Enrage ────────────────────────────────────────────────────────────────
+    [Header("Enrage")]
+    [Tooltip("Entity deals more damage but is FORCED to attack the nearest/front target.")]
+    public bool isEnrage = false;
+
+    [Tooltip("Damage multiplier applied to all outgoing damage while enraged (e.g., 1.3 = +30% dmg).")]
+    [Range(1f, 3f)]
+    public float enrageDamageMultiplier = 1.3f;
+
+    // ── Haste ─────────────────────────────────────────────────────────────────
+    [Header("Haste")]
+    [Tooltip("Entity acts twice in the same turn. Second action is a copy of the first.")]
+    public bool isHaste = false;
+
+    [Header("Primed Condition")]
+
+    [Tooltip("Marks this StatusEffect as a Primed condition. " +
+             "When the bearer receives a hit that meets the threshold, " +
+             "all effects in primedEffects are applied to the bearer.")]
+    public bool isPrimed = false;
+
+    [Tooltip("How the detonation threshold is measured:\n" +
+             "• FlatDamage        – hit must deal ≥ N final HP damage\n" +
+             "• PercentMaxHealth  – hit must deal ≥ N% of the target's max HP\n" +
+             "• PercentCurrentHealth – hit must deal ≥ N% of current HP at time of hit")]
+    public PrimeThresholdType primeThresholdType = PrimeThresholdType.FlatDamage;
+
+    [Tooltip("The numeric threshold value.\n" +
+             "• FlatDamage:            e.g. 20  = must take 20+ damage\n" +
+             "• PercentMaxHealth:      e.g. 15  = must take ≥ 15% of max HP\n" +
+             "• PercentCurrentHealth:  e.g. 25  = must take ≥ 25% of current HP")]
+    public float primeThreshold = 20f;
+
+    [Tooltip("The effects that are applied to the target when the Primed condition detonates. " +
+             "These go through full ApplyStatusEffect() logic, meaning:\n" +
+             "• isNegativeEffect effects are subject to resistance rolls\n" +
+             "• applicationChance rolls apply per-effect\n" +
+             "Any StatusEffect can be listed here: Bleed, Enrage, Stun, Silence, Curse, etc.")]
+    public List<StatusEffect> primedEffects = new List<StatusEffect>();
+
+    [Tooltip("If true, the Primed effect itself is removed after it detonates. " +
+             "If false, it can keep detonating every qualifying hit for its full duration.")]
+    public bool primedConsumedOnTrigger = true;
 }
 
 public enum AbilityCategory
@@ -208,6 +336,13 @@ public enum BalanceRequirementType
     None,
     Above,
     Below
+}
+
+public enum PrimeThresholdType
+{
+    FlatDamage,
+    PercentMaxHealth,
+    PercentCurrentHealth,
 }
 
 [Serializable]

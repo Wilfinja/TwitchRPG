@@ -293,7 +293,10 @@ public class MageChargeSystem : MonoBehaviour
                 temporaryDefenseBonus = effectTemplate.temporaryDefenseBonus,
                 consumedOnHit = effectTemplate.consumedOnHit,
                 statBoostType = effectTemplate.statBoostType,
-                statBoostAmount = effectTemplate.statBoostAmount
+                statBoostAmount = effectTemplate.statBoostAmount,
+
+                isNegativeEffect = effectTemplate.isNegativeEffect,
+                statusResistanceBonus = effectTemplate.statusResistanceBonus,
             };
 
             target.ApplyStatusEffect(newEffect);

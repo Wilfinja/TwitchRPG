@@ -23,7 +23,9 @@ MonoBehaviour:
   baseDefense: 0
   healthScaling: 1.2
   damageScaling: 1.1
-  abilities: []
+  abilities:
+  - {fileID: 11400000, guid: 0d9902c02eae4604daf8c9b1b9651ac1, type: 2}
+  - {fileID: 11400000, guid: 2115b7bb30b7b1a47b57a46b7ebb6e99, type: 2}
   basicAttackCooldown: 0
   prioritizeLowHP: 0
   prioritizeHighDefense: 0

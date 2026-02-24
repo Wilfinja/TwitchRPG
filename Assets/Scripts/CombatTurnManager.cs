@@ -125,27 +125,21 @@ public class CombatTurnManager : MonoBehaviour
         Debug.Log("[Combat] Executing BUFF actions...");
         foreach (QueuedAction action in buffActions)
         {
-            Debug.Log($"[Combat] → Executing buff: {action.ability.abilityName}");
-            yield return StartCoroutine(ExecuteAction(action));
-            yield return new WaitForSeconds(0.5f);
+            yield return StartCoroutine(ExecuteActionWithHaste(action));
         }
 
         // Execute heals
         Debug.Log("[Combat] Executing HEAL actions...");
         foreach (QueuedAction action in healActions)
         {
-            Debug.Log($"[Combat] → Executing heal: {action.ability.abilityName}");
-            yield return StartCoroutine(ExecuteAction(action));
-            yield return new WaitForSeconds(0.5f);
+            yield return StartCoroutine(ExecuteActionWithHaste(action));
         }
 
         // Execute damage
         Debug.Log("[Combat] Executing DAMAGE actions...");
         foreach (QueuedAction action in damageActions)
         {
-            Debug.Log($"[Combat] → Executing damage: {action.ability.abilityName}");
-            yield return StartCoroutine(ExecuteAction(action));
-            yield return new WaitForSeconds(0.5f);
+            yield return StartCoroutine(ExecuteActionWithHaste(action));
         }
 
         Debug.Log("[Combat] All actions executed!");
@@ -221,6 +215,33 @@ public class CombatTurnManager : MonoBehaviour
 
         // Start next player turn
         StartPlayerTurn();
+    }
+
+    /// <summary>
+    /// Executes an action, then executes it a second time if the caster is Hasted.
+    /// </summary>
+    IEnumerator ExecuteActionWithHaste(QueuedAction action)
+    {
+        yield return StartCoroutine(ExecuteAction(action));
+        yield return new WaitForSeconds(0.5f);
+
+        // Haste check: if caster is still alive and hasted, act again
+        if (!action.caster.isDead && action.caster.IsHasted())
+        {
+            CombatLog.Instance?.AddEntry($"⚡ {action.caster.entityName} acts again from HASTE!");
+            OnScreenNotification.Instance?.ShowNotification($"⚡ {action.caster.entityName} acts twice!");
+
+            // Re-determine target in case original is dead
+            if (action.target.isDead)
+            {
+                List<CombatEntity> enemies = ExpeditionManager.Instance?.GetAllEnemyEntities();
+                if (enemies != null && enemies.Count > 0)
+                    action.target = enemies[0];
+            }
+
+            yield return StartCoroutine(ExecuteAction(action));
+            yield return new WaitForSeconds(0.5f);
+        }
     }
 
     IEnumerator ExecuteEnemyTurn()
@@ -343,6 +364,23 @@ public class CombatTurnManager : MonoBehaviour
         {
             OnScreenNotification.Instance?.ShowNotification($"@{username} Invalid or no target found!");
             return false;
+        }
+
+        if (caster.IsSilenced())
+        {
+            bool isBasicAttack = ability.manaCost == 0 &&
+                                 ability.wrathCost == 0 &&
+                                 ability.sneakCost == 0 &&
+                                 ability.balanceCost == 0;
+
+            if (!isBasicAttack)
+            {
+                OnScreenNotification.Instance?.ShowNotification(
+                    $"@{username} You are silenced! You can only use basic attacks. " +
+                    $"Try !queue {GetDefaultAbility(caster.characterClass)}"
+                );
+                return false;
+            }
         }
 
         // Queue the action
@@ -492,59 +530,62 @@ public class CombatTurnManager : MonoBehaviour
         CombatEntity target = action.target;
         AbilityData ability = action.ability;
 
-        if (caster.isDead || target.isDead)
-            yield break;
+        if (caster.isDead) yield break;
 
-        // Trigger animation
+        // ── Stun: entity loses their turn entirely ────────────────────────────────
+        if (caster.IsStunned())
+        {
+            CombatLog.Instance?.AddEntry($"💫 {caster.entityName} is STUNNED and cannot act!");
+            OnScreenNotification.Instance?.ShowNotification($"{caster.entityName} is stunned and loses their turn!");
+            caster.animator?.SetTrigger("Hit"); // Stagger animation
+            yield break;
+        }
+
+        // ── Silence: force basic attack if they tried to use an ability ───────────
+        if (caster.IsSilenced() && ability.manaCost + ability.wrathCost + ability.sneakCost + ability.balanceCost > 0)
+        {
+            CombatLog.Instance?.AddEntry($"🔇 {caster.entityName} is SILENCED! Forced to basic attack.");
+            OnScreenNotification.Instance?.ShowNotification($"{caster.entityName} is silenced – using basic attack instead!");
+
+            // Swap to the class default basic ability
+            string defaultAbilityName = GetDefaultAbility(caster.characterClass);
+            AbilityData defaultAbility = AbilityDatabase.Instance?.GetAbility(defaultAbilityName);
+            if (defaultAbility != null)
+            {
+                ability = defaultAbility;
+                action = new QueuedAction { caster = caster, ability = ability, target = target, confirmed = true };
+            }
+        }
+
+        if (target.isDead) yield break;
+
+        // ── Enrage: override target to front enemy ────────────────────────────────
+        if (caster.IsEnraged() && ability.canTargetEnemies)
+        {
+            List<CombatEntity> enemies = ExpeditionManager.Instance?.GetAllEnemyEntities();
+            if (enemies != null && enemies.Count > 0)
+            {
+                target = enemies[0]; // Front-most enemy
+                Debug.Log($"[Enrage] {caster.entityName} forced to target {target.entityName}");
+            }
+        }
+
+        // ── Trigger animation ─────────────────────────────────────────────────────
         caster.animator?.SetTrigger(ability.animationTrigger);
 
-        // ✅ NEW: Spawn projectile if ability has one
+        // ── Projectile ────────────────────────────────────────────────────────────
         if (ability.projectilePrefab != null)
         {
             SpawnProjectile(caster, target, ability);
-
-            // Wait for projectile to arrive
             yield return new WaitForSeconds(ability.projectileSpeed);
         }
         else
         {
-            // No projectile, just short delay
             yield return new WaitForSeconds(0.3f);
         }
 
-        // ✅ Spawn ability particle effect at target (if assigned)
-        if (ability.particleEffect != null)
-        {
-            Vector3 particlePosition = target.transform.position;
-            GameObject particle = Instantiate(ability.particleEffect, particlePosition, Quaternion.identity);
-
-            ParticleSystem ps = particle.GetComponent<ParticleSystem>();
-            if (ps != null)
-            {
-                ps.Play();
-                float lifetime = ps.main.duration + ps.main.startLifetime.constantMax;
-                Destroy(particle, lifetime);
-            }
-            else
-            {
-                Destroy(particle, 2f);
-            }
-        }
-
-        // Calculate and apply effect
+        // ── Execute ability ───────────────────────────────────────────────────────
         CombatCalculations.ExecuteAbility(caster, target, ability);
-
-        yield return new WaitForSeconds(0.5f);
-
-        // Track action for XP
-        if (ExpeditionManager.Instance.currentExpedition.actionsPerformed.ContainsKey(caster.entityName))
-        {
-            ExpeditionManager.Instance.currentExpedition.actionsPerformed[caster.entityName]++;
-        }
-        else
-        {
-            ExpeditionManager.Instance.currentExpedition.actionsPerformed[caster.entityName] = 1;
-        }
     }
 
     /// <summary>
@@ -657,6 +698,25 @@ public class CombatTurnManager : MonoBehaviour
 
     CombatEntity DetermineTarget(AbilityData ability, string targetName, CombatEntity caster)
     {
+        if (ability.canTargetEnemies)
+        {
+            string tauntTarget = caster.GetTauntTargetName();
+            if (!string.IsNullOrEmpty(tauntTarget))
+            {
+                // Find the taunter in the player or enemy lists
+                List<CombatEntity> allEntities = new List<CombatEntity>();
+                allEntities.AddRange(ExpeditionManager.Instance?.GetAllPlayerEntities() ?? new List<CombatEntity>());
+                allEntities.AddRange(ExpeditionManager.Instance?.GetAllEnemyEntities() ?? new List<CombatEntity>());
+
+                CombatEntity taunter = allEntities.Find(e => e.entityName == tauntTarget && !e.isDead);
+                if (taunter != null)
+                {
+                    Debug.Log($"[Taunt] {caster.entityName} is taunted → forced to target {taunter.entityName}");
+                    return taunter;
+                }
+            }
+        }
+
         // Self-target
         if (ability.targetType == AbilityTargetType.Self)
             return caster;

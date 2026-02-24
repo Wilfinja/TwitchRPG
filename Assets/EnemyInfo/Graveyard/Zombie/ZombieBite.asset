@@ -10,21 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Ardent Strike
+  m_Name: ZombieBite
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Ardent Strike
-  commandName: ardentstrike
-  description: The Cleric strikes the frontmost enemy for 1.25x STR and .5x WILL
-    Damage.
-  requiredClass: 2
-  levelRequired: 3
+  abilityName: Zombie Bite
+  commandName: zombiebite
+  description: The Zombie BITES!
+  requiredClass: 0
+  levelRequired: 1
   category: 0
-  targetType: 5
+  targetType: 0
   scalingStat: 1
-  statMultiplier: 1.25
-  useSecondaryScaling: 1
-  secondaryScalingStat: 4
-  secondaryStatMultiplier: 0.5
+  statMultiplier: 2.5
+  useSecondaryScaling: 0
+  secondaryScalingStat: 0
+  secondaryStatMultiplier: 0
   scalesWithSneak: 0
   sneakDamageMultiplier: 0
   consumesAllSneak: 0
@@ -63,67 +62,25 @@ MonoBehaviour:
   requiredStance: 0
   manaCost: 0
   wrathCost: 0
-  wrathGain: 10
+  wrathGain: 0
   balanceCost: 0
   balanceGain: 0
   balanceRequirement: 0
   balanceRequirementType: 0
   canTargetAllies: 0
   canTargetEnemies: 1
-  maxTargetPosition: 2
+  maxTargetPosition: 1
   minTargetPosition: 1
   isAOE: 0
   aoETargets: 1
-  cooldown: 2
-  appliesEffects:
-  - effectName: Burning
-    duration: 2
-    applicationChance: 0.4
-    isNegativeEffect: 1
-    statusResistanceBonus: 0
-    damageMultiplier: 1
-    defenseMultiplier: 1
-    damageOverTime: 0
-    temporaryDefenseBonus: 0
-    consumedOnHit: 0
-    statBoostType: 0
-    statBoostAmount: 0
-    lifestealPercent: 0
-    isRiposte: 0
-    riposteDamagePercent: 0
-    riposteFlatBonus: 0
-    riposteScalingStat: 0
-    riposteScalingMultiplier: 0
-    riposteConsumedOnUse: 0
-    isStun: 0
-    isSilence: 0
-    isBleed: 1
-    bleedDamagePerTurn: 10
-    isBarrier: 0
-    barrierCurrentAmount: 0
-    barrierMaxAmount: 0
-    isMark: 0
-    markedDamageMultiplier: 0
-    isTaunt: 0
-    tauntTargetEntityName: 
-    isCurse: 0
-    healingReductionPercent: 0
-    isExposed: 0
-    exposedDefenseReduction: 0
-    isEnrage: 0
-    enrageDamageMultiplier: 0
-    isHaste: 0
-    isPrimed: 0
-    primeThresholdType: 0
-    primeThreshold: 0
-    primedEffects: []
-    primedConsumedOnTrigger: 0
+  cooldown: 0
+  appliesEffects: []
   shiftPosition: 0
   positionShift: 0
   grantsLifesteal: 0
-  lifestealPercent: 0
+  lifestealPercent: 0.1
   lifestealDuration: 1
   animationTrigger: Attack
-  particleEffect: {fileID: 8194992990867289339, guid: 99bc28c0d45f51c4fbac01080b73edc7, type: 3}
+  particleEffect: {fileID: 4553287630450876385, guid: 15483e51212e3d74886ea57291f4639a, type: 3}
   projectilePrefab: {fileID: 0}
   projectileSpeed: 0.3

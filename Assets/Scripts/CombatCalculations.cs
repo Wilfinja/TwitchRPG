@@ -106,15 +106,112 @@ public static class CombatCalculations
         // Apply status effects
         foreach (StatusEffect effectTemplate in ability.appliesEffects)
         {
+            // ── Proc-chance roll ──────────────────────────────────────────────
+            if (effectTemplate.applicationChance < 1f)
+            {
+                float roll = Random.value; // 0.0 – 1.0
+                if (roll > effectTemplate.applicationChance)
+                {
+                    // Missed the proc – log and skip
+                    CombatLog.Instance?.AddEntry(
+                        $"{ability.abilityName} failed to apply {effectTemplate.effectName} " +
+                        $"({effectTemplate.applicationChance * 100:F0}% chance)"
+                    );
+                    Debug.Log($"[StatusEffect] Proc failed: {effectTemplate.effectName} " +
+                              $"roll={roll:F2} needed<={effectTemplate.applicationChance:F2}");
+                    continue;
+                }
+            }
+
+            // ── Copy all fields so the template ScriptableObject is never mutated ──
             StatusEffect newEffect = new StatusEffect
             {
                 effectName = effectTemplate.effectName,
                 duration = effectTemplate.duration,
+                applicationChance = effectTemplate.applicationChance,
+
+                isNegativeEffect = effectTemplate.isNegativeEffect,
+                statusResistanceBonus = effectTemplate.statusResistanceBonus,
+
                 damageMultiplier = effectTemplate.damageMultiplier,
                 defenseMultiplier = effectTemplate.defenseMultiplier,
-                damageOverTime = effectTemplate.damageOverTime
+                damageOverTime = effectTemplate.damageOverTime,
+                temporaryDefenseBonus = effectTemplate.temporaryDefenseBonus,
+                consumedOnHit = effectTemplate.consumedOnHit,
+                statBoostType = effectTemplate.statBoostType,
+                statBoostAmount = effectTemplate.statBoostAmount,
+                lifestealPercent = effectTemplate.lifestealPercent,
+
+                // Riposte
+                isRiposte = effectTemplate.isRiposte,
+                riposteDamagePercent = effectTemplate.riposteDamagePercent,
+                riposteFlatBonus = effectTemplate.riposteFlatBonus,
+                riposteScalingStat = effectTemplate.riposteScalingStat,
+                riposteScalingMultiplier = effectTemplate.riposteScalingMultiplier,
+                riposteConsumedOnUse = effectTemplate.riposteConsumedOnUse,
+
+                // New effect types
+                isStun = effectTemplate.isStun,
+                isSilence = effectTemplate.isSilence,
+                isBleed = effectTemplate.isBleed,
+                bleedDamagePerTurn = effectTemplate.bleedDamagePerTurn,
+                isBarrier = effectTemplate.isBarrier,
+                barrierCurrentAmount = effectTemplate.barrierMaxAmount, // start full
+                barrierMaxAmount = effectTemplate.barrierMaxAmount,
+                isMark = effectTemplate.isMark,
+                markedDamageMultiplier = effectTemplate.markedDamageMultiplier,
+                isTaunt = effectTemplate.isTaunt,
+                tauntTargetEntityName = effectTemplate.tauntTargetEntityName,
+                isCurse = effectTemplate.isCurse,
+                healingReductionPercent = effectTemplate.healingReductionPercent,
+                isExposed = effectTemplate.isExposed,
+                exposedDefenseReduction = effectTemplate.exposedDefenseReduction,
+                isEnrage = effectTemplate.isEnrage,
+                enrageDamageMultiplier = effectTemplate.enrageDamageMultiplier,
+                isHaste = effectTemplate.isHaste,
+
+                // Primed status effect
+                isPrimed = effectTemplate.isPrimed,
+                primeThresholdType = effectTemplate.primeThresholdType,
+                primeThreshold = effectTemplate.primeThreshold,
+                primedEffects = effectTemplate.primedEffects,   // reference is fine; TriggerPrimed deep-copies on detonation
+                primedConsumedOnTrigger = effectTemplate.primedConsumedOnTrigger,
             };
+
             target.ApplyStatusEffect(newEffect);
+
+            // Announce guaranteed procs with specific flavour
+            if (effectTemplate.applicationChance >= 1f)
+            {
+                if (effectTemplate.isStun)
+                    CombatLog.Instance?.AddEntry($"💫 {target.entityName} is STUNNED for {newEffect.duration} turn(s)!");
+                else if (effectTemplate.isSilence)
+                    CombatLog.Instance?.AddEntry($"🔇 {target.entityName} is SILENCED for {newEffect.duration} turn(s)!");
+                else if (effectTemplate.isBleed)
+                    CombatLog.Instance?.AddEntry($"🩸 {target.entityName} is BLEEDING ({newEffect.bleedDamagePerTurn}/turn) for {newEffect.duration} turn(s)!");
+                else if (effectTemplate.isBarrier)
+                    CombatLog.Instance?.AddEntry($"🛡 {target.entityName} gains a Barrier ({newEffect.barrierCurrentAmount} HP)!");
+                else if (effectTemplate.isMark)
+                    CombatLog.Instance?.AddEntry($"🎯 {target.entityName} is MARKED – takes {newEffect.markedDamageMultiplier * 100 - 100:F0}% more damage!");
+                else if (effectTemplate.isTaunt)
+                    CombatLog.Instance?.AddEntry($"😤 {target.entityName} is TAUNTED – forced to target {newEffect.tauntTargetEntityName}!");
+                else if (effectTemplate.isCurse)
+                    CombatLog.Instance?.AddEntry($"🖤 {target.entityName} is CURSED – healing reduced by {newEffect.healingReductionPercent * 100:F0}%!");
+                else if (effectTemplate.isExposed)
+                    CombatLog.Instance?.AddEntry($"💥 {target.entityName} is EXPOSED – -{newEffect.exposedDefenseReduction} DEF!");
+                else if (effectTemplate.isEnrage)
+                    CombatLog.Instance?.AddEntry($"😡 {target.entityName} is ENRAGED – +{(newEffect.enrageDamageMultiplier - 1f) * 100:F0}% damage, forced targeting!");
+                else if (effectTemplate.isHaste)
+                    CombatLog.Instance?.AddEntry($"⚡ {target.entityName} is HASTED – acts twice this turn!");
+            }
+            else
+            {
+                // Successful proc on a chance-based effect
+                CombatLog.Instance?.AddEntry(
+                    $"{ability.abilityName} applied {newEffect.effectName} " +
+                    $"({effectTemplate.applicationChance * 100:F0}% proc)!"
+                );
+            }
         }
 
         // Update Ranger combo
@@ -216,6 +313,13 @@ public static class CombatCalculations
         foreach (StatusEffect effect in caster.activeEffects)
         {
             totalDamage *= effect.damageMultiplier;
+
+            if (effect.isEnrage)
+            {
+                totalDamage *= effect.enrageDamageMultiplier;
+                Debug.Log($"[Enrage] {caster.entityName} enrage bonus: ×{effect.enrageDamageMultiplier}");
+                break; // Only apply one enrage multiplier
+            }
         }
 
         // TODO: Critical hits (if ability.canCrit)

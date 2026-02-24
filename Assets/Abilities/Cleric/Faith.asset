@@ -55,7 +55,7 @@ MonoBehaviour:
   riposteScalingStat: 0
   riposteScalingMultiplier: 0
   riposteDuration: 1
-  riposteConsumedOnUse: 1
+  riposteConsumedOnUse: 0
   sneakCost: 0
   sneakGain: 0
   requiresStance: 0

@@ -10,15 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Holy Rage
+  m_Name: ZombieGrab
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Holy Rage
-  commandName: holyrage
-  description: The Cleric imbues an ally with rage, making them fight with strength
-    and vigor. Add .25x WILL to CON and adds the Rage Condition.
-  requiredClass: 2
-  levelRequired: 5
-  category: 2
+  abilityName: Zombie Grab
+  commandName: zombiegrab
+  description: The Zombie grabs!
+  requiredClass: 0
+  levelRequired: 1
+  category: 3
   targetType: 0
   scalingStat: 0
   statMultiplier: 1
@@ -44,12 +43,12 @@ MonoBehaviour:
   defenseScalingStat: 0
   defenseScalingMultiplier: 0
   defenseConsumedOnHit: 0
-  grantsStatBoost: 1
-  statToBoost: 2
+  grantsStatBoost: 0
+  statToBoost: 0
   baseStatBoost: 0
-  statBoostScalingStat: 4
-  statBoostScalingMultiplier: 0.5
-  statBoostDuration: 2
+  statBoostScalingStat: 0
+  statBoostScalingMultiplier: 0
+  statBoostDuration: 1
   grantsRiposte: 0
   riposteDamagePercent: 0.5
   riposteFlatBonus: 0
@@ -62,27 +61,27 @@ MonoBehaviour:
   requiresStance: 0
   requiredStance: 0
   manaCost: 0
-  wrathCost: 20
+  wrathCost: 0
   wrathGain: 0
   balanceCost: 0
   balanceGain: 0
   balanceRequirement: 0
   balanceRequirementType: 0
-  canTargetAllies: 1
-  canTargetEnemies: 0
-  maxTargetPosition: 4
+  canTargetAllies: 0
+  canTargetEnemies: 1
+  maxTargetPosition: 2
   minTargetPosition: 1
   isAOE: 0
   aoETargets: 1
   cooldown: 3
   appliesEffects:
-  - effectName: Holy Rage
+  - effectName: Grabbed
     duration: 2
     applicationChance: 1
     isNegativeEffect: 0
     statusResistanceBonus: 0
-    damageMultiplier: 1
-    defenseMultiplier: 1
+    damageMultiplier: 0.8
+    defenseMultiplier: 0.8
     damageOverTime: 0
     temporaryDefenseBonus: 0
     consumedOnHit: 0
@@ -103,27 +102,27 @@ MonoBehaviour:
     barrierCurrentAmount: 0
     barrierMaxAmount: 0
     isMark: 0
-    markedDamageMultiplier: 0
+    markedDamageMultiplier: 1.25
     isTaunt: 0
     tauntTargetEntityName: 
     isCurse: 0
-    healingReductionPercent: 0
+    healingReductionPercent: 0.5
     isExposed: 0
     exposedDefenseReduction: 0
-    isEnrage: 1
-    enrageDamageMultiplier: 1.5
+    isEnrage: 0
+    enrageDamageMultiplier: 1.3
     isHaste: 0
     isPrimed: 0
     primeThresholdType: 0
-    primeThreshold: 0
+    primeThreshold: 20
     primedEffects: []
-    primedConsumedOnTrigger: 0
+    primedConsumedOnTrigger: 1
   shiftPosition: 0
   positionShift: 0
   grantsLifesteal: 0
   lifestealPercent: 0
   lifestealDuration: 1
-  animationTrigger: Attack
+  animationTrigger: Grab
   particleEffect: {fileID: 0}
   projectilePrefab: {fileID: 0}
   projectileSpeed: 0.3
