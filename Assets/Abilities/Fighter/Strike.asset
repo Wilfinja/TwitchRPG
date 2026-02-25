@@ -30,13 +30,32 @@ MonoBehaviour:
   consumeSneakAmount: 0
   baseDamage: 10
   canCrit: 0
+  isMultiHit: 0
+  baseHitCount: 1
+  multiHitType: 0
+  resourcePerHit: 1
+  maxHitCount: 5
+  consumeResourceAfterHits: 0
+  multiHitTargetMode: 0
+  elementType: 0
   grantsDefenseBoost: 0
-  defenseBoostAmount: 0
+  baseDefenseBoost: 0
+  defenseScalingStat: 0
+  defenseScalingMultiplier: 0
   defenseConsumedOnHit: 0
   grantsStatBoost: 0
   statToBoost: 0
-  statBoostAmount: 0
+  baseStatBoost: 0
+  statBoostScalingStat: 0
+  statBoostScalingMultiplier: 0
   statBoostDuration: 1
+  grantsRiposte: 0
+  riposteDamagePercent: 0.5
+  riposteFlatBonus: 0
+  riposteScalingStat: 0
+  riposteScalingMultiplier: 0
+  riposteDuration: 1
+  riposteConsumedOnUse: 1
   sneakCost: 0
   sneakGain: 0
   requiresStance: 0
@@ -58,5 +77,11 @@ MonoBehaviour:
   appliesEffects: []
   shiftPosition: 0
   positionShift: 0
-  animationTrigger: Attack
+  grantsLifesteal: 0
+  lifestealPercent: 0
+  lifestealDuration: 1
+  animationTrigger: Strike
   particleEffect: {fileID: 6710139492206580332, guid: 95b8d3d65b5d7f1409c4ed1723887826, type: 3}
+  projectilePrefab: {fileID: 0}
+  projectileSpeed: 0.3
+  zoomToCenter: 1

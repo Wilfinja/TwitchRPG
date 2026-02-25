@@ -37,8 +37,9 @@ MonoBehaviour:
   resourcePerHit: 1
   maxHitCount: 5
   consumeResourceAfterHits: 0
+  multiHitTargetMode: 0
   elementType: 0
-  grantsDefenseBoost: 1
+  grantsDefenseBoost: 0
   baseDefenseBoost: 0
   defenseScalingStat: 6
   defenseScalingMultiplier: 1.5
@@ -49,6 +50,13 @@ MonoBehaviour:
   statBoostScalingStat: 0
   statBoostScalingMultiplier: 0
   statBoostDuration: 1
+  grantsRiposte: 0
+  riposteDamagePercent: 0.5
+  riposteFlatBonus: 0
+  riposteScalingStat: 0
+  riposteScalingMultiplier: 0
+  riposteDuration: 1
+  riposteConsumedOnUse: 1
   sneakCost: 0
   sneakGain: 0
   requiresStance: 0
@@ -67,8 +75,59 @@ MonoBehaviour:
   isAOE: 0
   aoETargets: 1
   cooldown: 3
-  appliesEffects: []
+  appliesEffects:
+  - effectName: Braced
+    duration: 3
+    applicationChance: 1
+    isNegativeEffect: 0
+    statusResistanceBonus: 0
+    damageMultiplier: 1
+    defenseMultiplier: 0
+    damageOverTime: 0
+    temporaryDefenseBonus: 0
+    baseDefenseAmount: 0
+    defenseScalingStat: 6
+    defenseScalingMultiplier: 1.5
+    consumedOnHit: 0
+    statBoostType: 0
+    statBoostAmount: 0
+    lifestealPercent: 0
+    isRiposte: 0
+    riposteDamagePercent: 0
+    riposteFlatBonus: 0
+    riposteScalingStat: 0
+    riposteScalingMultiplier: 0
+    riposteConsumedOnUse: 0
+    isStun: 0
+    isSilence: 0
+    isBleed: 0
+    bleedDamagePerTurn: 0
+    isBarrier: 0
+    barrierCurrentAmount: 0
+    barrierMaxAmount: 0
+    isMark: 0
+    markedDamageMultiplier: 0
+    isTaunt: 0
+    tauntTargetEntityName: 
+    isCurse: 0
+    healingReductionPercent: 0
+    isExposed: 0
+    exposedDefenseReduction: 0
+    isEnrage: 0
+    enrageDamageMultiplier: 0
+    isHaste: 0
+    isPrimed: 0
+    primeThresholdType: 0
+    primeThreshold: 0
+    primedEffects: []
+    primedConsumedOnTrigger: 0
   shiftPosition: 0
   positionShift: 0
+  grantsLifesteal: 0
+  lifestealPercent: 0
+  lifestealDuration: 1
   animationTrigger: Attack
   particleEffect: {fileID: 6424583148328831481, guid: d2ffbc8b168cdf74a9dbb7c6c1cfdf2f, type: 3}
+  projectilePrefab: {fileID: 0}
+  projectileSpeed: 0.3
+  zoomToCenter: 1

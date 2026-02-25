@@ -161,6 +161,15 @@ public class StatusEffect
     [Tooltip("Flat defense bonus added while active")]
     public int temporaryDefenseBonus;
 
+    [Tooltip("Base defense amount before scaling")]
+    public int baseDefenseAmount = 0;
+
+    [Tooltip("Stat to scale defense bonus with")]
+    public DamageStat defenseScalingStat = DamageStat.None;
+
+    [Tooltip("Multiplier for defense scaling (e.g., 0.5 = +50% of stat)")]
+    public float defenseScalingMultiplier = 0f;
+
     [Tooltip("If true, removed after 1 hit instead of after duration expires")]
     public bool consumedOnHit;
 
@@ -174,7 +183,7 @@ public class StatusEffect
     [Range(0f, 1f)]
     public float lifestealPercent = 0f;
 
-    // ── Riposte (from previous session) ──────────────────────────────────────
+    // ── Riposte ──────────────────────────────────────
     [Tooltip("Marks this effect as a Riposte. When the bearer takes damage, a counter-attack fires.")]
     public bool isRiposte = false;
 

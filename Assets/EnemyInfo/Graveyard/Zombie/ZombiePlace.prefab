@@ -93,7 +93,7 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_SpriteSortPoint: 1
+  m_SpriteSortPoint: 0
 --- !u!114 &5563965637614356334
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -122,6 +122,7 @@ MonoBehaviour:
   damageBonus: 0
   isDead: 0
   hasActedThisTurn: 0
+  wasHealedThisTurn: 0
   queuedAction: 
   actionConfirmed: 0
   characterClass: 0

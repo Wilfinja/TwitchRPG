@@ -16,6 +16,13 @@ public class CombatTurnManager : MonoBehaviour
     public float turnTimer;
     public float maxTurnTime = 45f;
 
+    [Header("Combat Visuals")]
+    [Tooltip("Where characters zoom to when using abilities")]
+    public Vector3 centerPosition = new Vector3(0, -10.5f, 0);
+
+    [Tooltip("Zoom animation duration")]
+    public float zoomDuration = 0.3f;
+
     [Header("Action Queue")]
     private Dictionary<string, QueuedAction> queuedActions = new Dictionary<string, QueuedAction>();
 
@@ -532,6 +539,15 @@ public class CombatTurnManager : MonoBehaviour
 
         if (caster.isDead) yield break;
 
+        Vector3 originalPosition = caster.transform.position;
+        bool didZoom = false;
+
+        if (ability.zoomToCenter)
+        {
+            yield return StartCoroutine(ZoomToPosition(caster.transform, centerPosition, zoomDuration));
+            didZoom = true;
+        }
+
         // ── Stun: entity loses their turn entirely ────────────────────────────────
         if (caster.IsStunned())
         {
@@ -584,8 +600,85 @@ public class CombatTurnManager : MonoBehaviour
             yield return new WaitForSeconds(0.3f);
         }
 
+        // Spawn ability particle effect at target
+        if (ability.particleEffect != null)
+        {
+            Vector3 particlePosition = target.transform.position;
+            GameObject particle = Instantiate(ability.particleEffect, particlePosition, Quaternion.identity);
+
+            ParticleSystem ps = particle.GetComponent<ParticleSystem>();
+            if (ps != null)
+            {
+                ps.Play();
+                float lifetime = ps.main.duration + ps.main.startLifetime.constantMax;
+                Destroy(particle, lifetime);
+            }
+            else
+            {
+                Destroy(particle, 2f);
+            }
+        }
+
         // ── Execute ability ───────────────────────────────────────────────────────
-        CombatCalculations.ExecuteAbility(caster, target, ability);
+        if (ability.isAOE)
+        {
+            List<CombatEntity> targets = GetAOETargets(ability, target);
+            foreach (CombatEntity aoeTarget in targets)
+            {
+                if (!aoeTarget.isDead)
+                {
+                    CombatCalculations.ExecuteAbility(caster, aoeTarget, ability);
+                }
+            }
+        }
+        else
+        {
+            CombatCalculations.ExecuteAbility(caster, target, ability);
+        }
+
+        yield return new WaitForSeconds(0.5f);
+
+        // ✅ NEW: Zoom back to original position if we zoomed
+        if (didZoom && !caster.isDead)
+        {
+            yield return StartCoroutine(ZoomToPosition(caster.transform, originalPosition, zoomDuration));
+        }
+
+        // Track action for XP
+        if (ExpeditionManager.Instance.currentExpedition.actionsPerformed.ContainsKey(caster.entityName))
+        {
+            ExpeditionManager.Instance.currentExpedition.actionsPerformed[caster.entityName]++;
+        }
+        else
+        {
+            ExpeditionManager.Instance.currentExpedition.actionsPerformed[caster.entityName] = 1;
+        }
+    }
+
+    /// <summary>
+    /// Smoothly move a transform to a target position with ease-in-out
+    /// </summary>
+    IEnumerator ZoomToPosition(Transform target, Vector3 destination, float duration)
+    {
+        Vector3 startPosition = target.position;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+
+            // ✅ Ease-in-out curve (smooth start and stop)
+            float easedT = t < 0.5f
+                ? 2f * t * t  // Ease in (first half)
+                : 1f - Mathf.Pow(-2f * t + 2f, 2f) / 2f; // Ease out (second half)
+
+            target.position = Vector3.Lerp(startPosition, destination, easedT);
+            yield return null;
+        }
+
+        // Ensure exact final position
+        target.position = destination;
     }
 
     /// <summary>

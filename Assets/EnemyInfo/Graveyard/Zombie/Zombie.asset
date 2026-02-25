@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Zombie
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Zombie
-  enemyPrefab: {fileID: 3692556015220471807, guid: 06359572d43f39f498f26cc65613c09a, type: 3}
+  enemyPrefab: {fileID: 1592082156478687415, guid: 574470bb23293f44292bfc3b610518f2, type: 3}
   role: 0
   baseHealth: 50
   baseStrength: 5

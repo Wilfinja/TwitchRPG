@@ -84,3 +84,4 @@ MonoBehaviour:
   particleEffect: {fileID: 0}
   projectilePrefab: {fileID: 0}
   projectileSpeed: 0.3
+  zoomToCenter: 1

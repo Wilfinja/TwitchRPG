@@ -118,9 +118,6 @@ public class AbilityData : ScriptableObject
     [Tooltip("How many turns the stat boost lasts")]
     public int statBoostDuration = 1;
 
-    // ═══════════════════════════════════════════════════════════
-    // ✅ NEW: Riposte
-    // ═══════════════════════════════════════════════════════════
     [Header("Riposte")]
     [Tooltip("When hit, automatically counter-attack the attacker for a portion of the damage received.")]
     public bool grantsRiposte = false;
@@ -197,6 +194,9 @@ public class AbilityData : ScriptableObject
     [Tooltip("How fast the projectile travels (seconds)")]
     [Range(0.1f, 1f)]
     public float projectileSpeed = 0.3f;
+
+    [Tooltip("Should the caster zoom to center when using this ability?")]
+    public bool zoomToCenter = true;
 
     // ═══════════════════════════════════════════════════════════
     // HELPER METHODS

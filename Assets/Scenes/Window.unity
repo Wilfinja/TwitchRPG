@@ -152,6 +152,8 @@ MonoBehaviour:
   playerTurn: 0
   turnTimer: 0
   maxTurnTime: 45
+  centerPosition: {x: 0, y: -10.5, z: 0}
+  zoomDuration: 0.3
 --- !u!4 &104625423
 Transform:
   m_ObjectHideFlags: 0

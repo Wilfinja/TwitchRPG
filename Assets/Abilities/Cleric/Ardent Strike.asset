@@ -85,6 +85,9 @@ MonoBehaviour:
     defenseMultiplier: 1
     damageOverTime: 0
     temporaryDefenseBonus: 0
+    baseDefenseAmount: 0
+    defenseScalingStat: 0
+    defenseScalingMultiplier: 0
     consumedOnHit: 0
     statBoostType: 0
     statBoostAmount: 0
@@ -127,3 +130,4 @@ MonoBehaviour:
   particleEffect: {fileID: 8194992990867289339, guid: 99bc28c0d45f51c4fbac01080b73edc7, type: 3}
   projectilePrefab: {fileID: 0}
   projectileSpeed: 0.3
+  zoomToCenter: 1

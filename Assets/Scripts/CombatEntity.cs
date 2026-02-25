@@ -883,14 +883,53 @@ public class CombatEntity : MonoBehaviour
     /// <summary>
     /// Get total temporary defense from all active buffs
     /// </summary>
+    /// <summary>
+    /// Get total temporary defense from all active buffs (with dynamic scaling)
+    /// </summary>
     int GetTemporaryDefenseBonus()
     {
         int bonus = 0;
+
         foreach (StatusEffect effect in activeEffects)
         {
-            bonus += effect.temporaryDefenseBonus;
+            // ✅ Check if effect has dynamic scaling
+            if (effect.defenseScalingStat != DamageStat.None && effect.defenseScalingMultiplier > 0f)
+            {
+                // Calculate scaled defense
+                int statValue = GetStatValueForDefense(effect.defenseScalingStat);
+                int scaledBonus = Mathf.RoundToInt(statValue * effect.defenseScalingMultiplier);
+                int totalDefense = effect.baseDefenseAmount + scaledBonus;
+
+                bonus += totalDefense;
+
+                Debug.Log($"[Defense] {entityName}'s {effect.effectName}: {effect.baseDefenseAmount} base + " +
+                         $"({statValue} {effect.defenseScalingStat} × {effect.defenseScalingMultiplier}) = {totalDefense}");
+            }
+            else
+            {
+                // Flat defense bonus (backward compatible)
+                bonus += effect.temporaryDefenseBonus;
+            }
         }
+
         return bonus;
+    }
+
+    /// <summary>
+    /// Get stat value for defense scaling calculation
+    /// </summary>
+    int GetStatValueForDefense(DamageStat stat)
+    {
+        switch (stat)
+        {
+            case DamageStat.Strength: return strength;
+            case DamageStat.Dexterity: return dexterity;
+            case DamageStat.Constitution: return constitution;
+            case DamageStat.Intelligence: return intelligence;
+            case DamageStat.Willpower: return willpower;
+            case DamageStat.Charisma: return charisma;
+            default: return 0;
+        }
     }
 
     /// <summary>
