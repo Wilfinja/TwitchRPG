@@ -407,6 +407,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: MageMediumBase
       objectReference: {fileID: 0}
+    - target: {fileID: -2253911629886400664, guid: f94ba6aec90aac74390b4847be88544c, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: 1160356261127867848, guid: f94ba6aec90aac74390b4847be88544c, type: 3}
       propertyPath: m_Controller
       value: 
@@ -514,9 +518,9 @@ MonoBehaviour:
   runAnimationName: Walk
   collectAnimationName: Collect
   collectAnimationDuration: 0.75
-  nameLabel: {fileID: 0}
-  levelLabel: {fileID: 0}
-  nameContainer: {fileID: 0}
+  nameLabel: {fileID: 2839194978780272151}
+  levelLabel: {fileID: 6015921192260034112}
+  nameContainer: {fileID: 1365636353048223515}
 --- !u!70 &5648935104161257993
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

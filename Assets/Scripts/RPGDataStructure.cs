@@ -303,6 +303,7 @@ public class StatusEffect
              "• isNegativeEffect effects are subject to resistance rolls\n" +
              "• applicationChance rolls apply per-effect\n" +
              "Any StatusEffect can be listed here: Bleed, Enrage, Stun, Silence, Curse, etc.")]
+    [System.NonSerialized]
     public List<StatusEffect> primedEffects = new List<StatusEffect>();
 
     [Tooltip("If true, the Primed effect itself is removed after it detonates. " +

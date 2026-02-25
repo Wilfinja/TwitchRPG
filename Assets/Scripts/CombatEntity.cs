@@ -389,6 +389,8 @@ public class CombatEntity : MonoBehaviour
         wasHealedThisTurn = false;
         queuedAction = null;
         actionConfirmed = false;
+
+        animator.Play("Idle");
     }
 
     public void RegenerateManaIfMage()
@@ -1168,7 +1170,7 @@ public class CombatEntity : MonoBehaviour
                     isPrimed = primedEffectTemplate.isPrimed,
                     primeThresholdType = primedEffectTemplate.primeThresholdType,
                     primeThreshold = primedEffectTemplate.primeThreshold,
-                    primedEffects = primedEffectTemplate.primedEffects,
+                    primedEffects = primedEffectTemplate.primedEffects,            //new List<StatusEffect>(),
                     primedConsumedOnTrigger = primedEffectTemplate.primedConsumedOnTrigger,
                 };
 

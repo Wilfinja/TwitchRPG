@@ -140,6 +140,9 @@ public class OnScreenCharacter : MonoBehaviour
             // Arrived at combat position
             transform.position = combatPosition;
             movingToCombatPosition = false;
+
+            SetCombatFacing();
+
             PlayAnimation(idleAnimationName);
 
             Debug.Log($"[Character] {username} arrived at combat position");
@@ -289,6 +292,60 @@ public class OnScreenCharacter : MonoBehaviour
 
             // Standing still
             PlayAnimation(idleAnimationName);
+        }
+    }
+
+    /// <summary>
+    /// Set the correct facing direction based on combat type
+    /// PvE: Players face right (toward enemies), enemies face left (toward players)
+    /// PvP: Fighters face each other
+    /// </summary>
+    private void SetCombatFacing()
+    {
+        // ✅ Check if in PvP mode
+        if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
+        {
+            // PvP: Fighters face each other
+            // Fighter at negative X faces right, fighter at positive X faces left
+            bool shouldFaceRight = transform.position.x < 0;
+
+            if (shouldFaceRight && !facingRight)
+            {
+                Flip();
+            }
+            else if (!shouldFaceRight && facingRight)
+            {
+                Flip();
+            }
+
+            Debug.Log($"[Character] {username} PvP facing: {(shouldFaceRight ? "right" : "left")} (X: {transform.position.x})");
+        }
+        else
+        {
+            // PvE: Check if this is a player or enemy
+            CombatEntity combatEntity = GetComponent<CombatEntity>();
+
+            if (combatEntity != null)
+            {
+                if (combatEntity.isPlayer)
+                {
+                    // Players face right (toward enemies at positive X)
+                    if (!facingRight)
+                    {
+                        Flip();
+                    }
+                    Debug.Log($"[Character] {username} (player) facing right toward enemies");
+                }
+                else
+                {
+                    // Enemies face left (toward players at negative X)
+                    if (facingRight)
+                    {
+                        Flip();
+                    }
+                    Debug.Log($"[Character] {username} (enemy) facing left toward players");
+                }
+            }
         }
     }
 

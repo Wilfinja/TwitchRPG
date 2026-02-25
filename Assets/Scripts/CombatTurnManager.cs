@@ -638,7 +638,7 @@ public class CombatTurnManager : MonoBehaviour
 
         yield return new WaitForSeconds(0.5f);
 
-        // ✅ NEW: Zoom back to original position if we zoomed
+        // Zoom back to original position if we zoomed
         if (didZoom && !caster.isDead)
         {
             yield return StartCoroutine(ZoomToPosition(caster.transform, originalPosition, zoomDuration));
@@ -861,7 +861,7 @@ public class CombatTurnManager : MonoBehaviour
             }
         }
 
-        // ✅ NEW: Default targeting - check PvP mode
+        // Default targeting - check PvP mode
         if (ability.canTargetEnemies)
         {
             if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
