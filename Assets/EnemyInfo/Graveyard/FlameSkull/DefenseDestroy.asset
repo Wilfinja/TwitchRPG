@@ -10,18 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Brace
+  m_Name: DefenseDestroy
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Brace
-  commandName: brace
-  description: The fighter braces against the attacks of the enemy. +1.5x CON in
-    Defense.
-  requiredClass: 3
+  abilityName: Defense Break
+  commandName: 
+  description: 
+  requiredClass: 0
   levelRequired: 1
-  category: 2
-  targetType: 2
-  scalingStat: 6
-  statMultiplier: 1.5
+  category: 0
+  targetType: 0
+  scalingStat: 3
+  statMultiplier: 1.75
   useSecondaryScaling: 0
   secondaryScalingStat: 0
   secondaryStatMultiplier: 0
@@ -29,7 +28,7 @@ MonoBehaviour:
   sneakDamageMultiplier: 0
   consumesAllSneak: 0
   consumeSneakAmount: 0
-  baseDamage: 0
+  baseDamage: 5
   canCrit: 0
   isMultiHit: 0
   baseHitCount: 1
@@ -41,8 +40,8 @@ MonoBehaviour:
   elementType: 0
   grantsDefenseBoost: 0
   baseDefenseBoost: 0
-  defenseScalingStat: 6
-  defenseScalingMultiplier: 1.5
+  defenseScalingStat: 0
+  defenseScalingMultiplier: 0
   defenseConsumedOnHit: 0
   grantsStatBoost: 0
   statToBoost: 0
@@ -69,25 +68,25 @@ MonoBehaviour:
   balanceRequirement: 0
   balanceRequirementType: 0
   canTargetAllies: 0
-  canTargetEnemies: 0
-  maxTargetPosition: 1
+  canTargetEnemies: 1
+  maxTargetPosition: 3
   minTargetPosition: 1
   isAOE: 0
   aoETargets: 1
-  cooldown: 3
+  cooldown: 0
   appliesEffects:
-  - effectName: Braced
-    duration: 3
-    applicationChance: 1
+  - effectName: Defense Broken
+    duration: 2
+    applicationChance: 0.6
     isNegativeEffect: 0
     statusResistanceBonus: 0
     damageMultiplier: 1
-    defenseMultiplier: 1
+    defenseMultiplier: 0.75
     damageOverTime: 0
     temporaryDefenseBonus: 0
-    baseDefenseAmount: 1
-    defenseScalingStat: 6
-    defenseScalingMultiplier: 1.5
+    baseDefenseAmount: 0
+    defenseScalingStat: 0
+    defenseScalingMultiplier: 0
     consumedOnHit: 0
     statBoostType: 0
     statBoostAmount: 0
@@ -126,7 +125,7 @@ MonoBehaviour:
   lifestealPercent: 0
   lifestealDuration: 1
   animationTrigger: Attack
-  particleEffect: {fileID: 6424583148328831481, guid: d2ffbc8b168cdf74a9dbb7c6c1cfdf2f, type: 3}
+  particleEffect: {fileID: 7478731271839673279, guid: 4d3c8045dd8857a4b8d34c2361c61045, type: 3}
   projectilePrefab: {fileID: 0}
   projectileSpeed: 0.3
   zoomToCenter: 1

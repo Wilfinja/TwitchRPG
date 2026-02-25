@@ -253,7 +253,7 @@ public class CombatTurnManager : MonoBehaviour
 
     IEnumerator ExecuteEnemyTurn()
     {
-        OnScreenNotification.Instance?.ShowNotification("👹 Enemy turn!");
+        OnScreenNotification.Instance?.ShowNotification("Enemy turn!");
         CombatUIManager.Instance?.ShowTurnIndicator(false);
 
         yield return new WaitForSeconds(1f);

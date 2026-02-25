@@ -52,6 +52,9 @@ public class RPGChatCommands : MonoBehaviour
             case "buy":
                 return HandleBuyCommand(viewer, args);
 
+            case "sell":
+                return HandleSellCommand(viewer, args);
+
             case "trade":
                 return HandleTradeCommand(viewer, args);
 
@@ -297,8 +300,13 @@ public class RPGChatCommands : MonoBehaviour
             for (int i = 0; i < displayCount; i++)
             {
                 RPGItem item = viewer.inventory[i];
+
+                // ✅ FIX: Check for empty/null item name
+                string displayName = string.IsNullOrEmpty(item.itemName) ? $"[{item.itemType}]" : item.itemName;
                 string abilityTag = item.HasAbilities() ? " [ABILITY]" : "";
-                result += $"{i + 1}. {item.itemName} [{item.rarity}]{abilityTag}\n";
+
+                // ✅ FIX: Show price for selling
+                result += $"{i + 1}. {displayName} [{item.rarity}] ({item.price}c){abilityTag}\n";
             }
 
             if (viewer.inventory.Count > 10)
@@ -313,6 +321,7 @@ public class RPGChatCommands : MonoBehaviour
 
         result += $"\n💰 Coins: {viewer.coins}";
         result += $"\nUse !equip <number or name> to equip items";
+        result += $"\nUse !sell <number> to sell items for 50% value"; // ✅ NEW
 
         return result;
     }
@@ -406,6 +415,82 @@ public class RPGChatCommands : MonoBehaviour
         }
 
         return $"{viewer.username}: Failed to equip {item.itemName}. Check level requirement or class restrictions.";
+    }
+
+    /// <summary>
+    /// Sell an item from inventory for 50% of its price
+    /// </summary>
+    private string HandleSellCommand(ViewerData viewer, string[] args)
+    {
+        if (viewer.characterClass == CharacterClass.None)
+        {
+            return $"{viewer.username}: Choose a class first with !class";
+        }
+
+        if (args.Length == 0)
+        {
+            return $"{viewer.username}: Usage: !sell <item number>\n" +
+                   "Example: !sell 3\n" +
+                   "Use !inventory to see your items";
+        }
+
+        // Parse item number
+        if (!int.TryParse(args[0], out int itemNumber))
+        {
+            return $"{viewer.username}: Please provide an item number. Use !inventory to see your items.";
+        }
+
+        if (itemNumber < 1 || itemNumber > viewer.inventory.Count)
+        {
+            return $"{viewer.username}: Invalid item number. You have {viewer.inventory.Count} items in inventory.";
+        }
+
+        // Get the item
+        RPGItem item = viewer.inventory[itemNumber - 1];
+
+        // Check if item is currently equipped
+        if (IsItemEquipped(viewer, item))
+        {
+            return $"{viewer.username}: You must unequip {item.itemName} before selling it!";
+        }
+
+        // Calculate sell price (50% of original)
+        int sellPrice = Mathf.RoundToInt(item.price * 0.5f);
+        sellPrice = Mathf.Max(1, sellPrice); // Minimum 1 coin
+
+        // Remove item from inventory
+        viewer.inventory.RemoveAt(itemNumber - 1);
+
+        // Add coins
+        viewer.coins += sellPrice;
+
+        // Save
+        RPGManager.Instance.SaveGameData();
+
+        // Build response
+        string itemName = string.IsNullOrEmpty(item.itemName) ? $"[{item.itemType}]" : item.itemName;
+
+        return $"✅ {viewer.username}: Sold {itemName} for {sellPrice} coins (50% of {item.price}c)\n" +
+               $"New balance: {viewer.coins} coins";
+    }
+
+    /// <summary>
+    /// Check if an item is currently equipped
+    /// </summary>
+    private bool IsItemEquipped(ViewerData viewer, RPGItem item)
+    {
+        if (item == null) return false;
+
+        // Check all equipment slots
+        if (viewer.equipped.head != null && viewer.equipped.head.itemId == item.itemId) return true;
+        if (viewer.equipped.chest != null && viewer.equipped.chest.itemId == item.itemId) return true;
+        if (viewer.equipped.arms != null && viewer.equipped.arms.itemId == item.itemId) return true;
+        if (viewer.equipped.legs != null && viewer.equipped.legs.itemId == item.itemId) return true;
+        if (viewer.equipped.mainHand != null && viewer.equipped.mainHand.itemId == item.itemId) return true;
+        if (viewer.equipped.offHand != null && viewer.equipped.offHand.itemId == item.itemId) return true;
+        if (viewer.equipped.feet != null && viewer.equipped.feet.itemId == item.itemId) return true;
+
+        return false;
     }
 
     private string FormatStatChange(int change)
@@ -1023,24 +1108,21 @@ public class RPGChatCommands : MonoBehaviour
 
     private string HandleHelpCommand(ViewerData viewer)
     {
-        string help = "═══ RPG COMMANDS ═══\n";
-        help += "!class <type> - Choose your class\n";
-        help += "!join - Spawn on screen to collect coins\n";
-        help += "!leave - Remove your character from screen\n";
-        help += "!stats - View your character stats\n";
-        help += "!inventory (or !inv) - View equipment\n";
-        help += "!coins - Check your balance\n";
-        help += "!levelup <stat> <points> - Allocate stats (e.g., !levelup str 2)\n";
-        help += "!equip <item> - Equip an item\n";
-        help += "!unequip <slot> - Unequip an item\n";
-        help += "!shop - View the shop\n";
-        help += "!buy <item> - Purchase from shop\n";
-        help += "!abilities - View your active abilities\n";
-        help += "!ability <name> - View ability details\n";
-        help += "\nEarn XP by collecting coins and watching!\n";
-        help += "Level up every 150 XP to get stronger!";
-
-        return help;
+        return "=== RPG Commands ===\n" +
+               "!class <rogue/fighter/mage/cleric/ranger> - Choose class\n" +
+               "!stats - View character stats\n" +
+               "!inventory - View equipment & items\n" +
+               "!equip <number or name> - Equip item\n" +
+               "!unequip <slot> - Unequip item\n" +
+               "!shop - Browse shop items\n" +
+               "!shop <page> - View specific shop page\n" +
+               "!buy <item name> - Purchase item\n" +
+               "!sell <number> - Sell item for 50% value\n" + // ✅ NEW
+               "!abilities - List your class abilities\n" +
+               "!ability <n> - View ability details\n" +
+               "!levelup <stat> - Spend stat points\n" +
+               "!coins - Check coin balance\n" +
+               "!trade - Trade with other players";
     }
 
     public string HandleAdminCommand(string command, string[] args, bool isBroadcaster)

@@ -33,7 +33,7 @@ MonoBehaviour:
       bossCount: 0
     coinRewardMin: 150
     coinRewardMax: 200
-    xpMultiplier: 0
+    xpMultiplier: 1
     guaranteedCommonItems: 2
     guaranteedUncommonItems: 1
     guaranteedRareItems: 0
@@ -50,7 +50,9 @@ MonoBehaviour:
     easyEnemies:
     - {fileID: 11400000, guid: 89242d7961e34d844848cd4d7c1b56d9, type: 2}
     - {fileID: 11400000, guid: 3d11567c87ed17548ae3b0d385f2d819, type: 2}
-    mediumEnemies: []
+    - {fileID: 11400000, guid: 57cfdaa5327adc643ab06db878c4faf6, type: 2}
+    mediumEnemies:
+    - {fileID: 11400000, guid: 57cfdaa5327adc643ab06db878c4faf6, type: 2}
     hardEnemies: []
     deadlyEnemies: []
     bossEnemies: []
