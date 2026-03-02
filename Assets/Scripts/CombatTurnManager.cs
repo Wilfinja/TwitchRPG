@@ -344,6 +344,22 @@ public class CombatTurnManager : MonoBehaviour
             return false;
         }
 
+        ViewerData viewer = RPGManager.Instance.GetViewer(userId);
+        if (viewer != null)
+        {
+            bool isInLoadout = viewer.equippedAbilities.Contains(ability.commandName);
+            bool isItemAbility = !string.IsNullOrEmpty(viewer.equippedItemAbility) &&
+                                viewer.equippedItemAbility == ability.commandName;
+
+            if (!isInLoadout && !isItemAbility)
+            {
+                OnScreenNotification.Instance?.ShowNotification(
+                    $"@{username} {ability.abilityName} not in loadout! Use !equipability first."
+                );
+                return false;
+            }
+        }
+
         // Check if player can use this ability (CLASS)
         if (ability.requiredClass != caster.characterClass)
         {
@@ -351,7 +367,7 @@ public class CombatTurnManager : MonoBehaviour
             return false;
         }
 
-        // ✅ NEW: Check LEVEL requirement
+        // Check LEVEL requirement
         if (!CheckLevelRequirement(caster, ability, username))
         {
             return false;
@@ -364,12 +380,47 @@ public class CombatTurnManager : MonoBehaviour
             return false;
         }
 
+        // Check if ability is in loadout (if loadout system is being used)
+        if (caster.viewerData != null &&
+            caster.viewerData.equippedAbilities != null &&
+            caster.viewerData.equippedAbilities.Count > 0)
+        {
+            // Check if ability is in loadout
+            if (!caster.viewerData.equippedAbilities.Contains(ability.commandName))
+            {
+                OnScreenNotification.Instance?.ShowNotification(
+                    $"@{username} {ability.abilityName} is not in your loadout! Use !loadout to manage abilities."
+                );
+                return false;
+            }
+        }
+
         // Find target
         CombatEntity target = DetermineTarget(ability, targetName, caster);
 
         if (target == null)
         {
-            OnScreenNotification.Instance?.ShowNotification($"@{username} Invalid or no target found!");
+            string errorMsg = $"@{username} Invalid target!";
+
+            if (ability.canTargetAllies && !string.IsNullOrEmpty(targetName))
+            {
+                List<CombatEntity> allies = ExpeditionManager.Instance.GetAllPlayerEntities();
+
+                if (allies.Count > 0)
+                {
+                    List<string> targetInfo = new List<string>();
+                    foreach (var ally in allies.Where(a => !a.isDead).OrderBy(a => a.position))
+                    {
+                        targetInfo.Add($"[{ally.position}] {ally.entityName}");
+                    }
+
+                    errorMsg = $"@{username} Target '{targetName}' not found.\n" +
+                              $"Valid: {string.Join(", ", targetInfo)}\n" +
+                              $"Use: !q {ability.commandName} <position or name>";
+                }
+            }
+
+            OnScreenNotification.Instance?.ShowNotification(errorMsg);
             return false;
         }
 
@@ -641,7 +692,15 @@ public class CombatTurnManager : MonoBehaviour
         // Zoom back to original position if we zoomed
         if (didZoom && !caster.isDead)
         {
+            Debug.Log($"[Zoom] {caster.entityName} zooming back to {originalPosition}");
             yield return StartCoroutine(ZoomToPosition(caster.transform, originalPosition, zoomDuration));
+        }
+
+        OnScreenCharacter onScreenChar = caster.GetComponent<OnScreenCharacter>();
+        if (onScreenChar != null && caster.animator != null)
+        {
+            caster.animator.Play("Idle");
+            Debug.Log($"[Zoom] {caster.entityName} returned to idle");
         }
 
         // Track action for XP
@@ -819,10 +878,22 @@ public class CombatTurnManager : MonoBehaviour
         {
             if (ability.canTargetAllies)
             {
-                // ✅ NEW: Check PvP first for ally targeting
+                // Priority 1 - Position-based targeting
+                if (int.TryParse(targetName, out int targetPosition))
+                {
+                    List<CombatEntity> allies = ExpeditionManager.Instance.GetAllPlayerEntities();
+                    CombatEntity ally = allies.Find(a => a.position == targetPosition && !a.isDead);
+
+                    if (ally != null)
+                    {
+                        Debug.Log($"[Targeting] Position {targetPosition} → {ally.entityName}");
+                        return ally;
+                    }
+                }
+
+                // Priority 2 - PvP mode check
                 if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
                 {
-                    // In PvP, only valid ally is yourself
                     if (targetName.ToLower() == caster.entityName.ToLower())
                     {
                         return caster;
@@ -830,11 +901,14 @@ public class CombatTurnManager : MonoBehaviour
                 }
                 else
                 {
-                    // Normal expedition ally targeting
+                    // Priority 3 - Username-based targeting
                     List<CombatEntity> allies = ExpeditionManager.Instance.GetAllPlayerEntities();
                     CombatEntity ally = allies.Find(a => a.entityName.ToLower() == targetName.ToLower());
                     if (ally != null && !ally.isDead)
+                    {
+                        Debug.Log($"[Targeting] Username → {ally.entityName}");
                         return ally;
+                    }
                 }
             }
 
@@ -924,9 +998,31 @@ public class CombatTurnManager : MonoBehaviour
             return opponent;
         }
 
-        // Default targeting: self for ally abilities
+        // Default targeting: Smart Default
         if (ability.canTargetAllies)
         {
+            // For healing: find ally with most HP missing
+            if (ability.category == AbilityCategory.Heal)
+            {
+                List<CombatEntity> allies = ExpeditionManager.Instance.GetAllPlayerEntities();
+
+                if (allies.Count > 0)
+                {
+                    // Find ally with lowest HP percentage
+                    CombatEntity mostInjured = allies
+                        .Where(a => !a.isDead)
+                        .OrderBy(a => (float)a.currentHealth / a.maxHealth)
+                        .FirstOrDefault();
+
+                    if (mostInjured != null)
+                    {
+                        Debug.Log($"[Targeting] Auto-heal → {mostInjured.entityName} ({mostInjured.currentHealth}/{mostInjured.maxHealth} HP)");
+                        return mostInjured;
+                    }
+                }
+            }
+
+            // Default to self for buffs
             return caster;
         }
 

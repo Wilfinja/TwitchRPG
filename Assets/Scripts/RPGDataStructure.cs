@@ -755,6 +755,8 @@ public class EquippedItems
         public ClassResources classResources;
         public EquippedItems equipped;
         public List<RPGItem> inventory;
+    public List<string> equippedAbilities = new List<string>(); //Max 4
+    public string equippedItemAbility = null;
 
         public DateTime lastSeen;
         public float totalWatchTimeMinutes;
@@ -786,6 +788,9 @@ public class EquippedItems
 
             // ===== ADD THIS LINE =====
             tradeHistory = new List<TradeRecord>();
+
+            equippedAbilities = new List<string>();
+            equippedItemAbility = "";
 
             lastSeen = DateTime.Now;
             totalWatchTimeMinutes = 0;

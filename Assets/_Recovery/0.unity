@@ -1700,8 +1700,6 @@ MonoBehaviour:
   playerTurnColor: {r: 0, g: 1, b: 0, a: 1}
   enemyTurnColor: {r: 1, g: 0, b: 0, a: 1}
   turnIndicatorBackground: {fileID: 2114388438}
-  classResourceBarPrefab: {fileID: 0}
-  classResourceBarContainer: {fileID: 0}
 --- !u!4 &1169067071
 Transform:
   m_ObjectHideFlags: 0
@@ -2921,9 +2919,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bee243f56a10e8543bac9f3a4e4fd6b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ExperienceManager
-  xpPerLevel: 150
+  xpPerLevel: 200
   maxLevel: 50
-  statPointsPerLevel: 2
+  statPointsPerLevel: 3
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

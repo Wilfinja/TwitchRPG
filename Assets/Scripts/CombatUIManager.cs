@@ -32,6 +32,10 @@ public class CombatUIManager : MonoBehaviour
     public Color enemyTurnColor = Color.red;
     public Image turnIndicatorBackground;
 
+    [Header("Class Resource Bars")]
+    public GameObject classResourceBarPrefab;
+    public Transform classResourceBarContainer;
+
     void Awake()
     {
         if (Instance == null)
@@ -126,13 +130,16 @@ public class CombatUIManager : MonoBehaviour
     /// </summary>
     void ClearAllHealthBars()
     {
-        if (healthBarContainer == null) return;
-
-        // Destroy all children
-        foreach (Transform child in healthBarContainer)
+        if (healthBarContainer != null)
         {
-            Destroy(child.gameObject);
+            foreach (Transform child in healthBarContainer)
+            {
+                Destroy(child.gameObject);
+            }
         }
+
+        // ✅ NEW: Also clear resource bars
+        ClearAllClassResourceBars();
     }
 
     #endregion
@@ -231,4 +238,50 @@ public class CombatUIManager : MonoBehaviour
     }
 
     #endregion
+
+    /// <summary>
+    /// Create class resource bar for player entities
+    /// </summary>
+    public void CreateClassResourceBar(CombatEntity entity)
+    {
+        // Only create for players with classes
+        if (!entity.isPlayer) return;
+        if (entity.characterClass == CharacterClass.None) return;
+
+        if (classResourceBarPrefab == null)
+        {
+            Debug.LogWarning("[CombatUI] Class resource bar prefab not assigned");
+            return;
+        }
+
+        if (classResourceBarContainer == null)
+        {
+            Debug.LogWarning("[CombatUI] Class resource bar container not assigned");
+            return;
+        }
+
+        GameObject resourceBarObj = Instantiate(classResourceBarPrefab, classResourceBarContainer);
+        ClassResourceBar resourceBar = resourceBarObj.GetComponent<ClassResourceBar>();
+
+        if (resourceBar != null)
+        {
+            resourceBar.Initialize(entity);
+
+            // Store reference in entity (add new field to CombatEntity)
+            entity.classResourceBarObject = resourceBarObj;
+        }
+    }
+
+    /// <summary>
+    /// Clear class resource bars when combat ends
+    /// </summary>
+    void ClearAllClassResourceBars()
+    {
+        if (classResourceBarContainer == null) return;
+
+        foreach (Transform child in classResourceBarContainer)
+        {
+            Destroy(child.gameObject);
+        }
+    }
 }

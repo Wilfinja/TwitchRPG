@@ -403,6 +403,7 @@ public static class CombatCalculations
         {
             // Consume ALL sneak points
             caster.sneakPoints = 0;
+            caster.UpdateClassResourceBar();
 
             CombatLog.Instance?.AddEntry(
                 $"{caster.entityName} consumed all {sneakBefore} sneak points!"
@@ -415,6 +416,7 @@ public static class CombatCalculations
             // Consume specific amount
             int consumed = Mathf.Min(ability.consumeSneakAmount, caster.sneakPoints);
             caster.sneakPoints -= consumed;
+            caster.UpdateClassResourceBar();
 
             CombatLog.Instance?.AddEntry(
                 $"{caster.entityName} consumed {consumed} sneak points!"
@@ -426,6 +428,7 @@ public static class CombatCalculations
 
         // Clamp to valid range
         caster.sneakPoints = Mathf.Clamp(caster.sneakPoints, 0, 6);
+        caster.UpdateClassResourceBar();
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -442,6 +445,7 @@ public static class CombatCalculations
                 {
                     caster.sneakPoints -= ability.sneakCost;
                     caster.sneakPoints = Mathf.Clamp(caster.sneakPoints, 0, 6);
+                    caster.UpdateClassResourceBar();
                 }
                 break;
 
@@ -472,16 +476,19 @@ public static class CombatCalculations
 
                 caster.mana -= manaCost;
                 caster.mana = Mathf.Clamp(caster.mana, 0, 100);
+                caster.UpdateClassResourceBar();
                 break;
 
             case CharacterClass.Cleric:
                 caster.wrath -= ability.wrathCost;
                 caster.wrath = Mathf.Clamp(caster.wrath, 0, 100);
+                caster.UpdateClassResourceBar();
                 break;
 
             case CharacterClass.Ranger:
                 caster.balance -= ability.balanceCost;
                 caster.balance = Mathf.Clamp(caster.balance, -10, 10);
+                caster.UpdateClassResourceBar();
                 break;
         }
     }
@@ -493,6 +500,7 @@ public static class CombatCalculations
             case CharacterClass.Rogue:
                 caster.sneakPoints += ability.sneakGain;
                 caster.sneakPoints = Mathf.Clamp(caster.sneakPoints, 0, 6);
+                caster.UpdateClassResourceBar();
                 break;
 
             case CharacterClass.Mage:
@@ -502,11 +510,13 @@ public static class CombatCalculations
             case CharacterClass.Cleric:
                 caster.wrath += ability.wrathGain;
                 caster.wrath = Mathf.Clamp(caster.wrath, 0, 100);
+                caster.UpdateClassResourceBar();
                 break;
 
             case CharacterClass.Ranger:
                 caster.balance += ability.balanceGain;
                 caster.balance = Mathf.Clamp(caster.balance, -10, 10);
+                caster.UpdateClassResourceBar();
                 break;
         }
     }
@@ -571,6 +581,7 @@ public static class CombatCalculations
         {
             case MultiHitType.PerSneakPoint:
                 caster.sneakPoints = 0; // Consume all sneak
+                caster.UpdateClassResourceBar();
                 break;
 
             case MultiHitType.PerBalancePoint:
@@ -579,10 +590,12 @@ public static class CombatCalculations
                 if (caster.balance > 0)
                 {
                     caster.balance = Mathf.Max(0, caster.balance - consumed);
+                    caster.UpdateClassResourceBar();
                 }
                 else if (caster.balance < 0)
                 {
                     caster.balance = Mathf.Min(0, caster.balance + consumed);
+                    caster.UpdateClassResourceBar();
                 }
                 break;
 
@@ -752,6 +765,7 @@ public static class CombatCalculations
         int manaGain = Mathf.FloorToInt(caster.intelligence * 0.1f); // 10% of INT per turn
         caster.mana += manaGain;
         caster.mana = Mathf.Clamp(caster.mana, 0, 100);
+        caster.UpdateClassResourceBar();
 
         if (manaGain > 0)
         {

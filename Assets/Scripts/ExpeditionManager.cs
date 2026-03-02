@@ -234,6 +234,8 @@ public class ExpeditionManager : MonoBehaviour
 
                 // Create health bar
                 CombatUIManager.Instance?.CreateHealthBar(combatEntity);
+
+                CombatUIManager.Instance?.CreateClassResourceBar(combatEntity);
             }
         }
 

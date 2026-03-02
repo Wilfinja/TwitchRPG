@@ -73,6 +73,17 @@ public class RPGChatCommands : MonoBehaviour
             case "ability":
                 return HandleAbilityDetailsCommand(viewer, args);
 
+            case "loadout":
+                return HandleLoadoutCommand(viewer);
+
+            case "equipability":
+            case "equipa":
+                return HandleEquipAbilityCommand(viewer, args);
+
+            case "unequipability":
+            case "unequipa":
+                return HandleUnequipAbilityCommand(viewer, args);
+
             case "help":
             case "rpghelp":
                 return HandleHelpCommand(viewer);
@@ -92,6 +103,7 @@ public class RPGChatCommands : MonoBehaviour
             case "enterexpedition":
                 return HandleEnterExpedition(viewer, args);
 
+            case "q":
             case "queue":
                 return HandleQueueAction(viewer, args);
 
@@ -935,6 +947,154 @@ public class RPGChatCommands : MonoBehaviour
         return result;
     }
 
+    /// <summary>
+    /// Show current ability loadout
+    /// </summary>
+    private string HandleLoadoutCommand(ViewerData viewer)
+    {
+        if (viewer.characterClass == CharacterClass.None)
+        {
+            return $"{viewer.username}: Choose a class first with !class";
+        }
+
+        string result = $"═══ {viewer.username}'s Ability Loadout ═══\n";
+        result += "Equipped Abilities (Max 4):\n";
+
+        if (viewer.equippedAbilities.Count == 0)
+        {
+            result += "  (none equipped)\n";
+        }
+        else
+        {
+            for (int i = 0; i < viewer.equippedAbilities.Count; i++)
+            {
+                string abilityCmd = viewer.equippedAbilities[i];
+                AbilityData ability = AbilityDatabase.Instance?.GetAbility(abilityCmd);
+                string name = ability != null ? ability.abilityName : abilityCmd;
+                result += $"  {i + 1}. {name} (!{abilityCmd})\n";
+            }
+        }
+
+        // Show item ability if equipped
+        if (!string.IsNullOrEmpty(viewer.equippedItemAbility))
+        {
+            result += $"\nItem Ability: !{viewer.equippedItemAbility}\n";
+        }
+
+        result += $"\nSlots used: {viewer.equippedAbilities.Count}/4\n";
+        result += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        result += "!equipability <name> - Add ability\n";
+        result += "!unequipability <#> - Remove ability\n";
+        result += "!abilities - See all available";
+
+        return result;
+    }
+
+    /// <summary>
+    /// Equip an ability to loadout (max 4)
+    /// </summary>
+    private string HandleEquipAbilityCommand(ViewerData viewer, string[] args)
+    {
+        if (viewer.characterClass == CharacterClass.None)
+        {
+            return $"{viewer.username}: Choose a class first with !class";
+        }
+
+        if (args.Length == 0)
+        {
+            return $"{viewer.username}: Usage: !equipability <ability name>\n" +
+                   "Example: !equipability strike\n" +
+                   "Use !abilities to see available abilities";
+        }
+
+        // Check if at max capacity
+        if (viewer.equippedAbilities.Count >= 4)
+        {
+            return $"{viewer.username}: Loadout is full! (4/4)\n" +
+                   "Use !unequipability <number> to remove an ability first";
+        }
+
+        string abilityName = args[0].ToLower();
+
+        // Find ability by command name
+        AbilityData ability = AbilityDatabase.Instance?.GetAbility(abilityName);
+
+        if (ability == null)
+        {
+            return $"{viewer.username}: Ability '{abilityName}' not found.\n" +
+                   "Use !abilities to see available abilities";
+        }
+
+        // Check class requirement
+        if (ability.requiredClass != viewer.characterClass)
+        {
+            return $"{viewer.username}: You can't use {ability.abilityName}! " +
+                   $"(Requires {ability.requiredClass})";
+        }
+
+        // Check level requirement
+        if (viewer.baseStats.level < ability.levelRequired)
+        {
+            return $"{viewer.username}: {ability.abilityName} requires level {ability.levelRequired}.\n" +
+                   $"You are level {viewer.baseStats.level}.";
+        }
+
+        // Check if already equipped
+        if (viewer.equippedAbilities.Contains(ability.commandName))
+        {
+            return $"{viewer.username}: {ability.abilityName} is already equipped!";
+        }
+
+        // Equip it
+        viewer.equippedAbilities.Add(ability.commandName);
+        RPGManager.Instance.SaveGameData();
+
+        return $"✅ {viewer.username}: Equipped {ability.abilityName} to loadout!\n" +
+               $"Slots: {viewer.equippedAbilities.Count}/4";
+    }
+
+    /// <summary>
+    /// Unequip an ability from loadout by slot number
+    /// </summary>
+    private string HandleUnequipAbilityCommand(ViewerData viewer, string[] args)
+    {
+        if (viewer.characterClass == CharacterClass.None)
+        {
+            return $"{viewer.username}: Choose a class first with !class";
+        }
+
+        if (args.Length == 0)
+        {
+            return $"{viewer.username}: Usage: !unequipability <slot number>\n" +
+                   "Example: !unequipability 2\n" +
+                   "Use !loadout to see equipped abilities";
+        }
+
+        if (!int.TryParse(args[0], out int slotNumber))
+        {
+            return $"{viewer.username}: Please provide a valid slot number (1-4)";
+        }
+
+        if (slotNumber < 1 || slotNumber > viewer.equippedAbilities.Count)
+        {
+            return $"{viewer.username}: Invalid slot number.\n" +
+                   $"You have {viewer.equippedAbilities.Count} abilities equipped.\n" +
+                   "Use !loadout to see them.";
+        }
+
+        // Get the ability name before removing
+        string removedCmd = viewer.equippedAbilities[slotNumber - 1];
+        AbilityData ability = AbilityDatabase.Instance?.GetAbility(removedCmd);
+        string abilityName = ability != null ? ability.abilityName : removedCmd;
+
+        // Remove it
+        viewer.equippedAbilities.RemoveAt(slotNumber - 1);
+        RPGManager.Instance.SaveGameData();
+
+        return $"{viewer.username}: Removed {abilityName} from loadout\n" +
+               $"Slots: {viewer.equippedAbilities.Count}/4";
+    }
+
     private string HandleAbilityDetailsCommand(ViewerData viewer, string[] args)
     {
         if (args.Length == 0)
@@ -977,6 +1137,8 @@ public class RPGChatCommands : MonoBehaviour
 
         return $"{viewer.username}: Ability '{abilityName}' not found. Use !abilities to see available abilities.";
     }
+
+
 
     private string GetResourceName(CharacterClass charClass)
     {

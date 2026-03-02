@@ -49,6 +49,7 @@ public class CombatEntity : MonoBehaviour
     [Header("Visual References")]
     public GameObject healthBarObject;
     public Animator animator;
+    public GameObject classResourceBarObject;
 
     [Header("Fighter Stance System")]
     public FighterStance currentStance = FighterStance.None;
@@ -58,6 +59,8 @@ public class CombatEntity : MonoBehaviour
     private int baseConstitution;
     private int baseDefense;
     private int baseMaxHealth;
+
+
 
     // Reference to the ViewerData (for syncing back after combat)
     public ViewerData viewerData;
@@ -94,7 +97,7 @@ public class CombatEntity : MonoBehaviour
             // CACHE stats from ViewerData - these are locked for this combat
             CharacterStats totalStats = viewerData.GetTotalStats();
             maxHealth = totalStats.maxHealth;
-            currentHealth = totalStats.currentHealth;
+            currentHealth = maxHealth;
             strength = totalStats.strength;
             dexterity = totalStats.dexterity;
             constitution = totalStats.constitution;
@@ -120,13 +123,13 @@ public class CombatEntity : MonoBehaviour
         //constitution = viewerData.baseStats.constitution;
         //defense = viewerData.equipped.GetTotalDefenseBonus();
 
-        // ✅ NEW: Save base stats before any modifiers
+        // Save base stats before any modifiers
         InitializeBaseStats();
 
-        // ✅ NEW: Fighters start in no stance (could also start in Aggressive)
+        // Fighters start in no stance (could also start in Aggressive)
         if (characterClass == CharacterClass.Fighter)
         {
-            currentStance = FighterStance.None;
+            currentStance = FighterStance.Aggressive;
         }
 
         if (characterClass == CharacterClass.Mage)
@@ -826,6 +829,8 @@ public class CombatEntity : MonoBehaviour
         currentStance = newStance;
         RecalculateStatsWithStance();
 
+        UpdateClassResourceBar();
+
         CombatLog.Instance?.AddEntry(
             $"{entityName} shifts to {GetStanceName(newStance)} Stance!"
         );
@@ -879,6 +884,37 @@ public class CombatEntity : MonoBehaviour
                 return $"+{defense - baseDefense} DEF";
             default:
                 return "No Stance";
+        }
+    }
+
+    public void UpdateClassResourceBar()
+    {
+        if (classResourceBarObject == null) return;
+
+        ClassResourceBar resourceBar = classResourceBarObject.GetComponent<ClassResourceBar>();
+        if (resourceBar == null) return;
+
+        switch (characterClass)
+        {
+            case CharacterClass.Mage:
+                resourceBar.UpdateMana(mana, 100);
+                break;
+
+            case CharacterClass.Rogue:
+                resourceBar.UpdateSneak(sneakPoints, 6);
+                break;
+
+            case CharacterClass.Cleric:
+                resourceBar.UpdateWrath(wrath, 100);
+                break;
+
+            case CharacterClass.Fighter:
+                resourceBar.UpdateStance(currentStance);
+                break;
+
+            case CharacterClass.Ranger:
+                resourceBar.UpdateBalance(balance, -10, 10);
+                break;
         }
     }
 
