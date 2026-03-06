@@ -1700,8 +1700,8 @@ MonoBehaviour:
   playerTurnColor: {r: 0, g: 1, b: 0, a: 1}
   enemyTurnColor: {r: 1, g: 0, b: 0, a: 1}
   turnIndicatorBackground: {fileID: 2114388438}
-  classResourceBarPrefab: {fileID: 0}
-  classResourceBarContainer: {fileID: 0}
+  classResourceBarPrefab: {fileID: 8615997950382077174, guid: c6482d9d2724ef044b0e823c6465d105, type: 3}
+  classResourceBarContainer: {fileID: 1303425155}
 --- !u!4 &1169067071
 Transform:
   m_ObjectHideFlags: 0
@@ -2784,7 +2784,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::OnScreenNotification
   notificationPrefab: {fileID: 1013994383}
   notificationContainer: {fileID: 2036186956}
-  notificationDuration: 5
+  notificationDuration: 4
   fadeTime: 0.5
   shopDisplayDuration: 15
 --- !u!4 &2076462973

@@ -321,7 +321,7 @@ MonoBehaviour:
   reflectiveColor: {r: 0, g: 1, b: 1, a: 1}
   manaColor: {r: 0, g: 1, b: 1, a: 1}
   wrathColor: {r: 1, g: 0.5, b: 0, a: 1}
-  offset: {x: 0, y: 1, z: 0}
+  offset: {x: 0, y: 2.8, z: 0}
 --- !u!1 &8694408735245167699
 GameObject:
   m_ObjectHideFlags: 0

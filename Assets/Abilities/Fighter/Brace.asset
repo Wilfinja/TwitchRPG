@@ -84,7 +84,7 @@ MonoBehaviour:
     damageMultiplier: 1
     defenseMultiplier: 1
     damageOverTime: 0
-    temporaryDefenseBonus: 0
+    temporaryDefenseBonus: 1
     baseDefenseAmount: 1
     defenseScalingStat: 6
     defenseScalingMultiplier: 1.5

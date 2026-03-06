@@ -20,7 +20,7 @@ MonoBehaviour:
   category: 0
   targetType: 6
   scalingStat: 3
-  statMultiplier: 2.5
+  statMultiplier: 2
   useSecondaryScaling: 0
   secondaryScalingStat: 0
   secondaryStatMultiplier: 0
@@ -82,7 +82,7 @@ MonoBehaviour:
     statusResistanceBonus: 0
     damageMultiplier: 1
     defenseMultiplier: 1
-    damageOverTime: 0
+    damageOverTime: 10
     temporaryDefenseBonus: 0
     baseDefenseAmount: 0
     defenseScalingStat: 0
@@ -99,7 +99,7 @@ MonoBehaviour:
     riposteConsumedOnUse: 0
     isStun: 0
     isSilence: 0
-    isBleed: 1
+    isBleed: 0
     bleedDamagePerTurn: 10
     isBarrier: 0
     barrierCurrentAmount: 0

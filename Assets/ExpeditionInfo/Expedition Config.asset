@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffe464fdb3a39e94b94d9074ab6c1ab7, type: 3}
   m_Name: Expedition Config
   m_EditorClassIdentifier: Assembly-CSharp::ExpeditionConfig
-  joinTimerDuration: 10
+  joinTimerDuration: 30
   turnTimerDuration: 45
   waveClearDelay: 5
   maxPartySize: 4

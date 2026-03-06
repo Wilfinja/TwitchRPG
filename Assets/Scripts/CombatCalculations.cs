@@ -137,6 +137,11 @@ public static class CombatCalculations
                 defenseMultiplier = effectTemplate.defenseMultiplier,
                 damageOverTime = effectTemplate.damageOverTime,
                 temporaryDefenseBonus = effectTemplate.temporaryDefenseBonus,
+
+                baseDefenseAmount = effectTemplate.baseDefenseAmount,
+                defenseScalingStat = effectTemplate.defenseScalingStat,
+                defenseScalingMultiplier = effectTemplate.defenseScalingMultiplier,
+
                 consumedOnHit = effectTemplate.consumedOnHit,
                 statBoostType = effectTemplate.statBoostType,
                 statBoostAmount = effectTemplate.statBoostAmount,

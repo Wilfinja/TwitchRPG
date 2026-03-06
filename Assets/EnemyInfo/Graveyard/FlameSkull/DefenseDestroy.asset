@@ -20,7 +20,7 @@ MonoBehaviour:
   category: 0
   targetType: 0
   scalingStat: 3
-  statMultiplier: 1.75
+  statMultiplier: 1.5
   useSecondaryScaling: 0
   secondaryScalingStat: 0
   secondaryStatMultiplier: 0
