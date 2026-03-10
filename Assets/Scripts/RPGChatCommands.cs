@@ -88,6 +88,9 @@ public class RPGChatCommands : MonoBehaviour
             case "rpghelp":
                 return HandleHelpCommand(viewer);
 
+            case "linkdiscord":
+                return HandleLinkDiscordCommand(viewer, args);
+
             case "give":
                 return HandleGiveCommand(viewer, args);
 
@@ -1609,6 +1612,28 @@ public class RPGChatCommands : MonoBehaviour
                "!rpgkill @user - Kill player (30 min lockout)\n" +
                "!rpgreset @user - Reset character (DELETES PROGRESS!)\n" +
                "!rpggiveitem @user <item name> - Give named item";
+    }
+
+    private string HandleLinkDiscordCommand(ViewerData viewer, string[] args)
+    {
+        // Usage: !linkdiscord <discord_user_id>
+        // The Discord User ID is an 18-digit number the viewer gets by right-clicking
+        // their Discord username with Developer Mode enabled.
+
+        if (args.Length == 0 || string.IsNullOrEmpty(args[0]))
+        {
+            return $"{viewer.username}: Usage: !linkdiscord <your_discord_id>\n" +
+                   "To find your Discord ID:\n" +
+                   "  1. Discord Settings → Advanced → Enable Developer Mode\n" +
+                   "  2. Right-click your username → Copy User ID\n" +
+                   "Then type: !linkdiscord 123456789012345678";
+        }
+
+        // Delegate to DiscordBridgeServer which owns the mapping file
+        return DiscordBridgeServer.RegisterTwitchLink(
+            viewer.twitchUserId,
+            viewer.username,
+            args[0]);
     }
 
     private string HandleAdminRefreshShop()

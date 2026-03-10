@@ -254,14 +254,36 @@ public class CombatEntity : MonoBehaviour
         // ── Visuals ───────────────────────────────────────────────────────────────
         CombatVisualEffects.Instance?.ShowDamageNumber(transform.position, finalDamage);
 
+        // ✅ Show blocked damage visually
         if (totalDefense > 0 && remainingDamage > finalDamage)
         {
             int blocked = remainingDamage - finalDamage;
             CombatVisualEffects.Instance?.ShowBlockedDamage(transform.position, blocked);
         }
 
+        // ✅ IMPROVED: Enhanced combat log with defense info
         if (finalDamage > 0)
-            CombatLog.Instance?.AddEntry($"{attacker.entityName} hit {entityName} for {finalDamage} damage!");
+        {
+            if (totalDefense > 0 && remainingDamage > finalDamage)
+            {
+                int blocked = remainingDamage - finalDamage;
+                CombatLog.Instance?.AddEntry(
+                    $"{attacker.entityName} hit {entityName} for {finalDamage} damage " +
+                    $"({blocked} blocked by {totalDefense} defense)!"
+                );
+            }
+            else
+            {
+                CombatLog.Instance?.AddEntry($"{attacker.entityName} hit {entityName} for {finalDamage} damage!");
+            }
+        }
+        else if (remainingDamage > 0)
+        {
+            // All damage blocked
+            CombatLog.Instance?.AddEntry(
+                $"{attacker.entityName} attacked {entityName} but {totalDefense} defense blocked all {remainingDamage} damage!"
+            );
+        }
 
         // ── Consume one-hit defense boosts ────────────────────────────────────────
         ConsumeOneHitDefenseBoosts();

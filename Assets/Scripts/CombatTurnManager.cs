@@ -15,6 +15,7 @@ public class CombatTurnManager : MonoBehaviour
     public bool playerTurn;
     public float turnTimer;
     public float maxTurnTime = 45f;
+    private bool isExecutingTurn = false;
 
     [Header("Combat Visuals")]
     [Tooltip("Where characters zoom to when using abilities")]
@@ -86,12 +87,20 @@ public class CombatTurnManager : MonoBehaviour
 
     void ExecutePlayerTurn()
     {
+        // ✅ CRITICAL FIX: Prevent concurrent execution
+        if (isExecutingTurn)
+        {
+            Debug.LogWarning("[Combat] Already executing turn! Ignoring duplicate call.");
+            return;
+        }
+
+        isExecutingTurn = true;
         playerTurn = false;
         CombatUIManager.Instance?.ShowTurnIndicator(false);
 
         StartCoroutine(ExecutePlayerActions());
 
-        Debug.Log("Player turn coming up!");
+        Debug.Log("[Combat] Starting player action execution...");
     }
 
     IEnumerator ExecutePlayerActions()
@@ -157,12 +166,12 @@ public class CombatTurnManager : MonoBehaviour
             player.ProcessStatusEffects();
         }
 
-        // ✅ FIX v2: Check for PvP FIRST, use correct method to get fighters
+        // Check for PvP FIRST, use correct method to get fighters
         if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
         {
             Debug.Log("[Combat] PvP mode - checking for match end");
 
-            // ✅ CORRECTED: Use GetAllLivingCombatants() instead of GetAllPlayerEntities()
+            // Use GetAllLivingCombatants() instead of GetAllPlayerEntities()
             List<CombatEntity> aliveFighters = GetAllLivingCombatants();
 
             Debug.Log($"[Combat] PvP fighters alive: {aliveFighters.Count}");
@@ -184,22 +193,25 @@ public class CombatTurnManager : MonoBehaviour
                 }
 
                 combatActive = false;
+                isExecutingTurn = false;
                 yield break;
             }
 
             // Match continues - skip enemy turn (no enemies in PvP)
             Debug.Log("[Combat] PvP continuing - both fighters alive, starting next player turn");
             yield return new WaitForSeconds(0.5f);
+            isExecutingTurn = false;
             StartPlayerTurn();
             yield break;
         }
 
-        // ✅ EXISTING CODE: PvE expedition logic (only runs if NOT PvP)
+        // PvE expedition logic (only runs if NOT PvP)
         // Check if wave is cleared
         if (CheckWaveCleared())
         {
             Debug.Log("[Combat] WAVE CLEARED!");
             // Expedition wave cleared
+            isExecutingTurn = false;
             ExpeditionManager.Instance.OnWaveCleared();
             yield break;
         }
@@ -214,12 +226,15 @@ public class CombatTurnManager : MonoBehaviour
         {
             Debug.Log("[Combat] PLAYER WIPE!");
             // Expedition failure
+            isExecutingTurn = false;
             ExpeditionManager.Instance.CompleteExpedition(false);
             yield break;
         }
 
         Debug.Log("[Combat] Starting next player turn...");
 
+        queuedActions.Clear();
+        isExecutingTurn = false;
         // Start next player turn
         StartPlayerTurn();
     }
@@ -593,6 +608,58 @@ public class CombatTurnManager : MonoBehaviour
         Vector3 originalPosition = caster.transform.position;
         bool didZoom = false;
 
+        if (target.isDead)
+        {
+            Debug.Log($"[Combat] {target.entityName} is dead! Attempting to retarget...");
+
+            // Retarget to alive enemy
+            if (ability.canTargetEnemies)
+            {
+                List<CombatEntity> enemies = ExpeditionManager.Instance.GetAllEnemyEntities();
+                if (enemies.Count > 0)
+                {
+                    target = enemies[0];  // Front-most alive enemy
+                    action.target = target;
+                    Debug.Log($"[Combat] Retargeted to {target.entityName}");
+                }
+                else
+                {
+                    // No enemies left - skip turn without zooming
+                    Debug.Log($"[Combat] No valid targets. Skipping turn.");
+                    CombatLog.Instance?.AddEntry($"{caster.entityName}'s target died - no enemies remain!");
+                    yield break;
+                }
+            }
+            // Retarget to alive ally (for heals/buffs)
+            else if (ability.canTargetAllies)
+            {
+                List<CombatEntity> allies = ExpeditionManager.Instance.GetAllPlayerEntities();
+                if (allies.Count > 0)
+                {
+                    // For heals, target most injured; for buffs, target self
+                    if (ability.category == AbilityCategory.Heal)
+                    {
+                        target = allies.OrderBy(a => (float)a.currentHealth / a.maxHealth).FirstOrDefault();
+                    }
+                    else
+                    {
+                        target = caster;
+                    }
+                    action.target = target;
+                    Debug.Log($"[Combat] Retargeted ally ability to {target.entityName}");
+                }
+                else
+                {
+                    yield break;
+                }
+            }
+            else
+            {
+                // Can't retarget - skip turn
+                yield break;
+            }
+        }
+
         if (ability.zoomToCenter)
         {
             yield return StartCoroutine(ZoomToPosition(caster.transform, centerPosition, zoomDuration));
@@ -624,7 +691,18 @@ public class CombatTurnManager : MonoBehaviour
             }
         }
 
-        if (target.isDead) yield break;
+        if (target.isDead)
+        {
+            Debug.LogWarning($"[Combat] Target died during processing. Skipping turn.");
+            CombatLog.Instance?.AddEntry($"{caster.entityName}'s target died!");
+
+            // Zoom back before exiting
+            if (didZoom && !caster.isDead)
+            {
+                yield return StartCoroutine(ZoomToPosition(caster.transform, originalPosition, zoomDuration));
+            }
+            yield break;
+        }
 
         // ── Enrage: override target to front enemy ────────────────────────────────
         if (caster.IsEnraged() && ability.canTargetEnemies)
@@ -712,6 +790,7 @@ public class CombatTurnManager : MonoBehaviour
         {
             ExpeditionManager.Instance.currentExpedition.actionsPerformed[caster.entityName] = 1;
         }
+
     }
 
     /// <summary>
