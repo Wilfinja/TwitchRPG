@@ -63,9 +63,11 @@ public class DiscordBridgeServer : MonoBehaviour
         "stats",
         "inventory", "inv",
         "abilities",
+        "ability",
         "loadout",
         "coins", "balance",
         "shop",
+        "pvpleaderboard",
         "help",
         // ── Write (safe via RPGManager) ──
         "equip",
@@ -355,21 +357,40 @@ public class DiscordBridgeServer : MonoBehaviour
                    "Enable Developer Mode in Discord → Settings → Advanced,\n" +
                    "then right-click your username → Copy User ID.";
 
-        DiscordMappingDatabase db = LoadMappingDatabase();
-
-        // Remove any existing entry for this Twitch user (re-link scenario)
-        db.mappings.RemoveAll(m =>
-            m.twitchUserId == twitchUserId || m.discordUserId == discordId);
-
-        db.mappings.Add(new DiscordMapping
+        // PRIMARY: Save directly onto ViewerData so it persists in game_data.json.
+        // This is the authoritative store — no separate file required.
+        ViewerData viewer = RPGManager.Instance?.GetViewer(twitchUserId);
+        if (viewer != null)
         {
-            twitchUserId = twitchUserId,
-            twitchUsername = twitchUsername,
-            discordUserId = discordId,
-            linkedAt = DateTime.Now.ToString("o")
-        });
+            viewer.discordUserId = discordId;
+            RPGManager.Instance.SaveGameData();
+            Debug.Log($"[DiscordBridge] Saved discordUserId '{discordId}' onto ViewerData for {twitchUsername}");
+        }
+        else
+        {
+            Debug.LogWarning($"[DiscordBridge] Could not find ViewerData for {twitchUserId} — mapping file only.");
+        }
 
-        SaveMappingDatabase(db);
+        // SECONDARY: Also write to discord_mapping.json as a fallback for the
+        // Discord bot's offline reader (which can't access RPGManager directly).
+        if (!string.IsNullOrEmpty(_mappingFilePath))
+        {
+            DiscordMappingDatabase db = LoadMappingDatabase();
+            db.mappings.RemoveAll(m =>
+                m.twitchUserId == twitchUserId || m.discordUserId == discordId);
+            db.mappings.Add(new DiscordMapping
+            {
+                twitchUserId = twitchUserId,
+                twitchUsername = twitchUsername,
+                discordUserId = discordId,
+                linkedAt = DateTime.Now.ToString("o")
+            });
+            SaveMappingDatabase(db);
+        }
+        else
+        {
+            Debug.LogWarning("[DiscordBridge] _mappingFilePath not yet set — mapping file skipped. ViewerData was still updated.");
+        }
 
         Debug.Log($"[DiscordBridge] Linked Discord {discordId} → Twitch {twitchUsername} ({twitchUserId})");
         return $"✅ {twitchUsername}: Discord account linked! " +
@@ -389,6 +410,32 @@ public class DiscordBridgeServer : MonoBehaviour
 
     private static DiscordMapping FindMappingByDiscordId(string discordId)
     {
+        // PRIMARY: Search ViewerData directly — this is always up to date
+        // because RegisterTwitchLink now saves discordUserId onto ViewerData.
+        if (RPGManager.Instance != null)
+        {
+            var allViewers = RPGManager.Instance.GetAllViewers();
+            if (allViewers != null)
+            {
+                ViewerData match = allViewers.Find(v =>
+                    !string.IsNullOrEmpty(v.discordUserId) &&
+                    v.discordUserId == discordId);
+
+                if (match != null)
+                {
+                    return new DiscordMapping
+                    {
+                        twitchUserId = match.twitchUserId,
+                        twitchUsername = match.username,
+                        discordUserId = discordId,
+                        linkedAt = ""
+                    };
+                }
+            }
+        }
+
+        // FALLBACK: Check the mapping file (covers edge cases where ViewerData
+        // wasn't available when the link was first registered).
         DiscordMappingDatabase db = LoadMappingDatabase();
         return db.mappings.Find(m => m.discordUserId == discordId);
     }

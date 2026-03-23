@@ -748,6 +748,7 @@ public class EquippedItems
     {
         public string twitchUserId;
         public string username;
+        public string discordUserId = "";
         public int coins;
         public CharacterClass characterClass;
 

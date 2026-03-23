@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1eac8a112960f14ca7362d6348d51d3, type: 3}
+  m_Name: Wraith
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  enemyName: Wraith
+  enemyPrefab: {fileID: 0}
+  role: 3
+  baseHealth: 40
+  baseStrength: 4
+  baseDexterity: 10
+  baseConstitution: 12
+  baseIntelligence: 4
+  baseDefense: 10
+  healthScaling: 1.2
+  damageScaling: 1.1
+  abilities:
+  - {fileID: 11400000, guid: fe70fd1110059fc43b6f88cf28bc4e99, type: 2}
+  basicAttackCooldown: 0
+  prioritizeLowHP: 0
+  prioritizeHighDefense: 0
+  prioritizeBackline: 1
+  useAOEWhenPossible: 0
+  buffAllies: 0
+  coinDropMin: 10
+  coinDropMax: 50
+  possibleDrops: []
+  xpReward: 25
