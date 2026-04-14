@@ -10,17 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: DefenseDestroy
+  m_Name: Chain Strike
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Defense Break
-  commandName: 
-  description: 
-  requiredClass: 0
-  levelRequired: 1
+  abilityName: Chain Strike
+  commandName: chainstrike
+  description: The fighter strings two attacks, dealing 1x STR damage or if they
+    are in the aggressive stance, they strike three times for the same amount of
+    damage.
+  requiredClass: 3
+  levelRequired: 5
   category: 0
-  targetType: 0
-  scalingStat: 3
-  statMultiplier: 1.5
+  targetType: 5
+  scalingStat: 1
+  statMultiplier: 1
   useSecondaryScaling: 0
   secondaryScalingStat: 0
   secondaryStatMultiplier: 0
@@ -30,11 +32,11 @@ MonoBehaviour:
   consumeSneakAmount: 0
   baseDamage: 5
   canCrit: 0
-  isMultiHit: 0
-  baseHitCount: 1
-  multiHitType: 0
-  resourcePerHit: 1
-  maxHitCount: 5
+  isMultiHit: 1
+  baseHitCount: 2
+  multiHitType: 3
+  resourcePerHit: 0
+  maxHitCount: 3
   consumeResourceAfterHits: 0
   multiHitTargetMode: 0
   elementType: 0
@@ -71,63 +73,19 @@ MonoBehaviour:
   wrathScale: 0
   canTargetAllies: 0
   canTargetEnemies: 1
-  maxTargetPosition: 3
+  maxTargetPosition: 1
   minTargetPosition: 1
   isAOE: 0
   aoETargets: 1
-  cooldown: 0
-  appliesEffects:
-  - effectName: Defense Broken
-    duration: 2
-    applicationChance: 0.6
-    isNegativeEffect: 0
-    statusResistanceBonus: 0
-    damageMultiplier: 1
-    defenseMultiplier: 0.5
-    damageOverTime: 0
-    temporaryDefenseBonus: 0
-    baseDefenseAmount: 0
-    defenseScalingStat: 0
-    defenseScalingMultiplier: 0
-    consumedOnHit: 0
-    statBoostType: 0
-    statBoostAmount: 0
-    lifestealPercent: 0
-    isRiposte: 0
-    riposteDamagePercent: 0
-    riposteFlatBonus: 0
-    riposteScalingStat: 0
-    riposteScalingMultiplier: 0
-    riposteConsumedOnUse: 0
-    isStun: 0
-    isSilence: 0
-    isBleed: 0
-    bleedDamagePerTurn: 0
-    isBarrier: 0
-    barrierCurrentAmount: 0
-    barrierMaxAmount: 0
-    isMark: 0
-    markedDamageMultiplier: 0
-    isTaunt: 0
-    tauntTargetEntityName: 
-    isCurse: 0
-    healingReductionPercent: 0
-    isExposed: 0
-    exposedDefenseReduction: 0
-    isEnrage: 0
-    enrageDamageMultiplier: 0
-    isHaste: 0
-    isPrimed: 0
-    primeThresholdType: 0
-    primeThreshold: 0
-    primedConsumedOnTrigger: 0
+  cooldown: 4
+  appliesEffects: []
   shiftPosition: 0
   positionShift: 0
   grantsLifesteal: 0
   lifestealPercent: 0
   lifestealDuration: 1
   animationTrigger: Attack
-  particleEffect: {fileID: 7478731271839673279, guid: 4d3c8045dd8857a4b8d34c2361c61045, type: 3}
+  particleEffect: {fileID: 0}
   projectilePrefab: {fileID: 0}
   projectileSpeed: 0.3
   zoomToCenter: 1

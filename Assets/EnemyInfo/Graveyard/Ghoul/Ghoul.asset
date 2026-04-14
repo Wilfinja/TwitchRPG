@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1eac8a112960f14ca7362d6348d51d3, type: 3}
+  m_Name: Ghoul
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  enemyName: Ghoul
+  enemyPrefab: {fileID: -2253911629886400664, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+  role: 1
+  baseHealth: 150
+  baseStrength: 20
+  baseDexterity: 20
+  baseConstitution: 16
+  baseIntelligence: 3
+  baseDefense: 5
+  healthScaling: 1
+  damageScaling: 1
+  abilities:
+  - {fileID: 11400000, guid: 1998413727225ea4bba12ef1a8370f07, type: 2}
+  - {fileID: 11400000, guid: 6222562126e19e0439c494b8a2c03ad1, type: 2}
+  - {fileID: 11400000, guid: 155b6e99eea53df49baff2dc7aa9f8a0, type: 2}
+  basicAttackCooldown: 0
+  prioritizeLowHP: 1
+  prioritizeHighDefense: 0
+  prioritizeBackline: 1
+  useAOEWhenPossible: 1
+  buffAllies: 1
+  coinDropMin: 30
+  coinDropMax: 100
+  possibleDrops: []
+  xpReward: 20

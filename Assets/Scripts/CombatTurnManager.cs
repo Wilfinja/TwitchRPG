@@ -738,6 +738,8 @@ public class CombatTurnManager : MonoBehaviour
             ParticleSystem ps = particle.GetComponent<ParticleSystem>();
             if (ps != null)
             {
+                var main = ps.main;
+                main.loop = false;
                 ps.Play();
                 float lifetime = ps.main.duration + ps.main.startLifetime.constantMax;
                 Destroy(particle, lifetime);

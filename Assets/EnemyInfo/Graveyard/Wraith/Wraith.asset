@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Wraith
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Wraith
-  enemyPrefab: {fileID: 0}
+  enemyPrefab: {fileID: 2770799278157113185, guid: 3e91a87428b932640974e7db2c6edd01, type: 3}
   role: 3
   baseHealth: 40
   baseStrength: 4

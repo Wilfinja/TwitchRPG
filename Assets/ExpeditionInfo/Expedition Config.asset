@@ -43,6 +43,36 @@ MonoBehaviour:
     bonusRareChance: 5
     bonusEpicChance: 1
     bonusLegendaryChance: 0
+  - difficulty: 1
+    displayName: Medium
+    waves:
+    - waveNumber: 1
+      minEnemyCount: 2
+      maxEnemyCount: 3
+      hasBoss: 0
+      bossCount: 0
+    - waveNumber: 2
+      minEnemyCount: 2
+      maxEnemyCount: 3
+      hasBoss: 0
+      bossCount: 0
+    - waveNumber: 2
+      minEnemyCount: 3
+      maxEnemyCount: 4
+      hasBoss: 0
+      bossCount: 0
+    coinRewardMin: 300
+    coinRewardMax: 500
+    xpMultiplier: 1
+    guaranteedCommonItems: 2
+    guaranteedUncommonItems: 1
+    guaranteedRareItems: 1
+    guaranteedEpicItems: 0
+    guaranteedLegendaryItems: 0
+    bonusUncommonChance: 20
+    bonusRareChance: 15
+    bonusEpicChance: 10
+    bonusLegendaryChance: 0
   themedPools:
   - themeName: Graveyard
     themeDescription: Locals have sighted strange occurances in the nearby graveyard.
@@ -53,6 +83,8 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 57cfdaa5327adc643ab06db878c4faf6, type: 2}
     mediumEnemies:
     - {fileID: 11400000, guid: 57cfdaa5327adc643ab06db878c4faf6, type: 2}
+    - {fileID: 11400000, guid: fc96af55cde7e0749ae9420951c2f1d3, type: 2}
+    - {fileID: 11400000, guid: 25b29e0b0bd041648a3af60e82c29cf7, type: 2}
     hardEnemies: []
     deadlyEnemies: []
     bossEnemies: []

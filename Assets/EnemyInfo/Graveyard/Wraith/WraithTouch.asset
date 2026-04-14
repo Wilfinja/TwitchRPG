@@ -31,7 +31,7 @@ MonoBehaviour:
   baseDamage: 0
   canCrit: 0
   isMultiHit: 1
-  baseHitCount: 3
+  baseHitCount: 5
   multiHitType: 0
   resourcePerHit: 1
   maxHitCount: 3
@@ -67,6 +67,8 @@ MonoBehaviour:
   balanceGain: 0
   balanceRequirement: 0
   balanceRequirementType: 0
+  wrathScaling: 0
+  wrathScale: 0
   canTargetAllies: 0
   canTargetEnemies: 1
   maxTargetPosition: 1

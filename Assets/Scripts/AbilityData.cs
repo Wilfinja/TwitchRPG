@@ -77,9 +77,6 @@ public class AbilityData : ScriptableObject
     [Tooltip("What element charge does this ability grant? (Mage only)")]
     public ElementType elementType = ElementType.None;
 
-    // ═══════════════════════════════════════════════════════════
-    // ✅ UPDATED: Defense Boost with Stat Scaling
-    // ═══════════════════════════════════════════════════════════
     [Header("Defense Boost")]
     [Tooltip("Grants temporary defense boost")]
     public bool grantsDefenseBoost;
@@ -96,9 +93,6 @@ public class AbilityData : ScriptableObject
     [Tooltip("Defense consumed after 1 hit (true) or lasts 1 turn (false)")]
     public bool defenseConsumedOnHit;
 
-    // ═══════════════════════════════════════════════════════════
-    // ✅ UPDATED: Stat Boost with Stat Scaling
-    // ═══════════════════════════════════════════════════════════
     [Header("Stat Boost")]
     [Tooltip("Grants temporary stat boost")]
     public bool grantsStatBoost;
@@ -156,6 +150,10 @@ public class AbilityData : ScriptableObject
     public int balanceGain;
     public int balanceRequirement;
     public BalanceRequirementType balanceRequirementType;
+
+    [Header("Wrath Information")]
+    public bool wrathScaling;
+    public float wrathScale;
 
     [Header("Targeting")]
     public bool canTargetAllies;

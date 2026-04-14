@@ -12,7 +12,7 @@ public static class CombatCalculations
     {
         Debug.Log($"[CombatCalc] ExecuteAbility called: {caster.entityName} → {ability.abilityName} → {target.entityName}");
 
-        // Consume upfront resources
+
         ConsumeUpfrontResources(caster, ability);
 
         int hitCount = CombatCalculations.CalculateHitCount(caster, ability);
@@ -20,17 +20,14 @@ public static class CombatCalculations
 
         Debug.Log($"[CombatCalc] Hit count: {hitCount}, Category: {ability.category}");
 
-        // Apply damage or healing
         if (ability.category == AbilityCategory.Damage)
         {
             Debug.Log($"[CombatCalc] Starting damage loop...");
 
             if (ability.isMultiHit && ability.multiHitTargetMode != MultiHitTargetMode.SameTarget)
             {
-                // Random targeting mode
                 for (int i = 0; i < hitCount; i++)
                 {
-                    // Pick random target for each hit
                     CombatEntity randomTarget = GetRandomTarget(ability);
 
                     if (randomTarget != null && !randomTarget.isDead)
@@ -47,14 +44,13 @@ public static class CombatCalculations
             }
             else
             {
-                // Standard targeting: all hits on same target
                 for (int i = 0; i < hitCount; i++)
                 {
                     int damage = CalculateDamage(caster, target, ability);
                     Debug.Log($"[CombatCalc] Hit {i + 1}/{hitCount}: {damage} damage");
 
                     target.TakeDamage(damage, caster);
-                    CheckAndApplyLifesteal(caster, damage); // ✅ NEW
+                    CheckAndApplyLifesteal(caster, damage);
                     ConsumeSneakAfterDamage(caster, ability);
                     totalDamage += damage;
                 }
@@ -65,7 +61,6 @@ public static class CombatCalculations
                 ConsumeMultiHitResources(caster, ability, hitCount);
             }
 
-            // ✅ FIX: Add null-safe operator
             CombatLog.Instance?.AddEntry($"{caster.entityName} hit {hitCount} times for {totalDamage} total damage!");
             Debug.Log($"[CombatCalc] Total damage dealt: {totalDamage}");
         }
@@ -81,13 +76,11 @@ public static class CombatCalculations
             ApplyBuff(caster, target, ability);
         }
 
-        // ✅ UPDATED: Pass caster to defense boost
         if (ability.grantsDefenseBoost)
         {
             ApplyDefenseBoost(caster, target, ability);
         }
 
-        // ✅ UPDATED: Pass caster to stat boost
         if (ability.grantsStatBoost)
         {
             ApplyStatBoost(caster, target, ability);
@@ -100,10 +93,8 @@ public static class CombatCalculations
             ApplyLifesteal(caster, target, ability);
         }
 
-        // Grant resources
         GrantResources(caster, ability);
 
-        // Apply status effects
         foreach (StatusEffect effectTemplate in ability.appliesEffects)
         {
             // ── Proc-chance roll ──────────────────────────────────────────────
@@ -112,7 +103,6 @@ public static class CombatCalculations
                 float roll = Random.value; // 0.0 – 1.0
                 if (roll > effectTemplate.applicationChance)
                 {
-                    // Missed the proc – log and skip
                     CombatLog.Instance?.AddEntry(
                         $"{ability.abilityName} failed to apply {effectTemplate.effectName} " +
                         $"({effectTemplate.applicationChance * 100:F0}% chance)"
@@ -123,7 +113,6 @@ public static class CombatCalculations
                 }
             }
 
-            // ── Copy all fields so the template ScriptableObject is never mutated ──
             StatusEffect newEffect = new StatusEffect
             {
                 effectName = effectTemplate.effectName,

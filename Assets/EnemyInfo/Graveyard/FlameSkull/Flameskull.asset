@@ -15,11 +15,11 @@ MonoBehaviour:
   enemyName: Flame Skull
   enemyPrefab: {fileID: 893758435572983408, guid: 5bef7f8f689b3224cb42df82e05e1a51, type: 3}
   role: 2
-  baseHealth: 50
+  baseHealth: 100
   baseStrength: 4
   baseDexterity: 10
   baseConstitution: 10
-  baseIntelligence: 10
+  baseIntelligence: 20
   baseDefense: 10
   healthScaling: 1.2
   damageScaling: 1.1

@@ -16,7 +16,7 @@ MonoBehaviour:
   enemyPrefab: {fileID: 1640248991725266207, guid: 16a32b645af37024aac3a43d2620ce1b, type: 3}
   role: 0
   baseHealth: 40
-  baseStrength: 6
+  baseStrength: 10
   baseDexterity: 3
   baseConstitution: 10
   baseIntelligence: 1

@@ -1,0 +1,349 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &3779855102675546184
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -2253911629886400664, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+      propertyPath: m_Name
+      value: Ghoul
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -8.18
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -2253911629886400664, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 837973906894280187}
+    - targetCorrespondingSourceObject: {fileID: -2253911629886400664, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 555003942739643310}
+  m_SourcePrefab: {fileID: -8435245712485981826, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+--- !u!1 &6110471412497229600 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -2253911629886400664, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+  m_PrefabInstance: {fileID: 3779855102675546184}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &837973906894280187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6110471412497229600}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3577bafda368f01429760ab6275e9a5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CombatEntity
+  userId: 
+  entityName: 
+  isPlayer: 0
+  position: 0
+  maxHealth: 0
+  currentHealth: 0
+  strength: 0
+  dexterity: 0
+  constitution: 0
+  intelligence: 0
+  willpower: 0
+  charisma: 0
+  defense: 0
+  damageBonus: 0
+  isDead: 0
+  hasActedThisTurn: 0
+  wasHealedThisTurn: 0
+  queuedAction: 
+  actionConfirmed: 0
+  characterClass: 0
+  sneakPoints: 0
+  stanceCooldown: 0
+  mana: 0
+  wrath: 0
+  balance: 0
+  comboCounter: 0
+  lastAttackWasMelee: 0
+  activeEffects: []
+  healthBarObject: {fileID: 0}
+  animator: {fileID: 0}
+  classResourceBarObject: {fileID: 0}
+  currentStance: 0
+  viewerData:
+    twitchUserId: 
+    username: 
+    discordUserId: 
+    coins: 0
+    characterClass: 0
+    baseStats:
+      strength: 1
+      constitution: 1
+      dexterity: 1
+      willpower: 1
+      charisma: 1
+      intelligence: 1
+      maxHealth: 100
+      currentHealth: 100
+      level: 1
+      experience: 0
+      unallocatedStatPoints: 0
+    classResources:
+      sneak: 0
+      maxSneak: 6
+      currentStance: None
+      mana: 0
+      maxMana: 100
+      wrath: 0
+      maxWrath: 100
+      balance: 0
+      maxBalance: 10
+      minBalance: -10
+    equipped:
+      head:
+        itemId: 95b3e39a-47c8-46f9-9f59-33af2fca0c80
+        itemName: 
+        description: 
+        itemType: 0
+        rarity: 0
+        requiredLevel: 0
+        price: 0
+        maxManaBonus: 0
+        manaRegenBonus: 0
+        manaCostReduction: 0
+        isTwoHanded: 0
+        weaponCategory: 0
+        strengthBonusPercent: 0
+        constitutionBonusPercent: 0
+        dexterityBonusPercent: 0
+        willpowerBonusPercent: 0
+        charismaBonusPercent: 0
+        intelligenceBonusPercent: 0
+        damageBonus: 0
+        defenseBonus: 0
+        healAmount: 0
+        allowedClasses: 
+        abilities: []
+      chest:
+        itemId: af3c56c0-cae5-4226-a304-320641ad34fa
+        itemName: 
+        description: 
+        itemType: 0
+        rarity: 0
+        requiredLevel: 0
+        price: 0
+        maxManaBonus: 0
+        manaRegenBonus: 0
+        manaCostReduction: 0
+        isTwoHanded: 0
+        weaponCategory: 0
+        strengthBonusPercent: 0
+        constitutionBonusPercent: 0
+        dexterityBonusPercent: 0
+        willpowerBonusPercent: 0
+        charismaBonusPercent: 0
+        intelligenceBonusPercent: 0
+        damageBonus: 0
+        defenseBonus: 0
+        healAmount: 0
+        allowedClasses: 
+        abilities: []
+      legs:
+        itemId: b060d2c3-3afe-4c8c-9bbc-d8db94157ca8
+        itemName: 
+        description: 
+        itemType: 0
+        rarity: 0
+        requiredLevel: 0
+        price: 0
+        maxManaBonus: 0
+        manaRegenBonus: 0
+        manaCostReduction: 0
+        isTwoHanded: 0
+        weaponCategory: 0
+        strengthBonusPercent: 0
+        constitutionBonusPercent: 0
+        dexterityBonusPercent: 0
+        willpowerBonusPercent: 0
+        charismaBonusPercent: 0
+        intelligenceBonusPercent: 0
+        damageBonus: 0
+        defenseBonus: 0
+        healAmount: 0
+        allowedClasses: 
+        abilities: []
+      arms:
+        itemId: 08da05f9-e190-4b40-b8d4-5413901d5fcc
+        itemName: 
+        description: 
+        itemType: 0
+        rarity: 0
+        requiredLevel: 0
+        price: 0
+        maxManaBonus: 0
+        manaRegenBonus: 0
+        manaCostReduction: 0
+        isTwoHanded: 0
+        weaponCategory: 0
+        strengthBonusPercent: 0
+        constitutionBonusPercent: 0
+        dexterityBonusPercent: 0
+        willpowerBonusPercent: 0
+        charismaBonusPercent: 0
+        intelligenceBonusPercent: 0
+        damageBonus: 0
+        defenseBonus: 0
+        healAmount: 0
+        allowedClasses: 
+        abilities: []
+      mainHand:
+        itemId: b437b667-d909-4a1c-8b90-00a876e58c1b
+        itemName: 
+        description: 
+        itemType: 0
+        rarity: 0
+        requiredLevel: 0
+        price: 0
+        maxManaBonus: 0
+        manaRegenBonus: 0
+        manaCostReduction: 0
+        isTwoHanded: 0
+        weaponCategory: 0
+        strengthBonusPercent: 0
+        constitutionBonusPercent: 0
+        dexterityBonusPercent: 0
+        willpowerBonusPercent: 0
+        charismaBonusPercent: 0
+        intelligenceBonusPercent: 0
+        damageBonus: 0
+        defenseBonus: 0
+        healAmount: 0
+        allowedClasses: 
+        abilities: []
+      offHand:
+        itemId: a58bf00f-ba85-48ee-9e46-b039cd8e4298
+        itemName: 
+        description: 
+        itemType: 0
+        rarity: 0
+        requiredLevel: 0
+        price: 0
+        maxManaBonus: 0
+        manaRegenBonus: 0
+        manaCostReduction: 0
+        isTwoHanded: 0
+        weaponCategory: 0
+        strengthBonusPercent: 0
+        constitutionBonusPercent: 0
+        dexterityBonusPercent: 0
+        willpowerBonusPercent: 0
+        charismaBonusPercent: 0
+        intelligenceBonusPercent: 0
+        damageBonus: 0
+        defenseBonus: 0
+        healAmount: 0
+        allowedClasses: 
+        abilities: []
+      feet:
+        itemId: 41fe30b1-871a-41e1-b486-439d09e60746
+        itemName: 
+        description: 
+        itemType: 0
+        rarity: 0
+        requiredLevel: 0
+        price: 0
+        maxManaBonus: 0
+        manaRegenBonus: 0
+        manaCostReduction: 0
+        isTwoHanded: 0
+        weaponCategory: 0
+        strengthBonusPercent: 0
+        constitutionBonusPercent: 0
+        dexterityBonusPercent: 0
+        willpowerBonusPercent: 0
+        charismaBonusPercent: 0
+        intelligenceBonusPercent: 0
+        damageBonus: 0
+        defenseBonus: 0
+        healAmount: 0
+        allowedClasses: 
+        abilities: []
+    inventory: []
+    equippedAbilities: []
+    equippedItemAbility: 
+    totalWatchTimeMinutes: 0
+    isInCombat: 0
+    isDead: 0
+    isBanned: 0
+    isInExpedition: 0
+    expeditionActionsPerformed: 0
+    pvpWins: 0
+    pvpLosses: 0
+    tradeHistory: []
+--- !u!114 &555003942739643310
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6110471412497229600}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8bd7196a691c41c45b030f81bd2623a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyCombatController
+  enemyData: {fileID: 11400000, guid: 25b29e0b0bd041648a3af60e82c29cf7, type: 2}

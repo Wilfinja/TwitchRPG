@@ -76,6 +76,10 @@ public class ParticleEffectManager : MonoBehaviour
     private void PlayEffect(ParticleSystem effect, Vector3 position)
     {
         ParticleSystem instance = Instantiate(effect, position, Quaternion.identity);
+
+        var main = instance.main;
+        main.loop = false;
+
         instance.Play();
 
         // Destroy the particle system after it finishes

@@ -10,25 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: DefenseDestroy
+  m_Name: Rend
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Defense Break
-  commandName: 
-  description: 
+  abilityName: Rend
+  commandName: rend
+  description: The Ghoul Rends!
   requiredClass: 0
   levelRequired: 1
   category: 0
-  targetType: 0
-  scalingStat: 3
-  statMultiplier: 1.5
-  useSecondaryScaling: 0
-  secondaryScalingStat: 0
-  secondaryStatMultiplier: 0
+  targetType: 6
+  scalingStat: 2
+  statMultiplier: 2
+  useSecondaryScaling: 1
+  secondaryScalingStat: 1
+  secondaryStatMultiplier: 0.1
   scalesWithSneak: 0
   sneakDamageMultiplier: 0
   consumesAllSneak: 0
   consumeSneakAmount: 0
-  baseDamage: 5
+  baseDamage: 0
   canCrit: 0
   isMultiHit: 0
   baseHitCount: 1
@@ -71,19 +71,19 @@ MonoBehaviour:
   wrathScale: 0
   canTargetAllies: 0
   canTargetEnemies: 1
-  maxTargetPosition: 3
+  maxTargetPosition: 4
   minTargetPosition: 1
-  isAOE: 0
-  aoETargets: 1
-  cooldown: 0
+  isAOE: 1
+  aoETargets: 2
+  cooldown: 5
   appliesEffects:
-  - effectName: Defense Broken
-    duration: 2
-    applicationChance: 0.6
+  - effectName: 
+    duration: 0
+    applicationChance: 0
     isNegativeEffect: 0
     statusResistanceBonus: 0
-    damageMultiplier: 1
-    defenseMultiplier: 0.5
+    damageMultiplier: 0
+    defenseMultiplier: 0
     damageOverTime: 0
     temporaryDefenseBonus: 0
     baseDefenseAmount: 0
@@ -106,8 +106,8 @@ MonoBehaviour:
     isBarrier: 0
     barrierCurrentAmount: 0
     barrierMaxAmount: 0
-    isMark: 0
-    markedDamageMultiplier: 0
+    isMark: 1
+    markedDamageMultiplier: 1.5
     isTaunt: 0
     tauntTargetEntityName: 
     isCurse: 0
@@ -127,7 +127,7 @@ MonoBehaviour:
   lifestealPercent: 0
   lifestealDuration: 1
   animationTrigger: Attack
-  particleEffect: {fileID: 7478731271839673279, guid: 4d3c8045dd8857a4b8d34c2361c61045, type: 3}
+  particleEffect: {fileID: 2360655870356088562, guid: 57a776ff377f3c44e8403e2067a4d41f, type: 3}
   projectilePrefab: {fileID: 0}
   projectileSpeed: 0.3
   zoomToCenter: 1

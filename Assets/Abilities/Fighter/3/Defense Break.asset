@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: DefenseDestroy
+  m_Name: Defense Break
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
   abilityName: Defense Break
-  commandName: 
-  description: 
-  requiredClass: 0
-  levelRequired: 1
-  category: 0
-  targetType: 0
-  scalingStat: 3
-  statMultiplier: 1.5
+  commandName: defensebreak
+  description: The fighter strikes the first enemy, decreasing defense.
+  requiredClass: 3
+  levelRequired: 3
+  category: 3
+  targetType: 5
+  scalingStat: 1
+  statMultiplier: 0
   useSecondaryScaling: 0
   secondaryScalingStat: 0
   secondaryStatMultiplier: 0
@@ -28,7 +28,7 @@ MonoBehaviour:
   sneakDamageMultiplier: 0
   consumesAllSneak: 0
   consumeSneakAmount: 0
-  baseDamage: 5
+  baseDamage: 0
   canCrit: 0
   isMultiHit: 0
   baseHitCount: 1
@@ -71,18 +71,18 @@ MonoBehaviour:
   wrathScale: 0
   canTargetAllies: 0
   canTargetEnemies: 1
-  maxTargetPosition: 3
+  maxTargetPosition: 1
   minTargetPosition: 1
   isAOE: 0
   aoETargets: 1
   cooldown: 0
   appliesEffects:
-  - effectName: Defense Broken
+  - effectName: Broken
     duration: 2
-    applicationChance: 0.6
+    applicationChance: 1
     isNegativeEffect: 0
     statusResistanceBonus: 0
-    damageMultiplier: 1
+    damageMultiplier: 0
     defenseMultiplier: 0.5
     damageOverTime: 0
     temporaryDefenseBonus: 0
@@ -98,7 +98,7 @@ MonoBehaviour:
     riposteFlatBonus: 0
     riposteScalingStat: 0
     riposteScalingMultiplier: 0
-    riposteConsumedOnUse: 0
+    riposteConsumedOnUse: 1
     isStun: 0
     isSilence: 0
     isBleed: 0
@@ -107,27 +107,27 @@ MonoBehaviour:
     barrierCurrentAmount: 0
     barrierMaxAmount: 0
     isMark: 0
-    markedDamageMultiplier: 0
+    markedDamageMultiplier: 1.25
     isTaunt: 0
     tauntTargetEntityName: 
     isCurse: 0
-    healingReductionPercent: 0
+    healingReductionPercent: 0.5
     isExposed: 0
     exposedDefenseReduction: 0
     isEnrage: 0
-    enrageDamageMultiplier: 0
+    enrageDamageMultiplier: 1.3
     isHaste: 0
     isPrimed: 0
     primeThresholdType: 0
-    primeThreshold: 0
-    primedConsumedOnTrigger: 0
+    primeThreshold: 20
+    primedConsumedOnTrigger: 1
   shiftPosition: 0
   positionShift: 0
   grantsLifesteal: 0
   lifestealPercent: 0
   lifestealDuration: 1
   animationTrigger: Attack
-  particleEffect: {fileID: 7478731271839673279, guid: 4d3c8045dd8857a4b8d34c2361c61045, type: 3}
+  particleEffect: {fileID: 4772634663576830964, guid: e1385af346f4e624eb313ec1ea4fcd7e, type: 3}
   projectilePrefab: {fileID: 0}
   projectileSpeed: 0.3
   zoomToCenter: 1

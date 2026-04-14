@@ -10,25 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: DefenseDestroy
+  m_Name: Bash
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Defense Break
-  commandName: 
-  description: 
-  requiredClass: 0
+  abilityName: Bash
+  commandName: bash
+  description: The Fighter attacks for .5x STR and .5 DEX with a 20% to disarm.
+  requiredClass: 3
   levelRequired: 1
   category: 0
   targetType: 0
-  scalingStat: 3
-  statMultiplier: 1.5
-  useSecondaryScaling: 0
-  secondaryScalingStat: 0
-  secondaryStatMultiplier: 0
+  scalingStat: 1
+  statMultiplier: 0.5
+  useSecondaryScaling: 1
+  secondaryScalingStat: 2
+  secondaryStatMultiplier: 0.5
   scalesWithSneak: 0
   sneakDamageMultiplier: 0
   consumesAllSneak: 0
   consumeSneakAmount: 0
-  baseDamage: 5
+  baseDamage: 0
   canCrit: 0
   isMultiHit: 0
   baseHitCount: 1
@@ -71,19 +71,19 @@ MonoBehaviour:
   wrathScale: 0
   canTargetAllies: 0
   canTargetEnemies: 1
-  maxTargetPosition: 3
+  maxTargetPosition: 1
   minTargetPosition: 1
   isAOE: 0
   aoETargets: 1
   cooldown: 0
   appliesEffects:
-  - effectName: Defense Broken
+  - effectName: Disarmed
     duration: 2
-    applicationChance: 0.6
-    isNegativeEffect: 0
+    applicationChance: 0.2
+    isNegativeEffect: 1
     statusResistanceBonus: 0
-    damageMultiplier: 1
-    defenseMultiplier: 0.5
+    damageMultiplier: 0.25
+    defenseMultiplier: 1
     damageOverTime: 0
     temporaryDefenseBonus: 0
     baseDefenseAmount: 0
@@ -127,7 +127,7 @@ MonoBehaviour:
   lifestealPercent: 0
   lifestealDuration: 1
   animationTrigger: Attack
-  particleEffect: {fileID: 7478731271839673279, guid: 4d3c8045dd8857a4b8d34c2361c61045, type: 3}
+  particleEffect: {fileID: 2504214343621411470, guid: 3ed0d324122d7b24eaec75c55c74aafc, type: 3}
   projectilePrefab: {fileID: 0}
   projectileSpeed: 0.3
   zoomToCenter: 1

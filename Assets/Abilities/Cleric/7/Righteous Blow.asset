@@ -10,34 +10,34 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Chain Strike
+  m_Name: Righteous Blow
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Chain Strike
-  commandName: chainstrike
-  description: The fighter strings two attacks, dealing 1x STR damage or if they
-    are in the aggressive stance, they strike three times for the same amount of
-    damage.
-  requiredClass: 3
-  levelRequired: 5
+  abilityName: Righteous Blow
+  commandName: righteousblow
+  description: The Cleric strikes the first two enemies for 1.25x WIL and .5x STR.
+  requiredClass: 2
+  levelRequired: 7
   category: 0
-  targetType: 5
-  scalingStat: 1
-  statMultiplier: 1
-  useSecondaryScaling: 0
-  secondaryScalingStat: 0
-  secondaryStatMultiplier: 0
+  targetType: 6
+  scalingStat: 4
+  statMultiplier: 1.25
+  useSecondaryScaling: 1
+  secondaryScalingStat: 1
+  secondaryStatMultiplier: 0.5
   scalesWithSneak: 0
   sneakDamageMultiplier: 0
   consumesAllSneak: 0
   consumeSneakAmount: 0
-  baseDamage: 5
+  baseDamage: 0
   canCrit: 0
-  isMultiHit: 1
-  baseHitCount: 2
-  multiHitType: 3
-  resourcePerHit: 0
-  maxHitCount: 3
+  isMultiHit: 0
+  baseHitCount: 1
+  multiHitType: 0
+  resourcePerHit: 1
+  maxHitCount: 5
   consumeResourceAfterHits: 0
+  multiHitTargetMode: 0
+  elementType: 0
   grantsDefenseBoost: 0
   baseDefenseBoost: 0
   defenseScalingStat: 0
@@ -49,13 +49,20 @@ MonoBehaviour:
   statBoostScalingStat: 0
   statBoostScalingMultiplier: 0
   statBoostDuration: 1
+  grantsRiposte: 0
+  riposteDamagePercent: 0.5
+  riposteFlatBonus: 0
+  riposteScalingStat: 0
+  riposteScalingMultiplier: 0
+  riposteDuration: 1
+  riposteConsumedOnUse: 1
   sneakCost: 0
   sneakGain: 0
   requiresStance: 0
   requiredStance: 0
   manaCost: 0
   wrathCost: 0
-  wrathGain: 0
+  wrathGain: 10
   balanceCost: 0
   balanceGain: 0
   balanceRequirement: 0
@@ -64,11 +71,17 @@ MonoBehaviour:
   canTargetEnemies: 1
   maxTargetPosition: 1
   minTargetPosition: 1
-  isAOE: 0
-  aoETargets: 1
-  cooldown: 3
+  isAOE: 1
+  aoETargets: 2
+  cooldown: 5
   appliesEffects: []
   shiftPosition: 0
   positionShift: 0
+  grantsLifesteal: 0
+  lifestealPercent: 0
+  lifestealDuration: 1
   animationTrigger: Attack
-  particleEffect: {fileID: 0}
+  particleEffect: {fileID: 8194992990867289339, guid: 99bc28c0d45f51c4fbac01080b73edc7, type: 3}
+  projectilePrefab: {fileID: 0}
+  projectileSpeed: 0.3
+  zoomToCenter: 1
