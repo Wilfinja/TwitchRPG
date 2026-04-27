@@ -254,14 +254,13 @@ public class CombatEntity : MonoBehaviour
         // ── Visuals ───────────────────────────────────────────────────────────────
         CombatVisualEffects.Instance?.ShowDamageNumber(transform.position, finalDamage);
 
-        // ✅ Show blocked damage visually
+        // Show blocked damage visually
         if (totalDefense > 0 && remainingDamage > finalDamage)
         {
             int blocked = remainingDamage - finalDamage;
             CombatVisualEffects.Instance?.ShowBlockedDamage(transform.position, blocked);
         }
 
-        // ✅ IMPROVED: Enhanced combat log with defense info
         if (finalDamage > 0)
         {
             if (totalDefense > 0 && remainingDamage > finalDamage)

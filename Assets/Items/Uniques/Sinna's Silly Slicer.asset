@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed1d154c8d2eb1d408c5ddd8aabc8691, type: 3}
+  m_Name: Sinna's Silly Slicer
+  m_EditorClassIdentifier: Assembly-CSharp::RPGItemData
+  itemName: Sinna's Silly Slicer
+  description: A sword that is extremely silly.
+  itemType: 0
+  rarity: 5
+  weaponCategory: 1
+  requiredLevel: 1
+  price: 10000
+  isTwoHanded: 0
+  strengthBonusPercent: 0
+  constitutionBonusPercent: 0
+  dexterityBonusPercent: 0.15
+  willpowerBonusPercent: 0
+  charismaBonusPercent: 0
+  intelligenceBonusPercent: 0
+  damageBonus: 20
+  defenseBonus: 0
+  healAmount: 0
+  maxManaBonus: 0
+  manaRegenBonus: 0
+  manaCostReduction: 0
+  allowedClasses: 01000000
+  abilities: []
+  properties: []

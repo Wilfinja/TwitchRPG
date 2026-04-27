@@ -226,19 +226,14 @@ public static class CombatCalculations
         Debug.Log($"[CombatCalc] ExecuteAbility complete!");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // ✅ ENHANCED: DAMAGE CALCULATION WITH DUAL-STAT AND SNEAK SCALING
-    // ═══════════════════════════════════════════════════════════════════════
     static int CalculateDamage(CombatEntity caster, CombatEntity target, AbilityData ability)
     {
         float totalDamage = 0f;
 
-        // PRIMARY STAT SCALING (always present - backwards compatible)
         int primaryStatValue = GetStatValue(caster, ability.scalingStat);
         float primaryScaling = primaryStatValue * ability.statMultiplier;
         totalDamage += primaryScaling;
 
-        // ✅ SECONDARY STAT SCALING (optional)
         if (ability.HasSecondaryScaling())
         {
             int secondaryStatValue = GetStatValue(caster, ability.secondaryScalingStat);
@@ -383,9 +378,6 @@ public static class CombatCalculations
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // ✅ NEW: CONSUME SNEAK AFTER DAMAGE (separate from upfront costs)
-    // ═══════════════════════════════════════════════════════════════════════
     static void ConsumeSneakAfterDamage(CombatEntity caster, AbilityData ability)
     {
         if (caster.characterClass != CharacterClass.Rogue) return;
@@ -425,9 +417,6 @@ public static class CombatCalculations
         caster.UpdateClassResourceBar();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // ✅ RENAMED: UPFRONT RESOURCE CONSUMPTION (checked before damage)
-    // ═══════════════════════════════════════════════════════════════════════
     static void ConsumeUpfrontResources(CombatEntity caster, AbilityData ability)
     {
         switch (caster.characterClass)
@@ -451,7 +440,6 @@ public static class CombatCalculations
             case CharacterClass.Mage:
                 int manaCost = ability.manaCost;
 
-                // ✅ NEW: Apply cost reduction from equipment
                 if (caster.viewerData != null)
                 {
                     float reduction = caster.viewerData.equipped.GetTotalManaCostReduction();

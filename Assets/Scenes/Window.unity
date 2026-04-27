@@ -424,7 +424,11 @@ MonoBehaviour:
   namedLegendaries: []
   namedEpics: []
   namedRares: []
-  enableProceduralGeneration: 1
+  namedUncommons: []
+  namedCommons:
+  - {fileID: 11400000, guid: 4f8ea7c6fd97b1a4c9468bf5ee49f8b3, type: 2}
+  - {fileID: 11400000, guid: b96afa708f674a24e9a836ec37f3c1d4, type: 2}
+  - {fileID: 11400000, guid: ba4fa0700039f0a4cb66790904b11d31, type: 2}
 --- !u!1 &310242708
 GameObject:
   m_ObjectHideFlags: 0
@@ -1606,7 +1610,9 @@ MonoBehaviour:
   fighterPrefab: {fileID: 4424705616336512928, guid: 3cf0ee1c38ee41e4b9d1ef96dc796e41, type: 3}
   magePrefab: {fileID: 7852466279638095106, guid: 172abaca545ff0f4ea19c959ef62e618, type: 3}
   clericPrefab: {fileID: 5190373245135505393, guid: e6cd6292c5e434a48ade794d73817e8a, type: 3}
-  rangerPrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
+  rangerPrefab: {fileID: 9061568944872234515, guid: 5f0a82b2573a9b14889fae8f0cd6a23c, type: 3}
+  sinnaPrefab: {fileID: 669381813418491618, guid: b805602e3186b1942b74785d948d87d5, type: 3}
+  wilfPrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
   spawnYPosition: -10.5
   spawnSpacing: 15
   idleRangeX: 8

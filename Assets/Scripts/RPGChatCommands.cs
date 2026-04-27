@@ -956,41 +956,84 @@ public class RPGChatCommands : MonoBehaviour
     private string HandleLoadoutCommand(ViewerData viewer)
     {
         if (viewer.characterClass == CharacterClass.None)
-        {
             return $"{viewer.username}: Choose a class first with !class";
-        }
 
-        string result = $"═══ {viewer.username}'s Ability Loadout ═══\n";
-        result += "Equipped Abilities (Max 4):\n";
+        string result = $"═══ {viewer.username}'s Loadout [{viewer.characterClass}] ═══\n";
 
         if (viewer.equippedAbilities.Count == 0)
         {
-            result += "  (none equipped)\n";
+            result += "No abilities equipped!\n";
+            result += "Use !equipability <name> to add up to 4.\n";
+            result += "Use !abilities to see what's available.";
+            return result;
         }
-        else
+
+        result += $"Slots {viewer.equippedAbilities.Count}/4  |  !unequipa <#> to remove\n";
+        result += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+
+        for (int i = 0; i < viewer.equippedAbilities.Count; i++)
         {
-            for (int i = 0; i < viewer.equippedAbilities.Count; i++)
+            string abilityCmd = viewer.equippedAbilities[i];
+            AbilityData ability = AbilityDatabase.Instance?.GetAbility(abilityCmd);
+
+            if (ability != null)
             {
-                string abilityCmd = viewer.equippedAbilities[i];
-                AbilityData ability = AbilityDatabase.Instance?.GetAbility(abilityCmd);
-                string name = ability != null ? ability.abilityName : abilityCmd;
-                result += $"  {i + 1}. {name} (!{abilityCmd})\n";
+                string cost = BuildAbilityCostString(ability, viewer.characterClass);
+                string cooldownText = ability.cooldown > 0 ? $"  CD:{ability.cooldown}" : "";
+                string icon = GetCategoryIcon(ability.category);
+
+                result += $"[{i + 1}] {icon} {ability.abilityName}\n";
+                result += $"     !q {abilityCmd}{(cost.Length > 0 ? $"  {cost}" : "")}{cooldownText}\n";
+            }
+            else
+            {
+                result += $"[{i + 1}] ??? {abilityCmd}  (not found)\n";
             }
         }
 
-        // Show item ability if equipped
         if (!string.IsNullOrEmpty(viewer.equippedItemAbility))
         {
-            result += $"\nItem Ability: !{viewer.equippedItemAbility}\n";
+            AbilityData itemAbility = AbilityDatabase.Instance?.GetAbility(viewer.equippedItemAbility);
+            string name = itemAbility != null ? itemAbility.abilityName : viewer.equippedItemAbility;
+            result += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+            result += $"[⚡] {name}  (!q {viewer.equippedItemAbility})\n";
         }
 
-        result += $"\nSlots used: {viewer.equippedAbilities.Count}/4\n";
-        result += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
-        result += "!equipability <name> - Add ability\n";
-        result += "!unequipability <#> - Remove ability\n";
-        result += "!abilities - See all available";
-
+        result += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        result += "!equipability <name>  !abilities";
         return result;
+    }
+
+    private string BuildAbilityCostString(AbilityData ability, CharacterClass charClass)
+    {
+        var parts = new List<string>();
+        switch (charClass)
+        {
+            case CharacterClass.Mage:
+                if (ability.manaCost > 0) parts.Add($"{ability.manaCost}MP"); break;
+            case CharacterClass.Cleric:
+                if (ability.wrathCost > 0) parts.Add($"{ability.wrathCost}WR");
+                if (ability.wrathGain > 0) parts.Add($"+{ability.wrathGain}WR"); break;
+            case CharacterClass.Rogue:
+                if (ability.sneakCost > 0) parts.Add($"{ability.sneakCost}SP");
+                if (ability.sneakGain > 0) parts.Add($"+{ability.sneakGain}SP"); break;
+            case CharacterClass.Ranger:
+                if (ability.balanceCost > 0) parts.Add($"-{ability.balanceCost}BAL");
+                if (ability.balanceGain > 0) parts.Add($"+{ability.balanceGain}BAL"); break;
+        }
+        return string.Join(" ", parts);
+    }
+
+    private string GetCategoryIcon(AbilityCategory category)
+    {
+        switch (category)
+        {
+            case AbilityCategory.Damage: return "⚔";
+            case AbilityCategory.Heal: return "💚";
+            case AbilityCategory.Buff: return "✨";
+            case AbilityCategory.Debuff: return "💀";
+            default: return "◆";
+        }
     }
 
     /// <summary>

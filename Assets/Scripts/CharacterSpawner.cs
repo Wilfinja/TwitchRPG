@@ -9,6 +9,8 @@ public class CharacterSpawner : MonoBehaviour
     [SerializeField] private GameObject magePrefab;
     [SerializeField] private GameObject clericPrefab;
     [SerializeField] private GameObject rangerPrefab;
+    [SerializeField] private GameObject sinnaPrefab;
+    [SerializeField] private GameObject wilfPrefab;
 
     [Header("Spawn Settings")]
     [SerializeField] private float spawnYPosition = -3f;
@@ -68,7 +70,7 @@ public class CharacterSpawner : MonoBehaviour
         Vector3 spawnPos = new Vector3(spawnX, spawnYPosition, 0f);
 
         // Get the correct prefab for this class
-        GameObject prefabToSpawn = GetPrefabForClass(viewer.characterClass);
+        GameObject prefabToSpawn = GetPrefabForClass(viewer.characterClass, username);
 
         if (prefabToSpawn == null)
         {
@@ -98,23 +100,35 @@ public class CharacterSpawner : MonoBehaviour
         return true;
     }
 
-    private GameObject GetPrefabForClass(CharacterClass charClass)
+    private GameObject GetPrefabForClass(CharacterClass charClass, string username)
     {
-        switch (charClass)
+        if (username == "sinnaj30")
         {
-            case CharacterClass.Rogue:
-                return roguePrefab;
-            case CharacterClass.Fighter:
-                return fighterPrefab;
-            case CharacterClass.Mage:
-                return magePrefab;
-            case CharacterClass.Cleric:
-                return clericPrefab;
-            case CharacterClass.Ranger:
-                return rangerPrefab;
-            default:
-                return null;
+            return sinnaPrefab;
         }
+        else if (username == "wilfinja")
+        {
+            return wilfPrefab;
+        }
+        else
+        {
+            switch (charClass)
+            {
+                case CharacterClass.Rogue:
+                    return roguePrefab;
+                case CharacterClass.Fighter:
+                    return fighterPrefab;
+                case CharacterClass.Mage:
+                    return magePrefab;
+                case CharacterClass.Cleric:
+                    return clericPrefab;
+                case CharacterClass.Ranger:
+                    return rangerPrefab;
+                default:
+                    return null;
+            }
+        }
+        
     }
 
     public void DespawnCharacter(string userId)

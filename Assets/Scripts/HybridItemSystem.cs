@@ -1,16 +1,42 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Manages all named items in the game via ScriptableObject assets.
+/// Hand-crafted items of any rarity are dragged into the appropriate list
+/// in the Inspector. Common/Uncommon shop slots are filled procedurally
+/// when no SO assets are available for that rarity.
+///
+/// Workflow:
+///   1. Right-click in Project → Create → RPG → Item
+///   2. Fill in the fields on the asset
+///   3. Drag the asset into the matching rarity list below
+/// </summary>
 public class HybridItemSystem : MonoBehaviour
 {
-    [Header("Hand-Crafted Named Items")]
-    [SerializeField] private List<RPGItem> namedUniques = new List<RPGItem>();
-    [SerializeField] private List<RPGItem> namedLegendaries = new List<RPGItem>();
-    [SerializeField] private List<RPGItem> namedEpics = new List<RPGItem>();
-    [SerializeField] private List<RPGItem> namedRares = new List<RPGItem>();
+    // ── Named items by rarity (assign SO assets in the Inspector) ────────────
 
-    [Header("Procedural Generation")]
-    [SerializeField] private bool enableProceduralGeneration = true;
+    [Header("Named Items — Unique")]
+    [SerializeField] private List<RPGItemData> namedUniques = new List<RPGItemData>();
+
+    [Header("Named Items — Legendary")]
+    [SerializeField] private List<RPGItemData> namedLegendaries = new List<RPGItemData>();
+
+    [Header("Named Items — Epic")]
+    [SerializeField] private List<RPGItemData> namedEpics = new List<RPGItemData>();
+
+    [Header("Named Items — Rare")]
+    [SerializeField] private List<RPGItemData> namedRares = new List<RPGItemData>();
+
+    [Header("Named Items — Uncommon")]
+    [SerializeField] private List<RPGItemData> namedUncommons = new List<RPGItemData>();
+
+    [Header("Named Items — Common")]
+    [SerializeField] private List<RPGItemData> namedCommons = new List<RPGItemData>();
+
+
+
+    // ── Singleton ─────────────────────────────────────────────────────────────
 
     private static HybridItemSystem _instance;
     public static HybridItemSystem Instance
@@ -18,9 +44,7 @@ public class HybridItemSystem : MonoBehaviour
         get
         {
             if (_instance == null)
-            {
                 _instance = FindFirstObjectByType<HybridItemSystem>();
-            }
             return _instance;
         }
     }
@@ -33,640 +57,139 @@ public class HybridItemSystem : MonoBehaviour
             return;
         }
         _instance = this;
-
-        InitializeNamedItems();
     }
 
-    private void InitializeNamedItems()
-    {
-        // Hand-crafted items with abilities
-        CustomShadowfang();
-        CustomStaffOfTheArchmage();
-        CustomDragonscalePlate();
-        CustomMeltysMelter();
-        CustomKaptainsKillerKilt();
-        CustomMissBeeBanginBow();
-        CustomGormGauntlets();
-        CustomRozayPoutinePiercer();
+    // ── Shop inventory generation ─────────────────────────────────────────────
 
-    }
-
-    // ============================================
-    // HAND-CRAFTED ITEMS WITH ABILITIES
-    // ============================================
-
-    private void CustomShadowfang()
-    {
-        RPGItem shadowfang = new RPGItem
-        {
-            itemName = "Shadowfang",
-            description = "A legendary dagger that strikes from the shadows.",
-            itemType = ItemType.Weapon,
-            weaponCategory = WeaponCategory.Dagger,
-            rarity = ItemRarity.Legendary,
-            requiredLevel = 0,
-            price = 10000,
-            isTwoHanded = false,
-
-            strengthBonusPercent = 0.35f,
-            dexterityBonusPercent = 0.25f,
-            intelligenceBonusPercent = 0.10f,
-            damageBonus = 40,
-
-            allowedClasses = new List<CharacterClass> { CharacterClass.Rogue },
-
-            properties = new Dictionary<string, string>
-            {
-                { "CritChance", "+15%" },
-                { "Backstab", "+50% damage from stealth" }
-            },
-
-            // ===== ABILITY =====
-            abilities = new List<ItemAbility>
-            {
-                new ItemAbility
-                {
-                    abilityName = "Shadow Dance",
-                    abilityDescription = "Consume 3 sneak to deal 200% weapon damage and gain +2 sneak back on kill.",
-                    abilityCommand = "shadowdance",
-                    manaCost = 3,  // 3 sneak points
-                    cooldownTurns = 2
-                }
-            }
-        };
-
-        namedLegendaries.Add(shadowfang);
-    }
-
-    private void CustomStaffOfTheArchmage()
-    {
-        RPGItem staff = new RPGItem
-        {
-            itemName = "Staff of the Archmage",
-            description = "Crackling with ancient magical power.",
-            itemType = ItemType.Weapon,
-            weaponCategory = WeaponCategory.Staff,
-            rarity = ItemRarity.Epic,
-            requiredLevel = 0,
-            price = 3500,
-            isTwoHanded = true,
-
-            intelligenceBonusPercent = 0.30f,
-            willpowerBonusPercent = 0.20f,
-            damageBonus = 35,
-
-            allowedClasses = new List<CharacterClass> { CharacterClass.Mage },
-
-            properties = new Dictionary<string, string>
-            {
-                { "ManaRegen", "+5 per turn" },
-                { "SpellPower", "+20%" }
-            },
-
-            // ===== ABILITY =====
-            abilities = new List<ItemAbility>
-            {
-                new ItemAbility
-                {
-                    abilityName = "Arcane Surge",
-                    abilityDescription = "Spend 30 mana to deal triple spell damage on your next spell cast.",
-                    abilityCommand = "arcanesurge",
-                    manaCost = 30,
-                    cooldownTurns = 3
-                }
-            }
-        };
-
-        namedEpics.Add(staff);
-    }
-
-    private void CustomDragonscalePlate()
-    {
-        RPGItem plate = new RPGItem
-        {
-            itemName = "Dragonscale Plate",
-            description = "Forged from the scales of an ancient dragon.",
-            itemType = ItemType.ChestArmor,
-            rarity = ItemRarity.Legendary,
-            requiredLevel = 0,
-            price = 6000,
-
-            strengthBonusPercent = 0.10f,
-            constitutionBonusPercent = 0.35f,
-            defenseBonus = 50,
-
-            allowedClasses = new List<CharacterClass> { CharacterClass.Fighter },
-
-            properties = new Dictionary<string, string>
-            {
-                { "FireResist", "+50%" },
-                { "Thorns", "Reflect 15% damage" }
-            },
-
-            // ===== ABILITY =====
-            abilities = new List<ItemAbility>
-            {
-                new ItemAbility
-                {
-                    abilityName = "Dragon's Wrath",
-                    abilityDescription = "Release a fiery explosion dealing 100 damage to all enemies and granting immunity to fire for 2 turns.",
-                    abilityCommand = "dragonwrath",
-                    manaCost = 0,  // Fighters don't use mana
-                    cooldownTurns = 5
-                }
-            }
-        };
-
-        namedLegendaries.Add(plate);
-    }
-
-    private void CustomMeltysMelter()
-    {
-        RPGItem meltysmelter = new RPGItem
-        {
-            itemName = "Melty's Melter",
-            description = "A legendary orb that disintigrates all that it touches.",
-            itemType = ItemType.Trinket,
-            rarity = ItemRarity.Legendary,
-            requiredLevel = 0,
-            price = 10000,
-            isTwoHanded = false,
-
-            intelligenceBonusPercent = 0.40f,
-            constitutionBonusPercent = 0.30f,
-            damageBonus = 20,
-
-            allowedClasses = new List<CharacterClass> { CharacterClass.Mage, CharacterClass.Cleric },
-
-            properties = new Dictionary<string, string>
-            {
-                { "CritChance", "+10%" },
-                { "Soul Siphon", "5% Chance to deal damage equal to current Mana/Wrath" }
-            },
-
-            // ===== ABILITY =====
-            abilities = new List<ItemAbility>
-            {
-                new ItemAbility
-                {
-                    abilityName = "Melty Ray",
-                    abilityDescription = "Consume 20 Mana/Wrath to deal IntX2 damage to all enemies.",
-                    abilityCommand = "meltyray",
-                    manaCost = 20,  // 20 Mana or Wrath points
-                    cooldownTurns = 3
-                }
-            }
-        };
-
-        namedLegendaries.Add(meltysmelter);
-    }
-
-    private void CustomKaptainsKillerKilt()
-    {
-        RPGItem killerkilt = new RPGItem
-        {
-            itemName = "Kaptain's Kilt of Killing",
-            description = "A kilt formed from the down and feathers of seagulls. Vicious seagulls.",
-            itemType = ItemType.LegArmor,
-            rarity = ItemRarity.Legendary,
-            requiredLevel = 0,
-            price = 6000,
-
-            strengthBonusPercent = 0.10f,
-            constitutionBonusPercent = 0.35f,
-            defenseBonus = 50,
-
-            allowedClasses = new List<CharacterClass> { CharacterClass.Fighter },
-
-            properties = new Dictionary<string, string>
-            {
-                { "FireResist", "+50%" },
-                { "Thorns", "Reflect 15% damage" }
-            },
-
-            // ===== ABILITY =====
-            abilities = new List<ItemAbility>
-            {
-                new ItemAbility
-                {
-                    abilityName = "Squawk",
-                    abilityDescription = "Release a legendary squawk, weakening all foes.",
-                    abilityCommand = "squawk",
-                    manaCost = 0,  // Fighters don't use mana
-                    cooldownTurns = 5
-                }
-            }
-        };
-
-        namedLegendaries.Add(killerkilt);
-    }
-
-    private void CustomMissBeeBanginBow()
-    {
-        RPGItem killerkilt = new RPGItem
-        {
-            itemName = "Kaptain's Kilt of Killing",
-            description = "A kilt formed from the down and feathers of seagulls. Vicious seagulls.",
-            itemType = ItemType.Weapon,
-            weaponCategory = WeaponCategory.Bow,
-            rarity = ItemRarity.Legendary,
-            requiredLevel = 0,
-            price = 6000,
-
-            strengthBonusPercent = 0.10f,
-            constitutionBonusPercent = 0.35f,
-            defenseBonus = 50,
-
-            allowedClasses = new List<CharacterClass> { CharacterClass.Fighter },
-
-            properties = new Dictionary<string, string>
-            {
-                { "FireResist", "+50%" },
-                { "Thorns", "Reflect 15% damage" }
-            },
-
-            // ===== ABILITY =====
-            abilities = new List<ItemAbility>
-            {
-                new ItemAbility
-                {
-                    abilityName = "Squawk",
-                    abilityDescription = "Release a legendary squawk, weakening all foes.",
-                    abilityCommand = "squawk",
-                    manaCost = 0,  // Fighters don't use mana
-                    cooldownTurns = 5
-                }
-            }
-        };
-
-        namedLegendaries.Add(killerkilt);
-    }
-
-    private void CustomGormGauntlets()
-    {
-        RPGItem killerkilt = new RPGItem
-        {
-            itemName = "Kaptain's Kilt of Killing",
-            description = "A kilt formed from the down and feathers of seagulls. Vicious seagulls.",
-            itemType = ItemType.ArmArmor,
-            rarity = ItemRarity.Legendary,
-            requiredLevel = 0,
-            price = 6000,
-
-            strengthBonusPercent = 0.10f,
-            constitutionBonusPercent = 0.35f,
-            defenseBonus = 50,
-
-            allowedClasses = new List<CharacterClass> { CharacterClass.Fighter },
-
-            properties = new Dictionary<string, string>
-            {
-                { "FireResist", "+50%" },
-                { "Thorns", "Reflect 15% damage" }
-            },
-
-            // ===== ABILITY =====
-            abilities = new List<ItemAbility>
-            {
-                new ItemAbility
-                {
-                    abilityName = "Squawk",
-                    abilityDescription = "Release a legendary squawk, weakening all foes.",
-                    abilityCommand = "squawk",
-                    manaCost = 0,  // Fighters don't use mana
-                    cooldownTurns = 5
-                }
-            }
-        };
-
-        namedLegendaries.Add(killerkilt);
-    }
-
-    private void CustomRozayPoutinePiercer()
-    {
-        RPGItem killerkilt = new RPGItem
-        {
-            itemName = "Rozay's Poutine Piercer",
-            description = "A trident forged to pierce the delicious and the deadly.",
-            itemType = ItemType.Weapon,
-            weaponCategory = WeaponCategory.Spear,
-            rarity = ItemRarity.Legendary,
-            requiredLevel = 0,
-            price = 6000,
-
-            strengthBonusPercent = 0.10f,
-            constitutionBonusPercent = 0.35f,
-            defenseBonus = 50,
-
-            allowedClasses = new List<CharacterClass> { CharacterClass.Fighter },
-
-            properties = new Dictionary<string, string>
-            {
-                { "FireResist", "+50%" },
-                { "Thorns", "Reflect 15% damage" }
-            },
-
-            // ===== ABILITY =====
-            abilities = new List<ItemAbility>
-            {
-                new ItemAbility
-                {
-                    abilityName = "Squawk",
-                    abilityDescription = "Release a legendary squawk, weakening all foes.",
-                    abilityCommand = "squawk",
-                    manaCost = 0,  // Fighters don't use mana
-                    cooldownTurns = 5
-                }
-            }
-        };
-
-        namedLegendaries.Add(killerkilt);
-    }
-
-    // ============================================
-    // GENERATE SHOP INVENTORY
-    // ============================================
-
+    /// <summary>
+    /// Builds the daily shop inventory from named SO items only.
+    /// Slot allocation (out of <paramref name="shopSize"/>):
+    ///   • 1 Unique    — 2 % chance
+    ///   • 1 Legendary — 5 % chance
+    ///   • 1 Epic      — 10 % chance
+    ///   • 2–3 Rare
+    ///   • Remainder   — Uncommon / Common (40 / 60 split)
+    /// Slots are skipped silently if the matching rarity list is empty.
+    /// </summary>
     public List<RPGItem> GenerateShopInventory(int shopSize = 10)
     {
-        List<RPGItem> shopItems = new List<RPGItem>();
+        var shopItems = new List<RPGItem>();
 
-        // 1. Maybe add 1 Epic (5% chance)
-        if (Random.value < 0.05f && namedEpics.Count > 0)
-        {
-            RPGItem epic = GetRandomFromList(namedEpics);
-            shopItems.Add(epic);
-        }
+        // Unique (2 %)
+        if (Random.value < 0.02f)
+            TryAddNamedItem(shopItems, namedUniques);
 
-        // 2. Add 2-3 Rares
+        // Legendary (5 %)
+        if (Random.value < 0.05f)
+            TryAddNamedItem(shopItems, namedLegendaries);
+
+        // Epic (10 %)
+        if (Random.value < 0.10f)
+            TryAddNamedItem(shopItems, namedEpics);
+
+        // 2–3 Rares
         int rareCount = Random.Range(2, 4);
         for (int i = 0; i < rareCount; i++)
+            TryAddNamedItem(shopItems, namedRares);
+
+        // Fill remainder with Uncommon / Common
+        int attempts = 0; // safety valve — stops if all lists are exhausted
+        while (shopItems.Count < shopSize && attempts < shopSize * 4)
         {
-            if (namedRares.Count > 0)
-            {
-                RPGItem rare = GetRandomFromList(namedRares);
-                if (!shopItems.Contains(rare))
-                {
-                    shopItems.Add(rare);
-                }
-            }
-            else if (enableProceduralGeneration)
-            {
-                shopItems.Add(GenerateProceduralItem(ItemRarity.Rare));
-            }
+            attempts++;
+            bool useUncommon = Random.value < 0.4f;
+            TryAddNamedItem(shopItems, useUncommon ? namedUncommons : namedCommons);
         }
 
-        // 3. Fill rest with procedural Common/Uncommon
-        if (enableProceduralGeneration)
-        {
-            while (shopItems.Count < shopSize)
-            {
-                ItemRarity rarity = Random.value < 0.6f ? ItemRarity.Common : ItemRarity.Uncommon;
-                RPGItem procedural = GenerateProceduralItem(rarity);
-                shopItems.Add(procedural);
-            }
-        }
+        if (shopItems.Count == 0)
+            Debug.LogWarning("[HybridItemSystem] Shop is empty — add RPGItemData assets to the rarity lists in the Inspector.");
 
         return shopItems;
     }
 
-    // ============================================
-    // PROCEDURAL GENERATION
-    // ============================================
+    // ── Named item helpers ────────────────────────────────────────────────────
 
-    private RPGItem GenerateProceduralItem(ItemRarity rarity)
+    /// <summary>
+    /// Picks a random item from <paramref name="source"/>, converts it to a
+    /// runtime RPGItem, and adds it if it isn't already in the shop.
+    /// Does nothing if the list is null or empty.
+    /// </summary>
+    private void TryAddNamedItem(List<RPGItem> shopItems, List<RPGItemData> source)
     {
-        ItemType type = GetRandomItemType();
+        if (source == null || source.Count == 0) return;
 
-        switch (type)
-        {
-            case ItemType.Weapon:
-                return GenerateProceduralWeapon(rarity);
-            case ItemType.Trinket:
-            case ItemType.Shield:
-                return GenerateProceduralOffhand(rarity); // ADD THIS
-            case ItemType.Helmet:
-            case ItemType.ChestArmor:
-            case ItemType.LegArmor:
-            case ItemType.ArmArmor:
-            case ItemType.Boots:
-                return GenerateProceduralArmor(type, rarity);
-            default:
-                return GenerateProceduralWeapon(rarity);
-        }
+        RPGItemData data = source[Random.Range(0, source.Count)];
+        if (data == null) return;
+
+        RPGItem item = data.ToRPGItem();
+
+        // Avoid duplicate named items in the same shop rotation
+        if (!shopItems.Exists(i => i.itemName == item.itemName))
+            shopItems.Add(item);
     }
 
-    private RPGItem GenerateProceduralOffhand(ItemRarity rarity)
-    {
-        RPGItem offhand = new RPGItem();
+    // ── Public API ────────────────────────────────────────────────────────────
 
-        string material = GetRandomMaterial(rarity);
-        string[] offhandTypes = { "Shield", "Orb", "Tome", "Focus" };
-        string offhandType = offhandTypes[Random.Range(0, offhandTypes.Length)];
-
-        offhand.itemName = $"{material} {offhandType}";
-        offhand.description = $"A {rarity.ToString().ToLower()} quality {offhandType.ToLower()}.";
-
-        // FIX: Set correct ItemType based on offhand type
-        if (offhandType == "Shield")
-            offhand.itemType = ItemType.Shield;
-        else
-            offhand.itemType = ItemType.Trinket;
-
-        offhand.rarity = rarity;
-        offhand.requiredLevel = 0;
-        offhand.price = CalculatePrice(rarity);
-        offhand.isTwoHanded = false;
-
-        float basePercent = RPGItem.GetRarityPercentageBonus(rarity);
-
-        // Shields = CON/DEF, Magic offhands = INT/WIL
-        if (offhandType == "Shield")
-        {
-            offhand.constitutionBonusPercent = basePercent;
-            offhand.defenseBonus = rarity == ItemRarity.Common ? Random.Range(5, 10) : Random.Range(12, 20);
-        }
-        else
-        {
-            offhand.intelligenceBonusPercent = basePercent * 0.7f;
-            offhand.willpowerBonusPercent = basePercent * 0.3f;
-            offhand.damageBonus = rarity == ItemRarity.Common ? Random.Range(2, 5) : Random.Range(6, 12);
-        }
-
-        return offhand;
-    }
-
-    private RPGItem GenerateProceduralWeapon(ItemRarity rarity)
-    {
-        RPGItem weapon = new RPGItem();
-
-        string material = GetRandomMaterial(rarity);
-        string weaponType = GetRandomWeaponType();
-        weapon.itemName = $"{material} {weaponType}";
-        weapon.description = $"A {rarity.ToString().ToLower()} quality {weaponType.ToLower()}.";
-        weapon.itemType = ItemType.Weapon;
-        weapon.rarity = rarity;
-        weapon.requiredLevel = 0;
-        weapon.price = CalculatePrice(rarity);
-
-        weapon.isTwoHanded = IsTwoHandedWeaponType(weaponType);
-
-        float basePercent = RPGItem.GetRarityPercentageBonus(rarity);
-
-        if (Random.value < 0.5f)
-        {
-            weapon.strengthBonusPercent = basePercent;
-        }
-        else
-        {
-            weapon.dexterityBonusPercent = basePercent;
-        }
-
-        int damageMultiplier = weapon.isTwoHanded ? 2 : 1;
-        weapon.damageBonus = (rarity == ItemRarity.Common ? Random.Range(3, 6) : Random.Range(8, 15)) * damageMultiplier;
-
-        return weapon;
-    }
-
-    private bool IsTwoHandedWeaponType(string weaponType)
-    {
-        string[] twoHandedTypes = { "Bow", "Staff", "Spear", "Greatsword", "Warhammer" };
-
-        foreach (string type in twoHandedTypes)
-        {
-            if (weaponType.Contains(type))
-                return true;
-        }
-
-        return false;
-    }
-
-    private RPGItem GenerateProceduralArmor(ItemType armorType, ItemRarity rarity)
-    {
-        RPGItem armor = new RPGItem();
-
-        string material = GetRandomMaterial(rarity);
-        string armorName = GetArmorTypeName(armorType);
-        armor.itemName = $"{material} {armorName}";
-        armor.description = $"A {rarity.ToString().ToLower()} quality {armorName.ToLower()}.";
-        armor.itemType = armorType;
-        armor.rarity = rarity;
-        armor.requiredLevel = 0;
-        armor.price = CalculatePrice(rarity);
-
-        float basePercent = RPGItem.GetRarityPercentageBonus(rarity);
-
-        armor.constitutionBonusPercent = basePercent;
-
-        armor.defenseBonus = rarity == ItemRarity.Common ? Random.Range(3, 8) : Random.Range(10, 20);
-
-        return armor;
-    }
-
-    // ============================================
-    // HELPER METHODS
-    // ============================================
-
-    private string GetRandomMaterial(ItemRarity rarity)
-    {
-        switch (rarity)
-        {
-            case ItemRarity.Common:
-                return Random.value < 0.5f ? "Iron" : "Wooden";
-            case ItemRarity.Uncommon:
-                return Random.value < 0.5f ? "Steel" : "Bronze";
-            case ItemRarity.Rare:
-                return Random.value < 0.5f ? "Mithril" : "Silver";
-            default:
-                return "Iron";
-        }
-    }
-
-    private string GetRandomWeaponType()
-    {
-        string[] weapons = {
-            "Sword", "Axe", "Dagger", "Mace",
-            "Bow", "Staff", "Spear", "Greatsword", "Warhammer"
-        };
-        return weapons[Random.Range(0, weapons.Length)];
-    }
-
-    private string GetArmorTypeName(ItemType type)
-    {
-        switch (type)
-        {
-            case ItemType.Helmet: return "Helm";
-            case ItemType.ChestArmor: return "Chestplate";
-            case ItemType.LegArmor: return "Leggings";
-            case ItemType.ArmArmor: return "Gauntlets";
-            case ItemType.Boots: return "Boots";
-            default: return "Armor";
-        }
-    }
-
-    private ItemType GetRandomItemType()
-    {
-        ItemType[] types = {
-        ItemType.Weapon,
-        ItemType.Trinket,
-        ItemType.Shield,     // ADD THIS
-        ItemType.Helmet,
-        ItemType.ChestArmor,
-        ItemType.LegArmor,
-        ItemType.ArmArmor,
-        ItemType.Boots
-    };
-        return types[Random.Range(0, types.Length)];
-    }
-
-    private int CalculatePrice(ItemRarity rarity)
-    {
-        switch (rarity)
-        {
-            case ItemRarity.Common: return 50;
-            case ItemRarity.Uncommon: return 200;
-            case ItemRarity.Rare: return 800;
-            case ItemRarity.Epic: return 3000;
-            case ItemRarity.Legendary: return 10000;
-            case ItemRarity.Unique: return 15000;
-            default: return 50;
-        }
-    }
-
-    private T GetRandomFromList<T>(List<T> list)
-    {
-        if (list.Count == 0) return default(T);
-        return list[Random.Range(0, list.Count)];
-    }
-
-    // ============================================
-    // PUBLIC API
-    // ============================================
-
+    /// <summary>
+    /// Returns the first named item whose name matches (case-insensitive),
+    /// searching all rarity lists. Returns null if not found.
+    /// </summary>
     public RPGItem GetNamedItem(string itemName)
     {
-        foreach (var item in namedUniques)
-            if (item.itemName.ToLower() == itemName.ToLower()) return item;
-
-        foreach (var item in namedLegendaries)
-            if (item.itemName.ToLower() == itemName.ToLower()) return item;
-
-        foreach (var item in namedEpics)
-            if (item.itemName.ToLower() == itemName.ToLower()) return item;
-
-        foreach (var item in namedRares)
-            if (item.itemName.ToLower() == itemName.ToLower()) return item;
-
+        foreach (var list in AllNamedLists())
+        {
+            var data = list.Find(d => d != null && d.itemName.ToLower() == itemName.ToLower());
+            if (data != null) return data.ToRPGItem();
+        }
         return null;
     }
 
+    /// <summary>
+    /// Returns a runtime RPGItem for every named item across all rarities.
+    /// </summary>
     public List<RPGItem> GetAllNamedItems()
     {
-        List<RPGItem> all = new List<RPGItem>();
-        all.AddRange(namedUniques);
-        all.AddRange(namedLegendaries);
-        all.AddRange(namedEpics);
-        all.AddRange(namedRares);
-        return all;
+        var result = new List<RPGItem>();
+        foreach (var list in AllNamedLists())
+            foreach (var data in list)
+                if (data != null) result.Add(data.ToRPGItem());
+        return result;
+    }
+
+    /// <summary>
+    /// Returns all named items of a specific rarity as runtime RPGItems.
+    /// </summary>
+    public List<RPGItem> GetNamedItemsByRarity(ItemRarity rarity)
+    {
+        var result = new List<RPGItem>();
+        foreach (var data in GetListForRarity(rarity))
+            if (data != null) result.Add(data.ToRPGItem());
+        return result;
+    }
+
+    // ── Internal helpers ──────────────────────────────────────────────────────
+
+    private IEnumerable<List<RPGItemData>> AllNamedLists()
+    {
+        yield return namedUniques;
+        yield return namedLegendaries;
+        yield return namedEpics;
+        yield return namedRares;
+        yield return namedUncommons;
+        yield return namedCommons;
+    }
+
+    private List<RPGItemData> GetListForRarity(ItemRarity rarity)
+    {
+        switch (rarity)
+        {
+            case ItemRarity.Unique: return namedUniques;
+            case ItemRarity.Legendary: return namedLegendaries;
+            case ItemRarity.Epic: return namedEpics;
+            case ItemRarity.Rare: return namedRares;
+            case ItemRarity.Uncommon: return namedUncommons;
+            case ItemRarity.Common: return namedCommons;
+            default: return namedCommons;
+        }
     }
 }
