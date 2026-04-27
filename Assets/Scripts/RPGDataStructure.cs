@@ -462,6 +462,17 @@ public class RPGItem
     [Range(0f, 1f)] public float charismaBonusPercent;
     [Range(0f, 1f)] public float intelligenceBonusPercent;
 
+    // FLAT-BASED STAT BONUSES
+    public int strengthBonus;
+    public int constitutionBonus;
+    public int dexterityBonus;
+    public int willpowerBonus;
+    public int charismaBonus;
+    public int intelligenceBonus;
+
+    public List<ItemPassiveEffect> passives = new List<ItemPassiveEffect>();
+    public AbilityData grantAbility;
+
     // FLAT COMBAT BONUSES
     public int damageBonus;
     public int defenseBonus;

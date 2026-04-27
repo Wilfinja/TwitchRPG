@@ -91,6 +91,13 @@ public class RPGItemData : ScriptableObject
             charismaBonusPercent = charismaBonusPercent,
             intelligenceBonusPercent = intelligenceBonusPercent,
 
+            strengthBonus = strengthBonus,
+            constitutionBonus = constitutionBonus,
+            dexterityBonus = dexterityBonus,
+            willpowerBonus = willpowerBonus,
+            charismaBonus = charismaBonus,
+            intelligenceBonus = intelligenceBonus,
+
             damageBonus = damageBonus,
             defenseBonus = defenseBonus,
             healAmount = healAmount,
@@ -100,6 +107,7 @@ public class RPGItemData : ScriptableObject
             manaCostReduction = manaCostReduction,
 
             allowedClasses = new List<CharacterClass>(allowedClasses),
+            passives = new List<ItemPassiveEffect>(passives),
 
             abilities = new List<ItemAbility>(),
             properties = new Dictionary<string, string>(),

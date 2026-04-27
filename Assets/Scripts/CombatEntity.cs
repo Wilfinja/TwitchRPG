@@ -60,7 +60,7 @@ public class CombatEntity : MonoBehaviour
     private int baseDefense;
     private int baseMaxHealth;
 
-
+    public Dictionary<string, object> passiveState = new Dictionary<string, object>();
 
     // Reference to the ViewerData (for syncing back after combat)
     public ViewerData viewerData;
@@ -305,6 +305,9 @@ public class CombatEntity : MonoBehaviour
         if (finalDamage > 0)
             TriggerPrimed(finalDamage, currentHealthBeforeHit);
 
+        PassiveEffectProcessor.OnTakeDamage(this, attacker, finalDamage);
+        PassiveEffectProcessor.OnDealDamage(attacker, this, finalDamage);
+
         // ── Death check ───────────────────────────────────────────────────────────
         if (currentHealth <= 0)
         {
@@ -320,6 +323,8 @@ public class CombatEntity : MonoBehaviour
 
     public void Heal(int amount, CombatEntity healer)
     {
+        passiveState["preHealHP"] = currentHealth;
+
         if (isDead) return;
 
         // ── Curse reduces healing ─────────────────────────────────────────────────
@@ -339,6 +344,8 @@ public class CombatEntity : MonoBehaviour
 
         CombatVisualEffects.Instance?.ShowHealNumber(transform.position, healAmount);
         CombatLog.Instance?.AddEntry($"{healer.entityName} healed {entityName} for {healAmount} HP!");
+
+        PassiveEffectProcessor.OnHeal(this, healer, amount);
 
         UpdateHealthBar();
         SyncToViewerData();
