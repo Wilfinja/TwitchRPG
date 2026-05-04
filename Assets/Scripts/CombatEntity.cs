@@ -1,5 +1,7 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Rendering.VirtualTexturing;
 
 /// <summary>
 /// Combat component added to OnScreenCharacter during expeditions.
@@ -305,29 +307,46 @@ public class CombatEntity : MonoBehaviour
         if (finalDamage > 0)
             TriggerPrimed(finalDamage, currentHealthBeforeHit);
 
-        PassiveEffectProcessor.OnTakeDamage(this, attacker, finalDamage);
-        PassiveEffectProcessor.OnDealDamage(attacker, this, finalDamage);
+        // Calculate current health percentage (0-100)
+        int currentHpPercent = Mathf.RoundToInt((float)currentHealth / maxHealth * 100f);
+
+        // Pass the percentage as the second argument
+        PassiveEffectProcessor.OnHealthThreshold(this, currentHpPercent);
 
         // ── Death check ───────────────────────────────────────────────────────────
         if (currentHealth <= 0)
         {
             currentHealth = 0;
+
+            if (PassiveEffectProcessor.OnDeath(this))
+            {
+                // Death was prevented (Phoenix triggered)!
+                return;
+            }
+
             Die();
+            PassiveEffectProcessor.OnKill(attacker, this);
         }
         else
         {
             UpdateHealthBar();
             SyncToViewerData();
         }
+
+        //Fire passive hooks after all damage is resolved
+        PassiveEffectProcessor.OnTakeDamage(this, attacker, finalDamage);
+        if (attacker != null && !attacker.isDead)
+        PassiveEffectProcessor.OnDealDamage(attacker, this, finalDamage);
     }
 
     public void Heal(int amount, CombatEntity healer)
     {
+        // Store pre-heal HP so Overcharge can calculate excess
         passiveState["preHealHP"] = currentHealth;
 
         if (isDead) return;
 
-        // ── Curse reduces healing ─────────────────────────────────────────────────
+        // Curse reduces healing
         float curseMod = GetHealingReductionMultiplier();
         if (curseMod < 1f)
         {
@@ -340,11 +359,12 @@ public class CombatEntity : MonoBehaviour
         int healAmount = Mathf.Min(amount, maxHealth - currentHealth);
         currentHealth += healAmount;
 
-        wasHealedThisTurn = true; // ← Bleed will skip its tick this turn
+        wasHealedThisTurn = true;
 
         CombatVisualEffects.Instance?.ShowHealNumber(transform.position, healAmount);
         CombatLog.Instance?.AddEntry($"{healer.entityName} healed {entityName} for {healAmount} HP!");
 
+        // Fire OnHeal passives — passes raw amount so Overcharge can find excess
         PassiveEffectProcessor.OnHeal(this, healer, amount);
 
         UpdateHealthBar();
@@ -355,13 +375,22 @@ public class CombatEntity : MonoBehaviour
     {
         if (isDead) return; // Prevent double-death
 
+        // Give Phoenix (and any future OnDeath passives) a chance to prevent death
+        // before we commit the death state
+        if (isPlayer && PassiveEffectProcessor.OnDeath(this))
+        {
+            // A passive saved this entity — abort the death sequence
+            Debug.Log($"[CombatEntity] {entityName} death prevented by passive!");
+            UpdateHealthBar();
+            return;
+        }
+
         isDead = true;
         animator?.SetTrigger("Death");
         CombatLog.Instance?.AddEntry($"💀 {entityName} has been defeated!");
 
         if (isPlayer)
         {
-            // Apply death lockout to ViewerData
             if (viewerData != null)
             {
                 viewerData.isDead = true;
@@ -372,12 +401,10 @@ public class CombatEntity : MonoBehaviour
                 Debug.Log($"[CombatEntity] {entityName} died - 30min lockout applied");
             }
 
-            // Notify expedition manager
             ExpeditionManager.Instance?.OnPlayerDeath(userId);
         }
         else
         {
-            // Enemy death
             ExpeditionManager.Instance?.OnEnemyDeath(this);
         }
 
@@ -921,6 +948,8 @@ public class CombatEntity : MonoBehaviour
 
         ClassResourceBar resourceBar = classResourceBarObject.GetComponent<ClassResourceBar>();
         if (resourceBar == null) return;
+
+        Debug.Log($"Refreshing UI for {entityName}");
 
         switch (characterClass)
         {

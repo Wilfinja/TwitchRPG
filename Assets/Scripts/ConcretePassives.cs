@@ -316,22 +316,23 @@ public class PassiveCenser : ItemPassiveEffect
 
     public override void Proc(CombatEntity owner, CombatEntity target, int value)
     {
-        // owner = healer (has the item), target = entity being healed
-        // We need to apply the buff to whoever was healed.
-        // The PassiveEffectProcessor.OnHeal passes (healed, healer, amount).
-        // So owner = healed entity, target = healer.
-        // We apply the buff to owner.
+        // When fired from PassiveEffectProcessor.OnHeal:
+        //   owner  = the healer (has this item equipped)
+        //   target = the entity that was healed (receives the defense buff)
+        //   value  = raw heal amount (unused here)
 
-        if (owner == null || owner.isDead) return;
+        // Apply buff to the healed entity (target), not the healer (owner)
+        CombatEntity recipient = target ?? owner;
+        if (recipient == null || recipient.isDead) return;
 
-        // Look for existing Censer effect and refresh duration
-        foreach (var effect in owner.activeEffects)
+        // Look for existing Censer effect on the recipient and refresh duration
+        foreach (var effect in recipient.activeEffects)
         {
             if (effect.effectName == "Censer Defense")
             {
-                effect.duration = duration; // refresh
+                effect.duration = duration;
                 CombatLog.Instance?.AddEntry(
-                    $"🛡 {owner.entityName}'s Censer defense refreshed! ({duration} turns)"
+                    $"🛡 {recipient.entityName}'s Censer defense refreshed! ({duration} turns)"
                 );
                 return;
             }
@@ -347,10 +348,10 @@ public class PassiveCenser : ItemPassiveEffect
             defenseMultiplier = 1f,
         };
 
-        owner.activeEffects.Add(buff);
+        recipient.activeEffects.Add(buff);
 
         CombatLog.Instance?.AddEntry(
-            $"🕯 {owner.entityName} gains +{defenseBonus} Defense from Censer! ({duration} turns)"
+            $"🕯 {recipient.entityName} gains +{defenseBonus} Defense from Censer! ({duration} turns)"
         );
     }
 }

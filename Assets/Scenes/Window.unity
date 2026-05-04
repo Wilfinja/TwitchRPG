@@ -423,12 +423,17 @@ MonoBehaviour:
   namedUniques: []
   namedLegendaries: []
   namedEpics: []
-  namedRares: []
-  namedUncommons: []
+  namedRares:
+  - {fileID: 11400000, guid: 7c119bb1c352f604da41d7bce363cdb9, type: 2}
+  namedUncommons:
+  - {fileID: 11400000, guid: 1bc64043eb5b90746ab0f7bc65d1d682, type: 2}
+  - {fileID: 11400000, guid: f88166c3a53a50d41b544f6365a37e7c, type: 2}
   namedCommons:
   - {fileID: 11400000, guid: 4f8ea7c6fd97b1a4c9468bf5ee49f8b3, type: 2}
   - {fileID: 11400000, guid: b96afa708f674a24e9a836ec37f3c1d4, type: 2}
   - {fileID: 11400000, guid: ba4fa0700039f0a4cb66790904b11d31, type: 2}
+  - {fileID: 11400000, guid: ea52d3268e27c94469f0f6db9e6b5f9e, type: 2}
+  - {fileID: 11400000, guid: c6c73c33c4fdd0949bfb6156ede113db, type: 2}
 --- !u!1 &310242708
 GameObject:
   m_ObjectHideFlags: 0
@@ -2833,8 +2838,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::OnScreenNotification
   notificationPrefab: {fileID: 1013994383}
   notificationContainer: {fileID: 2036186956}
-  notificationDuration: 4
-  fadeTime: 0.5
+  notificationDuration: 8
+  fadeTime: 0.25
   shopDisplayDuration: 15
 --- !u!4 &2076462973
 Transform:

@@ -107,7 +107,7 @@ public class RPGItemData : ScriptableObject
             manaCostReduction = manaCostReduction,
 
             allowedClasses = new List<CharacterClass>(allowedClasses),
-            passives = new List<ItemPassiveEffect>(passives),
+            passives = new List<ItemPassiveEffect>(this.passives),
 
             abilities = new List<ItemAbility>(),
             properties = new Dictionary<string, string>(),

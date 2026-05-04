@@ -19,9 +19,9 @@ MonoBehaviour:
   procChance: 0.25
   effectToApply:
     effectName: Cursed
-    duration: 3
+    duration: 2
     applicationChance: 1
-    isNegativeEffect: 0
+    isNegativeEffect: 1
     statusResistanceBonus: 0
     damageMultiplier: 1
     defenseMultiplier: 1

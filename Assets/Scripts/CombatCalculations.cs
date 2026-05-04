@@ -178,25 +178,25 @@ public static class CombatCalculations
             if (effectTemplate.applicationChance >= 1f)
             {
                 if (effectTemplate.isStun)
-                    CombatLog.Instance?.AddEntry($"💫 {target.entityName} is STUNNED for {newEffect.duration} turn(s)!");
+                    CombatLog.Instance?.AddEntry($"{target.entityName} is STUNNED for {newEffect.duration} turn(s)!");
                 else if (effectTemplate.isSilence)
-                    CombatLog.Instance?.AddEntry($"🔇 {target.entityName} is SILENCED for {newEffect.duration} turn(s)!");
+                    CombatLog.Instance?.AddEntry($"{target.entityName} is SILENCED for {newEffect.duration} turn(s)!");
                 else if (effectTemplate.isBleed)
-                    CombatLog.Instance?.AddEntry($"🩸 {target.entityName} is BLEEDING ({newEffect.bleedDamagePerTurn}/turn) for {newEffect.duration} turn(s)!");
+                    CombatLog.Instance?.AddEntry($"{target.entityName} is BLEEDING ({newEffect.bleedDamagePerTurn}/turn) for {newEffect.duration} turn(s)!");
                 else if (effectTemplate.isBarrier)
-                    CombatLog.Instance?.AddEntry($"🛡 {target.entityName} gains a Barrier ({newEffect.barrierCurrentAmount} HP)!");
+                    CombatLog.Instance?.AddEntry($"{target.entityName} gains a Barrier ({newEffect.barrierCurrentAmount} HP)!");
                 else if (effectTemplate.isMark)
-                    CombatLog.Instance?.AddEntry($"🎯 {target.entityName} is MARKED – takes {newEffect.markedDamageMultiplier * 100 - 100:F0}% more damage!");
+                    CombatLog.Instance?.AddEntry($"{target.entityName} is MARKED – takes {newEffect.markedDamageMultiplier * 100 - 100:F0}% more damage!");
                 else if (effectTemplate.isTaunt)
-                    CombatLog.Instance?.AddEntry($"😤 {target.entityName} is TAUNTED – forced to target {newEffect.tauntTargetEntityName}!");
+                    CombatLog.Instance?.AddEntry($"{target.entityName} is TAUNTED – forced to target {newEffect.tauntTargetEntityName}!");
                 else if (effectTemplate.isCurse)
-                    CombatLog.Instance?.AddEntry($"🖤 {target.entityName} is CURSED – healing reduced by {newEffect.healingReductionPercent * 100:F0}%!");
+                    CombatLog.Instance?.AddEntry($"{target.entityName} is CURSED – healing reduced by {newEffect.healingReductionPercent * 100:F0}%!");
                 else if (effectTemplate.isExposed)
-                    CombatLog.Instance?.AddEntry($"💥 {target.entityName} is EXPOSED – -{newEffect.exposedDefenseReduction} DEF!");
+                    CombatLog.Instance?.AddEntry($"{target.entityName} is EXPOSED – -{newEffect.exposedDefenseReduction} DEF!");
                 else if (effectTemplate.isEnrage)
-                    CombatLog.Instance?.AddEntry($"😡 {target.entityName} is ENRAGED – +{(newEffect.enrageDamageMultiplier - 1f) * 100:F0}% damage, forced targeting!");
+                    CombatLog.Instance?.AddEntry($"{target.entityName} is ENRAGED – +{(newEffect.enrageDamageMultiplier - 1f) * 100:F0}% damage, forced targeting!");
                 else if (effectTemplate.isHaste)
-                    CombatLog.Instance?.AddEntry($"⚡ {target.entityName} is HASTED – acts twice this turn!");
+                    CombatLog.Instance?.AddEntry($"{target.entityName} is HASTED – acts twice this turn!");
             }
             else
             {
@@ -230,48 +230,43 @@ public static class CombatCalculations
     {
         float totalDamage = 0f;
 
+        // ── Primary stat scaling ───────────────────────────────────────────────────
         int primaryStatValue = GetStatValue(caster, ability.scalingStat);
         float primaryScaling = primaryStatValue * ability.statMultiplier;
         totalDamage += primaryScaling;
 
+        // ── Secondary stat scaling (optional) ────────────────────────────────────
         if (ability.HasSecondaryScaling())
         {
             int secondaryStatValue = GetStatValue(caster, ability.secondaryScalingStat);
             float secondaryScaling = secondaryStatValue * ability.secondaryStatMultiplier;
             totalDamage += secondaryScaling;
 
-            // Log dual-stat calculation
             Debug.Log($"[Dual-Stat] {ability.abilityName}: " +
                      $"{primaryStatValue} {ability.scalingStat} × {ability.statMultiplier} = {primaryScaling:F1} + " +
                      $"{secondaryStatValue} {ability.secondaryScalingStat} × {ability.secondaryStatMultiplier} = {secondaryScaling:F1} " +
                      $"= {totalDamage:F1} total");
         }
 
-        // Add base damage BEFORE sneak multiplier
+        // ── Base damage ────────────────────────────────────────────────────────────
         totalDamage += ability.baseDamage;
-
         totalDamage += caster.damageBonus;
 
-        bool didCrit = false;
+        // ── Critical hit ──────────────────────────────────────────────────────────
         if (ability.canCrit)
         {
-            float critChance = 0.1f; // 10% base crit
+            float critChance = 0.1f;
             if (Random.value < critChance)
             {
-                totalDamage *= 1.5f; // 150% damage
-                didCrit = true;
-
-
+                totalDamage *= 1.5f;
                 Debug.Log($"[Damage] CRITICAL HIT! {totalDamage} damage");
 
-                // ✅ NEW: Show crit particle
                 if (target != null && CombatVisualEffects.Instance != null)
-                {
                     CombatVisualEffects.Instance.PlayCriticalEffect(target.transform.position);
-                }
             }
         }
 
+        // ── Sneak scaling (Rogue) ─────────────────────────────────────────────────
         if (ability.HasSneakScaling() && caster.characterClass == CharacterClass.Rogue)
         {
             int currentSneak = caster.sneakPoints;
@@ -285,20 +280,16 @@ public static class CombatCalculations
                 $"{caster.entityName} uses {currentSneak} sneak! " +
                 $"Damage: {damageBeforeSneak:F0} × {sneakMultiplier:F2} = {totalDamage:F0}"
             );
-
-            Debug.Log($"[Sneak Scaling] {ability.abilityName}: " +
-                     $"{currentSneak} sneak × {ability.sneakDamageMultiplier:F2} = +{sneakBonus:F2} multiplier " +
-                     $"({damageBeforeSneak:F0} → {totalDamage:F0})");
         }
 
-        // Apply Ranger combo multiplier
+        // ── Ranger combo multiplier ───────────────────────────────────────────────
         if (caster.characterClass == CharacterClass.Ranger && caster.comboCounter > 0)
         {
-            float comboBonus = 1f + (caster.comboCounter * 0.2f); // +20% per combo
+            float comboBonus = 1f + (caster.comboCounter * 0.2f);
             totalDamage *= comboBonus;
         }
 
-        // Apply status effect multipliers
+        // ── Status effect multipliers (damage buff/debuff) ────────────────────────
         foreach (StatusEffect effect in caster.activeEffects)
         {
             totalDamage *= effect.damageMultiplier;
@@ -307,13 +298,79 @@ public static class CombatCalculations
             {
                 totalDamage *= effect.enrageDamageMultiplier;
                 Debug.Log($"[Enrage] {caster.entityName} enrage bonus: ×{effect.enrageDamageMultiplier}");
-                break; // Only apply one enrage multiplier
+                break;
             }
         }
 
-        // TODO: Critical hits (if ability.canCrit)
+        // ── PASSIVE: Berserker — bonus stats from missing HP ─────────────────────
+        // Berserker boosts the caster's stats directly. We apply those bonuses now
+        // as a damage multiplier based on the primary scaling stat.
+        var berserkerBonuses = PassiveEffectProcessor.GetBerserkerBonuses(caster);
+        if (berserkerBonuses.Count > 0)
+        {
+            // Convert the primary scaling stat to a BoostableStat for lookup
+            BoostableStat primaryBoostable = DamageStatToBoostable(ability.scalingStat);
+            if (primaryBoostable != BoostableStat.None && berserkerBonuses.TryGetValue(primaryBoostable, out int berserkerBonus))
+            {
+                // Add the flat stat bonus to the primary stat value and recalculate its contribution
+                float additionalDamage = berserkerBonus * ability.statMultiplier;
+                totalDamage += additionalDamage;
+                Debug.Log($"[Berserker] {caster.entityName} +{berserkerBonus} {primaryBoostable} → +{additionalDamage:F1} damage");
+            }
+        }
 
-        return Mathf.RoundToInt(totalDamage);
+        // ── PASSIVE: Executioner — bonus damage when target is low HP ────────────
+        float executionerMult = PassiveEffectProcessor.GetExecutionerMultiplier(caster, target);
+        if (executionerMult > 1f)
+        {
+            float before = totalDamage;
+            totalDamage *= executionerMult;
+            Debug.Log($"[Executioner] {caster.entityName} ×{executionerMult:F2} → {before:F0} → {totalDamage:F0}");
+            CombatLog.Instance?.AddEntry(
+                $"⚔️ {caster.entityName}'s Executioner triggers! ×{executionerMult:F2} damage!"
+            );
+        }
+
+        int rawDamage = Mathf.RoundToInt(totalDamage);
+
+        // ── PASSIVE: Pinpoint — reduce effective enemy defense ────────────────────
+        float pinpoint = PassiveEffectProcessor.GetPinpointPenetration(caster);
+        int effectiveDefense = target.defense;
+        if (pinpoint > 0f)
+        {
+            effectiveDefense = Mathf.RoundToInt(effectiveDefense * (1f - pinpoint));
+            Debug.Log($"[Pinpoint] {caster.entityName} ignores {pinpoint * 100:F0}% of {target.entityName}'s defense " +
+                      $"({target.defense} → {effectiveDefense})");
+        }
+
+        // Apply defense AFTER pinpoint reduction
+        // NOTE: The actual defense subtraction still happens inside CombatEntity.TakeDamage().
+        // Pinpoint works by passing the MODIFIED defense value into damage for logging purposes,
+        // but the real integration point is to expose it so TakeDamage can use it.
+        // See CombatEntityPatches.cs for where pinpoint is applied in TakeDamage.
+        // We return the raw pre-defense damage here; defense is applied in TakeDamage.
+
+        // ── PASSIVE: Lifesteal — heal caster for a fraction of damage ─────────────
+        // Lifesteal is applied in ExecuteAbility via CheckAndApplyLifesteal(),
+        // which already checks item lifesteal via PassiveEffectProcessor.GetItemLifestealPercent().
+        // No change needed here.
+
+        return rawDamage;
+    }
+
+    // ── Helper: Convert DamageStat to BoostableStat for Berserker lookup ─────────
+    private static BoostableStat DamageStatToBoostable(DamageStat stat)
+    {
+        switch (stat)
+        {
+            case DamageStat.Strength: return BoostableStat.Strength;
+            case DamageStat.Dexterity: return BoostableStat.Dexterity;
+            case DamageStat.Intelligence: return BoostableStat.Intelligence;
+            case DamageStat.Constitution: return BoostableStat.Constitution;
+            case DamageStat.Willpower: return BoostableStat.Willpower;
+            case DamageStat.Charisma: return BoostableStat.Charisma;
+            default: return BoostableStat.None;
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -594,30 +651,43 @@ public static class CombatCalculations
 
         float totalLifestealPercent = 0f;
 
-        // Check all active effects for lifesteal
+        // 1) Lifesteal from active status effects (granted by abilities)
         foreach (StatusEffect effect in caster.activeEffects)
         {
             if (effect.lifestealPercent > 0f)
-            {
                 totalLifestealPercent += effect.lifestealPercent;
-            }
         }
 
-        if (totalLifestealPercent > 0f)
+        // 2) Always-on lifesteal from equipped item passives (highest wins)
+
+        float itemLifesteal = PassiveEffectProcessor.GetItemLifestealPercent(caster);
+
+        // Item lifesteal uses highest-wins, so only take it if it beats what we have
+        // from effects. They don't stack — item lifesteal is its own separate source.
+        // We add it on top because a player can have BOTH an item and an ability buff.
+        totalLifestealPercent += itemLifesteal;
+
+        if (totalLifestealPercent <= 0f) return;
+
+        int healAmount = Mathf.RoundToInt(damageDealt * totalLifestealPercent);
+        healAmount = Mathf.Max(1, healAmount);
+
+        // Don't overheal
+        int actualHeal = Mathf.Min(healAmount, caster.maxHealth - caster.currentHealth);
+
+        if (actualHeal > 0)
         {
-            int healAmount = Mathf.RoundToInt(damageDealt * totalLifestealPercent);
-            healAmount = Mathf.Max(1, healAmount); // Minimum 1 HP heal
+            // Heal without triggering Overcharge (lifesteal is self-to-self)
+            caster.currentHealth = Mathf.Clamp(caster.currentHealth + actualHeal, 0, caster.maxHealth);
+            caster.UpdateHealthBar();
 
-            // Don't overheal
-            int actualHeal = Mathf.Min(healAmount, caster.maxHealth - caster.currentHealth);
+            CombatVisualEffects.Instance?.ShowHealNumber(caster.transform.position, actualHeal);
+            CombatLog.Instance?.AddEntry(
+                $"{caster.entityName} drained {actualHeal} HP! ({totalLifestealPercent * 100:F0}% lifesteal)"
+            );
 
-            if (actualHeal > 0)
-            {
-                caster.Heal(actualHeal, caster);
-                CombatLog.Instance?.AddEntry($"{caster.entityName} drained {actualHeal} HP! ({totalLifestealPercent * 100:F0}% lifesteal)");
-
-                Debug.Log($"[Lifesteal] {caster.entityName} healed {actualHeal} HP from {damageDealt} damage ({totalLifestealPercent * 100:F0}%)");
-            }
+            Debug.Log($"[Lifesteal] {caster.entityName} healed {actualHeal} HP from {damageDealt} damage " +
+                      $"({totalLifestealPercent * 100:F0}%)");
         }
     }
 

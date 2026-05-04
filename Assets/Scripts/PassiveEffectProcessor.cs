@@ -22,6 +22,7 @@ public static class PassiveEffectProcessor
 
         foreach (var item in slots)
         {
+            // RPGItem uses the field name "passives" — match it exactly
             if (item == null || item.passives == null) continue;
             passives.AddRange(item.passives);
         }
@@ -49,9 +50,20 @@ public static class PassiveEffectProcessor
     public static void OnKill(CombatEntity killer, CombatEntity victim)
         => Fire(killer, PassiveTriggerType.OnKill, victim, 0);
 
-    /// <summary>Called on the entity being healed. value = amount healed.</summary>
-    public static void OnHeal(CombatEntity healed, CombatEntity healer, int healAmount)
-        => Fire(healed, PassiveTriggerType.OnHeal, healer, healAmount);
+    /// <summary>
+    /// Called after a heal resolves. Fires on both the healed entity (for Overcharge)
+    /// and the healer (for Censer), passing the other as the target argument.
+    /// </summary>
+    public static void OnHeal(CombatEntity healed, CombatEntity healer, int rawHealAmount)
+    {
+        // Overcharge fires on the healed entity — checks if they have the item
+        Fire(healed, PassiveTriggerType.OnHeal, healer, rawHealAmount);
+
+        // Censer fires on the healer — healer's item grants defense to healed entity
+        // We pass healed as "target" so Censer knows who to buff
+        if (healer != null && healer != healed)
+            Fire(healer, PassiveTriggerType.OnHeal, healed, rawHealAmount);
+    }
 
     /// <summary>Called when a status effect is applied to target.</summary>
     public static void OnStatusEffectApplied(CombatEntity target, CombatEntity applier, StatusEffect effect)
@@ -63,9 +75,12 @@ public static class PassiveEffectProcessor
     public static void OnWaveEnd(CombatEntity entity)
         => Fire(entity, PassiveTriggerType.OnWaveEnd, null, 0);
 
+    public static void OnHealthThreshold(CombatEntity entity, int healthPercent)
+    => Fire(entity, PassiveTriggerType.OnHealthThreshold, null, healthPercent);
+
     /// <summary>
     /// Called when an entity would die. Returns true if a passive (Phoenix)
-    /// prevented the death. Must be called BEFORE Die() is invoked.
+    /// prevented the death. Must be called BEFORE Die() commits.
     /// </summary>
     public static bool OnDeath(CombatEntity entity)
     {
@@ -76,12 +91,10 @@ public static class PassiveEffectProcessor
         {
             if (passive == null || passive.trigger != PassiveTriggerType.OnDeath) continue;
 
-            // Phoenix returns via its own Proc logic — we detect prevention via
-            // the entity's health being set back above 0 inside Proc().
-            int healthBefore = entity.currentHealth;
             passive.Proc(entity, null, 0);
 
-            if (entity.currentHealth > 0)
+            // Phoenix sets currentHealth > 0 and isDead = false if it saved them
+            if (!entity.isDead && entity.currentHealth > 0)
             {
                 prevented = true;
             }
@@ -165,8 +178,10 @@ public static class PassiveEffectProcessor
             {
                 foreach (var pair in b.statPairs)
                 {
-                    int bonus = Mathf.FloorToInt(hpMissingPercent * 100f * pair.bonusPercentPerMissingPercent
-                                                  * GetBaseStatValue(entity, pair.stat) / 100f);
+                    // bonus = baseStat * (hpMissing% * bonusPercentPerMissingPercent / 100)
+                    // e.g. 0.5 per missing% at 40% missing = 20% bonus of base stat
+                    int baseStat = GetBaseStatValue(entity, pair.stat);
+                    int bonus = Mathf.FloorToInt(baseStat * hpMissingPercent * pair.bonusPercentPerMissingPercent / 100f);
                     if (bonus > 0)
                     {
                         if (!result.ContainsKey(pair.stat)) result[pair.stat] = 0;
