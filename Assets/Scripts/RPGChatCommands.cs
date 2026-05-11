@@ -106,6 +106,9 @@ public class RPGChatCommands : MonoBehaviour
             case "enterexpedition":
                 return HandleEnterExpedition(viewer, args);
 
+            case "startexpedition":
+                return HandleStartExpedition(args);
+
             case "q":
             case "queue":
                 return HandleQueueAction(viewer, args);
@@ -1364,8 +1367,6 @@ public class RPGChatCommands : MonoBehaviour
                 return HandleAdminGiveItem(args);
             case "rpgtestlevelup":
                 return HandleAdminTestLevelUp(args);
-            case "startexpedition":
-                return HandleStartExpedition(args);
 
             case "cancelexpedition":
                 return HandleCancelExpedition();

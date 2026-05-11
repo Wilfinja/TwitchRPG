@@ -415,18 +415,26 @@ public class CombatEntity : MonoBehaviour
     {
         yield return new WaitForSeconds(1.5f);
 
+        // Always destroy the health bar regardless of player/enemy
         if (healthBarObject != null)
+        {
             Destroy(healthBarObject);
+            healthBarObject = null;
+        }
 
-        // For enemies, deactivate
+        // Also destroy class resource bar if present
+        if (classResourceBarObject != null)
+        {
+            Destroy(classResourceBarObject);
+            classResourceBarObject = null;
+        }
+
         if (!isPlayer)
         {
             gameObject.SetActive(false);
         }
-        // For players, keep them visible but faded/disabled
         else
         {
-            // Optionally fade out the sprite
             SpriteRenderer sr = GetComponent<SpriteRenderer>();
             if (sr != null)
             {

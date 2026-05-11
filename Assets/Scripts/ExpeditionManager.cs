@@ -28,6 +28,10 @@ public class ExpeditionManager : MonoBehaviour
     [Header("References")]
     private List<GameObject> activeEnemies = new List<GameObject>();
 
+    [Header("Spectator Positions")]
+    [SerializeField] private float spectatorLeftX = -8f;
+    [SerializeField] private float spectatorRightX = 8f;
+
     void Awake()
     {
         if (Instance == null)
@@ -189,60 +193,73 @@ public class ExpeditionManager : MonoBehaviour
 
     private IEnumerator TransitionToCombat()
     {
-        // 1. FADE OUT non-participants
         List<OnScreenCharacter> allCharacters = CharacterSpawner.Instance?.GetAllCharacters();
-        if (allCharacters != null)
-        {
-            foreach (var character in allCharacters)
-            {
-                string charUserId = character.GetUserId();
+        if (allCharacters == null) yield break;
 
-                if (!currentExpedition.participantUserIds.Contains(charUserId))
-                {
-                    // Fade out non-participants
-                    StartCoroutine(FadeCharacter(character, 0.3f));
-                }
+        // Separate participants from spectators
+        List<OnScreenCharacter> spectators = new List<OnScreenCharacter>();
+        foreach (var character in allCharacters)
+        {
+            if (!currentExpedition.participantUserIds.Contains(character.GetUserId()))
+                spectators.Add(character);
+        }
+
+        // Move spectators to the edges in two groups: left and right
+        int leftCount = 0;
+        int rightCount = 0;
+        float yPos = -3f; // match your spawnYPosition
+
+        for (int i = 0; i < spectators.Count; i++)
+        {
+            OnScreenCharacter spec = spectators[i];
+
+            // Alternate left / right
+            float targetX;
+            if (i % 2 == 0)
+            {
+                // Stack slightly inward from the edge so multiple spectators don't overlap
+                targetX = spectatorLeftX - (leftCount * 1.2f);
+                leftCount++;
             }
+            else
+            {
+                targetX = spectatorRightX + (rightCount * 1.2f);
+                rightCount++;
+            }
+
+            Vector3 spectatorPos = new Vector3(targetX, yPos, 0f);
+            spec.EnterCombatMode(spectatorPos);
         }
 
         yield return new WaitForSeconds(0.5f);
 
-        // 2. MOVE participants to combat positions and add CombatEntity
+        // Move participants to their combat positions and add CombatEntity
         foreach (string username in currentExpedition.participantUsernames)
         {
             int position = currentExpedition.participantPositions[username];
 
-            // Find the OnScreenCharacter
             OnScreenCharacter character = CharacterSpawner.Instance?.GetCharacter(
                 currentExpedition.participantUserIds[currentExpedition.participantUsernames.IndexOf(username)]
             );
 
             if (character != null)
             {
-                // Enter combat mode - character will walk to position
                 character.EnterCombatMode(playerCombatPositions[position - 1]);
 
-                // Add CombatEntity component
                 CombatEntity combatEntity = character.gameObject.GetComponent<CombatEntity>();
                 if (combatEntity == null)
-                {
                     combatEntity = character.gameObject.AddComponent<CombatEntity>();
-                }
 
                 string userId = character.GetUserId();
                 combatEntity.InitializePlayer(userId, username, position);
 
-                // Create health bar
                 CombatUIManager.Instance?.CreateHealthBar(combatEntity);
-
                 CombatUIManager.Instance?.CreateClassResourceBar(combatEntity);
             }
         }
 
-        // 3. Wait for characters to arrive at positions
         yield return new WaitForSeconds(2f);
 
-        // 4. Start first wave
         StartCoroutine(StartWaveWithDelay(0, 1f));
     }
 
@@ -569,16 +586,15 @@ public class ExpeditionManager : MonoBehaviour
         }
 
         // Fade in all non-participants
-        List<OnScreenCharacter> allCharacters = CharacterSpawner.Instance?.GetAllCharacters();
-        if (allCharacters != null)
+        List<OnScreenCharacter> allChars = CharacterSpawner.Instance?.GetAllCharacters();
+        if (allChars != null)
         {
-            foreach (var character in allCharacters)
+            foreach (var character in allChars)
             {
-                string charUserId = character.GetUserId();
-
-                if (!currentExpedition.participantUserIds.Contains(charUserId))
+                if (!currentExpedition.participantUserIds.Contains(character.GetUserId()))
                 {
-                    StartCoroutine(FadeCharacter(character, 1f));
+                    // Return spectators to normal exploration mode
+                    character.ExitCombatMode();
                 }
             }
         }

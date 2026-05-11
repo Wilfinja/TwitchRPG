@@ -173,7 +173,7 @@ public class ShopManager : MonoBehaviour
         if (commons.Count == 0)
         {
             return "════════════════════════════════════\n" +
-                   "  SHOP - COMMONS\n" +
+                   "  DAILY SHOP - COMMONS\n" +
                    "════════════════════════════════════\n" +
                    "No common items in stock!\n\n" +
                    "Type !shop to return to overview\n" +
@@ -181,7 +181,7 @@ public class ShopManager : MonoBehaviour
         }
 
         string display = "════════════════════════════════════\n";
-        display += "        SHOP - COMMONS ◆\n";
+        display += "        DAILY SHOP - COMMONS ◆\n";
         display += "════════════════════════════════════\n";
         display += $"Your coins: 💰 {viewer.coins}\n\n";
 
@@ -211,7 +211,7 @@ public class ShopManager : MonoBehaviour
         if (uncommons.Count == 0)
         {
             return "════════════════════════════════════\n" +
-                   "  SHOP - UNCOMMONS\n" +
+                   " DAILY SHOP - UNCOMMONS\n" +
                    "════════════════════════════════════\n" +
                    "No uncommon items in stock!\n\n" +
                    "Type !shop to return to overview\n" +
@@ -219,7 +219,7 @@ public class ShopManager : MonoBehaviour
         }
 
         string display = "════════════════════════════════════\n";
-        display += "        SHOP - UNCOMMONS ⭐\n";
+        display += "       DAILY SHOP - UNCOMMONS ⭐\n";
         display += "════════════════════════════════════\n";
         display += $"Your coins: {viewer.coins}\n\n";
 
@@ -253,7 +253,7 @@ public class ShopManager : MonoBehaviour
         if (combined.Count == 0)
         {
             return "════════════════════════════════════\n" +
-                   "  SHOP - RARES & EPICS\n" +
+                   "  DAILY SHOP - RARES & EPICS\n" +
                    "════════════════════════════════════\n" +
                    "No rare or epic items in stock!\n\n" +
                    "Type !shop to return to overview\n" +
@@ -261,7 +261,7 @@ public class ShopManager : MonoBehaviour
         }
 
         string display = "════════════════════════════════════\n";
-        display += "      SHOP - RARES & EPICS\n";
+        display += "      DAILY SHOP - RARES & EPICS\n";
         display += "════════════════════════════════════\n";
         display += $"Your coins: 💰 {viewer.coins}\n\n";
 

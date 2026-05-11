@@ -391,8 +391,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65877ac2e2bc77640b0dc641f7521c62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShopManager
-  shopSize: 10
-  refreshIntervalHours: 24
+  shopSize: 6
+  refreshIntervalHours: 1
 --- !u!4 &306349607
 Transform:
   m_ObjectHideFlags: 0
@@ -426,14 +426,22 @@ MonoBehaviour:
   namedRares:
   - {fileID: 11400000, guid: 7c119bb1c352f604da41d7bce363cdb9, type: 2}
   namedUncommons:
-  - {fileID: 11400000, guid: 1bc64043eb5b90746ab0f7bc65d1d682, type: 2}
   - {fileID: 11400000, guid: f88166c3a53a50d41b544f6365a37e7c, type: 2}
+  - {fileID: 11400000, guid: 1bc64043eb5b90746ab0f7bc65d1d682, type: 2}
   namedCommons:
-  - {fileID: 11400000, guid: 4f8ea7c6fd97b1a4c9468bf5ee49f8b3, type: 2}
-  - {fileID: 11400000, guid: b96afa708f674a24e9a836ec37f3c1d4, type: 2}
-  - {fileID: 11400000, guid: ba4fa0700039f0a4cb66790904b11d31, type: 2}
+  - {fileID: 11400000, guid: e5976cc9453df424c87b9efe5ac86cdf, type: 2}
+  - {fileID: 11400000, guid: 32c38148bd569154ebb34a02deb9ddda, type: 2}
+  - {fileID: 11400000, guid: 422809057cc7b55468b0ac3d0c90cbb8, type: 2}
   - {fileID: 11400000, guid: ea52d3268e27c94469f0f6db9e6b5f9e, type: 2}
-  - {fileID: 11400000, guid: c6c73c33c4fdd0949bfb6156ede113db, type: 2}
+  - {fileID: 11400000, guid: b22af7c6f931a98458b75ef6a8cbb76f, type: 2}
+  - {fileID: 11400000, guid: bc8fd23184a8eff46884fd70ecfbefb0, type: 2}
+  - {fileID: 11400000, guid: 5288964634ff2154c958ea758b5ad1e5, type: 2}
+  - {fileID: 11400000, guid: 7df03b808be62854dae6ddfc4a68cdf2, type: 2}
+  - {fileID: 11400000, guid: fcadba65ca391a145892062de8b2b092, type: 2}
+  - {fileID: 11400000, guid: f7b7a86499762b848b24e21f6bc7dd10, type: 2}
+  - {fileID: 11400000, guid: f7b7a86499762b848b24e21f6bc7dd10, type: 2}
+  - {fileID: 11400000, guid: f7b7a86499762b848b24e21f6bc7dd10, type: 2}
+  - {fileID: 11400000, guid: f7b7a86499762b848b24e21f6bc7dd10, type: 2}
 --- !u!1 &310242708
 GameObject:
   m_ObjectHideFlags: 0
@@ -1076,6 +1084,8 @@ MonoBehaviour:
   - {x: 12, y: -10.5, z: 0}
   - {x: 15, y: -10.5, z: 0}
   - {x: 18, y: -10.5, z: 0}
+  spectatorLeftX: -8
+  spectatorRightX: 8
 --- !u!114 &668260153
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1342,6 +1352,50 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &917103214
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 917103216}
+  - component: {fileID: 917103215}
+  m_Layer: 0
+  m_Name: ExtensionSyncManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &917103215
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 917103214}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d2f2dc131015e74681c9ed00d1f1fc6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ExtensionSync
+--- !u!4 &917103216
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 917103214}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.15924, y: -0.99467, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1618,6 +1672,7 @@ MonoBehaviour:
   rangerPrefab: {fileID: 9061568944872234515, guid: 5f0a82b2573a9b14889fae8f0cd6a23c, type: 3}
   sinnaPrefab: {fileID: 669381813418491618, guid: b805602e3186b1942b74785d948d87d5, type: 3}
   wilfPrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
+  geordiePrefab: {fileID: 6419752010794691202, guid: ec16cdbfb4f0d2c448a4d671e5e3ad5e, type: 3}
   spawnYPosition: -10.5
   spawnSpacing: 15
   idleRangeX: 8
@@ -2841,6 +2896,7 @@ MonoBehaviour:
   notificationDuration: 8
   fadeTime: 0.25
   shopDisplayDuration: 15
+  combatDisplayDuration: 1
 --- !u!4 &2076462973
 Transform:
   m_ObjectHideFlags: 0
@@ -3013,3 +3069,4 @@ SceneRoots:
   - {fileID: 1303425155}
   - {fileID: 112329017}
   - {fileID: 1564978304}
+  - {fileID: 917103216}

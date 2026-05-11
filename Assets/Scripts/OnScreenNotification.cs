@@ -13,6 +13,7 @@ public class OnScreenNotification : MonoBehaviour
     [SerializeField] private float notificationDuration = 8f; // Increased for stats
     [SerializeField] private float fadeTime = 0.5f;
     [SerializeField] private float shopDisplayDuration = 14f;
+    [SerializeField] private float combatDisplayDuration = 1f;
 
     private Queue<string> messageQueue = new Queue<string>();
     private bool isShowingMessage = false;
@@ -75,7 +76,6 @@ public class OnScreenNotification : MonoBehaviour
         {
             string message = messageQueue.Dequeue();
 
-            // ✅ Use null checks - no try-catch!
             if (notificationPrefab != null && notificationContainer != null)
             {
                 yield return StartCoroutine(DisplayMessage(message));
@@ -116,12 +116,7 @@ public class OnScreenNotification : MonoBehaviour
         {
             tmpText.text = message;
 
-            // IMPORTANT: Enable word wrapping and proper overflow for long messages
-            //tmpText.enableWordWrapping = true;
             tmpText.overflowMode = TextOverflowModes.Overflow;
-
-            // Increase font size slightly if needed
-            // tmpText.fontSize = 18;
 
             Debug.Log("[Notification] Using TextMeshPro");
         }

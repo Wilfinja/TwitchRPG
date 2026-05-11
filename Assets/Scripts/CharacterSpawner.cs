@@ -11,6 +11,7 @@ public class CharacterSpawner : MonoBehaviour
     [SerializeField] private GameObject rangerPrefab;
     [SerializeField] private GameObject sinnaPrefab;
     [SerializeField] private GameObject wilfPrefab;
+    [SerializeField] private GameObject geordiePrefab;
 
     [Header("Spawn Settings")]
     [SerializeField] private float spawnYPosition = -3f;
@@ -105,6 +106,10 @@ public class CharacterSpawner : MonoBehaviour
         if (username == "sinnaj30")
         {
             return sinnaPrefab;
+        }
+        else if (username == "thegeordiegriller")
+        {
+            return geordiePrefab;
         }
         else if (username == "wilfinja")
         {

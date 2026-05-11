@@ -10,29 +10,29 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ed1d154c8d2eb1d408c5ddd8aabc8691, type: 3}
-  m_Name: Iron Dagger
+  m_Name: Iron Axe
   m_EditorClassIdentifier: Assembly-CSharp::RPGItemData
-  itemName: Iron Dagger
+  itemName: Iron Axe
   description: 
   itemType: 0
   rarity: 0
-  weaponCategory: 4
+  weaponCategory: 2
   requiredLevel: 1
   price: 50
   isTwoHanded: 0
-  strengthBonusPercent: 0
+  strengthBonusPercent: 0.15
   constitutionBonusPercent: 0
-  dexterityBonusPercent: 0.15
+  dexterityBonusPercent: 0
   willpowerBonusPercent: 0
   charismaBonusPercent: 0
   intelligenceBonusPercent: 0
-  strengthBonus: 0
+  strengthBonus: 2
   constitutionBonus: 0
   dexterityBonus: 0
   willpowerBonus: 0
   charismaBonus: 0
   intelligenceBonus: 0
-  damageBonus: 5
+  damageBonus: 8
   defenseBonus: 0
   healAmount: 0
   maxManaBonus: 0
