@@ -38,7 +38,8 @@ MonoBehaviour:
   maxManaBonus: 0
   manaRegenBonus: 0
   manaCostReduction: 0
-  passives: []
+  passives:
+  - {fileID: 11400000, guid: 00ec70256cc33644e8a180b7473fdf44, type: 2}
   grantAbility: {fileID: 0}
   allowedClasses: 
   abilities: []

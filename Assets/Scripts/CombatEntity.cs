@@ -31,6 +31,7 @@ public class CombatEntity : MonoBehaviour
     [Header("Combat State")]
     public bool isDead;
     public bool hasActedThisTurn;
+    public Dictionary<string, int> abilityCooldowns = new Dictionary<string, int>();
     public bool wasHealedThisTurn = false;
     public string queuedAction;
     public bool actionConfirmed;
@@ -250,7 +251,7 @@ public class CombatEntity : MonoBehaviour
         }
 
         // ── Apply defense to remaining damage ─────────────────────────────────────
-        int finalDamage = Mathf.Max(0, remainingDamage - totalDefense);
+        int finalDamage = Mathf.Max(0, remainingDamage * (1 - (totalDefense / (totalDefense + 100))));
         currentHealth -= finalDamage;
 
         // ── Visuals ───────────────────────────────────────────────────────────────
@@ -456,6 +457,9 @@ public class CombatEntity : MonoBehaviour
         queuedAction = null;
         actionConfirmed = false;
 
+        // ADD THIS — tick cooldowns at the start of each new player turn
+        TickDownCooldowns();
+
         animator.Play("Idle");
     }
 
@@ -559,6 +563,34 @@ public class CombatEntity : MonoBehaviour
         {
             CombatHealthBar healthBar = healthBarObject.GetComponent<CombatHealthBar>();
             healthBar?.UpdateHealth(currentHealth, maxHealth);
+        }
+    }
+
+    public bool IsAbilityOnCooldown(string commandName)
+    {
+        if (string.IsNullOrEmpty(commandName)) return false;
+        return abilityCooldowns.ContainsKey(commandName) && abilityCooldowns[commandName] > 0;
+    }
+
+    public int GetRemainingCooldown(string commandName)
+    {
+        if (string.IsNullOrEmpty(commandName)) return 0;
+        return abilityCooldowns.ContainsKey(commandName) ? abilityCooldowns[commandName] : 0;
+    }
+
+    public void SetAbilityCooldown(string commandName, int turns)
+    {
+        if (string.IsNullOrEmpty(commandName) || turns <= 0) return;
+        abilityCooldowns[commandName] = turns;
+    }
+
+    public void TickDownCooldowns()
+    {
+        var keys = new List<string>(abilityCooldowns.Keys);
+        foreach (string key in keys)
+        {
+            if (abilityCooldowns[key] > 0)
+                abilityCooldowns[key]--;
         }
     }
 

@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91c8b0f1101b7d24bae3cf6d6f989bc3, type: 3}
+  m_Name: Steel Barrier
+  m_EditorClassIdentifier: Assembly-CSharp::PassiveImbued
+  passiveName: Steel Barrier
+  description: This steel equipment will give you a 5 HP barrier stacked with other
+    steel equipment up to a total of 30 HP.
+  trigger: 8
+  procChance: 1
+  effectToApply:
+    effectName: Steel Barrier
+    duration: 1
+    applicationChance: 1
+    isNegativeEffect: 0
+    statusResistanceBonus: 0
+    damageMultiplier: 1
+    defenseMultiplier: 1
+    damageOverTime: 0
+    temporaryDefenseBonus: 0
+    baseDefenseAmount: 0
+    defenseScalingStat: 0
+    defenseScalingMultiplier: 0
+    consumedOnHit: 0
+    statBoostType: 0
+    statBoostAmount: 0
+    lifestealPercent: 0
+    isRiposte: 0
+    riposteDamagePercent: 0
+    riposteFlatBonus: 0
+    riposteScalingStat: 0
+    riposteScalingMultiplier: 0
+    riposteConsumedOnUse: 1
+    isStun: 0
+    isSilence: 0
+    isBleed: 0
+    bleedDamagePerTurn: 0
+    isBarrier: 1
+    barrierCurrentAmount: 5
+    barrierMaxAmount: 30
+    isMark: 0
+    markedDamageMultiplier: 1.25
+    isTaunt: 0
+    tauntTargetEntityName: 
+    isCurse: 0
+    healingReductionPercent: 0.5
+    isExposed: 0
+    exposedDefenseReduction: 0
+    isEnrage: 0
+    enrageDamageMultiplier: 1.3
+    isHaste: 0
+    isPrimed: 0
+    primeThresholdType: 0
+    primeThreshold: 20
+    primedConsumedOnTrigger: 1

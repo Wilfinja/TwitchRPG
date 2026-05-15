@@ -40,7 +40,7 @@ MonoBehaviour:
   manaRegenBonus: 0
   manaCostReduction: 0
   passives:
-  - {fileID: 11400000, guid: ca99e82b017bd794c934e7dd5f1e6b34, type: 2}
+  - {fileID: 11400000, guid: 73b60aa2a1716b84190ea49ba88e4b9c, type: 2}
   grantAbility: {fileID: 0}
   allowedClasses: 
   abilities: []

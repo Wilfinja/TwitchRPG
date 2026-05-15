@@ -657,6 +657,7 @@ MonoBehaviour:
   damageBonus: 0
   isDead: 0
   hasActedThisTurn: 0
+  wasHealedThisTurn: 0
   queuedAction: 
   actionConfirmed: 0
   characterClass: 1
@@ -670,10 +671,12 @@ MonoBehaviour:
   activeEffects: []
   healthBarObject: {fileID: 0}
   animator: {fileID: 6904695466552488209}
+  classResourceBarObject: {fileID: 0}
   currentStance: 0
   viewerData:
     twitchUserId: 
     username: 
+    discordUserId: 
     coins: 0
     characterClass: 0
     baseStats:
@@ -719,6 +722,14 @@ MonoBehaviour:
         willpowerBonusPercent: 0
         charismaBonusPercent: 0
         intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
         damageBonus: 0
         defenseBonus: 0
         healAmount: 0
@@ -743,6 +754,14 @@ MonoBehaviour:
         willpowerBonusPercent: 0
         charismaBonusPercent: 0
         intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
         damageBonus: 0
         defenseBonus: 0
         healAmount: 0
@@ -767,6 +786,14 @@ MonoBehaviour:
         willpowerBonusPercent: 0
         charismaBonusPercent: 0
         intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
         damageBonus: 0
         defenseBonus: 0
         healAmount: 0
@@ -791,6 +818,14 @@ MonoBehaviour:
         willpowerBonusPercent: 0
         charismaBonusPercent: 0
         intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
         damageBonus: 0
         defenseBonus: 0
         healAmount: 0
@@ -815,6 +850,14 @@ MonoBehaviour:
         willpowerBonusPercent: 0
         charismaBonusPercent: 0
         intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
         damageBonus: 0
         defenseBonus: 0
         healAmount: 0
@@ -839,6 +882,14 @@ MonoBehaviour:
         willpowerBonusPercent: 0
         charismaBonusPercent: 0
         intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
         damageBonus: 0
         defenseBonus: 0
         healAmount: 0
@@ -863,12 +914,22 @@ MonoBehaviour:
         willpowerBonusPercent: 0
         charismaBonusPercent: 0
         intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
         damageBonus: 0
         defenseBonus: 0
         healAmount: 0
         allowedClasses: 
         abilities: []
     inventory: []
+    equippedAbilities: []
+    equippedItemAbility: 
     totalWatchTimeMinutes: 0
     isInCombat: 0
     isDead: 0

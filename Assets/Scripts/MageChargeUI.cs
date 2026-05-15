@@ -16,7 +16,7 @@ public class MageChargeUI : MonoBehaviour
     private List<SpriteRenderer> chargePips = new List<SpriteRenderer>();
 
     [Header("Positioning")]
-    public Vector3 offset = new Vector3(0, -2f, 0); // Below health bar
+    public Vector3 offset = new Vector3(0, 2.5f, 0); // Below health bar
     public float pipSpacing = 0.4f;
     public float pipSize = 0.3f;
 

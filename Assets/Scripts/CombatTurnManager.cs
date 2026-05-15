@@ -388,6 +388,16 @@ public class CombatTurnManager : MonoBehaviour
             return false;
         }
 
+        // Check cooldown
+        if (caster.IsAbilityOnCooldown(ability.commandName))
+        {
+            int remaining = caster.GetRemainingCooldown(ability.commandName);
+            OnScreenNotification.Instance?.ShowNotification(
+                $"@{username} {ability.abilityName} is on cooldown! ({remaining} turn{(remaining == 1 ? "" : "s")} remaining)"
+            );
+            return false;
+        }
+
         // Check resource costs
         if (!CanAffordAbility(caster, ability))
         {
@@ -765,6 +775,14 @@ public class CombatTurnManager : MonoBehaviour
         else
         {
             CombatCalculations.ExecuteAbility(caster, target, ability);
+        }
+
+        if (ability.cooldown > 0)
+        {
+            caster.SetAbilityCooldown(ability.commandName, ability.cooldown);
+            CombatLog.Instance?.AddEntry(
+                $"{caster.entityName}'s {ability.abilityName} is on cooldown for {ability.cooldown} turn(s)."
+            );
         }
 
         yield return new WaitForSeconds(0.5f);

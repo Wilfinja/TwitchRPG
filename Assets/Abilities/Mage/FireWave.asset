@@ -18,7 +18,7 @@ MonoBehaviour:
   requiredClass: 5
   levelRequired: 1
   category: 0
-  targetType: 0
+  targetType: 6
   scalingStat: 3
   statMultiplier: 1
   useSecondaryScaling: 0
@@ -67,20 +67,28 @@ MonoBehaviour:
   balanceGain: 0
   balanceRequirement: 0
   balanceRequirementType: 0
+  wrathScaling: 0
+  wrathScale: 0
   canTargetAllies: 0
   canTargetEnemies: 1
-  maxTargetPosition: 1
+  maxTargetPosition: 2
   minTargetPosition: 1
   isAOE: 1
   aoETargets: 2
-  cooldown: 0
+  cooldown: 1
   appliesEffects:
   - effectName: Burn
     duration: 2
+    applicationChance: 1
+    isNegativeEffect: 0
+    statusResistanceBonus: 0
     damageMultiplier: 1
     defenseMultiplier: 1
     damageOverTime: 5
     temporaryDefenseBonus: 0
+    baseDefenseAmount: 0
+    defenseScalingStat: 0
+    defenseScalingMultiplier: 0
     consumedOnHit: 0
     statBoostType: 0
     statBoostAmount: 0
@@ -91,6 +99,28 @@ MonoBehaviour:
     riposteScalingStat: 0
     riposteScalingMultiplier: 0
     riposteConsumedOnUse: 1
+    isStun: 0
+    isSilence: 0
+    isBleed: 0
+    bleedDamagePerTurn: 0
+    isBarrier: 0
+    barrierCurrentAmount: 0
+    barrierMaxAmount: 0
+    isMark: 0
+    markedDamageMultiplier: 1.25
+    isTaunt: 0
+    tauntTargetEntityName: 
+    isCurse: 0
+    healingReductionPercent: 0.5
+    isExposed: 0
+    exposedDefenseReduction: 0
+    isEnrage: 0
+    enrageDamageMultiplier: 1.3
+    isHaste: 0
+    isPrimed: 0
+    primeThresholdType: 0
+    primeThreshold: 20
+    primedConsumedOnTrigger: 1
   shiftPosition: 0
   positionShift: 0
   grantsLifesteal: 0
@@ -100,3 +130,4 @@ MonoBehaviour:
   particleEffect: {fileID: 8764043878647920493, guid: c4ed38c72957f2241ad144a1614956d9, type: 3}
   projectilePrefab: {fileID: 0}
   projectileSpeed: 0.3
+  zoomToCenter: 1

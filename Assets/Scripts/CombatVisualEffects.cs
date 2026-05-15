@@ -1,19 +1,26 @@
-﻿using UnityEngine;
+﻿
+using UnityEngine;
 using TMPro;
 using System.Collections;
 
 /// <summary>
-/// Handles visual effects: damage numbers, evade text, hit particles
+/// Handles visual effects: damage numbers, evade text, hit particles.
+/// Damage/heal numbers are world-space (no Canvas required).
 /// </summary>
 public class CombatVisualEffects : MonoBehaviour
 {
     public static CombatVisualEffects Instance;
 
-    [Header("Prefabs")]
+    [Header("World-Space Number Prefabs")]
+    [Tooltip("Prefab with TextMeshPro (NOT UGUI) + WorldDamageNumber script")]
     public GameObject damageNumberPrefab;
     public GameObject healNumberPrefab;
     public GameObject evadeTextPrefab;
     public GameObject blockTextPrefab;
+
+    [Header("Number Offsets")]
+    [Tooltip("Spawn numbers this far above the entity's pivot")]
+    public float spawnHeightOffset = 1.5f;
 
     [Header("Particle Effects")]
     public GameObject hitParticle;
@@ -23,166 +30,75 @@ public class CombatVisualEffects : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null)
-            Instance = this;
-        else
-            Destroy(gameObject);
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
-    #region Damage Numbers
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private void SpawnNumber(GameObject prefab, Vector3 worldPos, string text, Color color, float sizeMultiplier = 1f)
+    {
+        if (prefab == null) return;
+
+        Vector3 spawnPos = worldPos + Vector3.up * spawnHeightOffset;
+        GameObject obj = Instantiate(prefab, spawnPos, Quaternion.identity);
+
+        WorldDamageNumber num = obj.GetComponent<WorldDamageNumber>();
+        num?.Init(text, color, sizeMultiplier);
+    }
+
+    // ── Public API ────────────────────────────────────────────────────────────
 
     public void ShowDamageNumber(Vector3 position, int damage)
     {
-        if (damageNumberPrefab == null) return;
+        SpawnNumber(damageNumberPrefab, position, $"-{damage}", Color.red);
 
-        Vector3 screenPos = Camera.main.WorldToScreenPoint(position);
-        GameObject numberObj = Instantiate(damageNumberPrefab, transform);
-        numberObj.transform.position = screenPos;
-
-        TextMeshProUGUI text = numberObj.GetComponent<TextMeshProUGUI>();
-        if (text != null)
-        {
-            text.text = $"-{damage}";
-            text.color = Color.red;
-        }
-
-        StartCoroutine(AnimateAndDestroy(numberObj, 1f));
-
-        // Spawn hit particle
         if (hitParticle != null)
         {
-            GameObject particle = Instantiate(hitParticle, position, Quaternion.identity);
-            Destroy(particle, 2f);
+            GameObject p = Instantiate(hitParticle, position, Quaternion.identity);
+            Destroy(p, 2f);
         }
     }
 
     public void ShowHealNumber(Vector3 position, int healing)
     {
-        if (healNumberPrefab == null) return;
+        SpawnNumber(healNumberPrefab, position, $"+{healing}", Color.green);
 
-        Vector3 screenPos = Camera.main.WorldToScreenPoint(position);
-        GameObject numberObj = Instantiate(healNumberPrefab, transform);
-        numberObj.transform.position = screenPos;
-
-        TextMeshProUGUI text = numberObj.GetComponent<TextMeshProUGUI>();
-        if (text != null)
-        {
-            text.text = $"+{healing}";
-            text.color = Color.green;
-        }
-
-        StartCoroutine(AnimateAndDestroy(numberObj, 1f));
-
-        // Spawn heal particle
         if (healParticle != null)
         {
-            GameObject particle = Instantiate(healParticle, position, Quaternion.identity);
-            Destroy(particle, 2f);
+            GameObject p = Instantiate(healParticle, position, Quaternion.identity);
+            Destroy(p, 2f);
         }
     }
 
     public void ShowBlockedDamage(Vector3 position, int blocked)
     {
-        if (blockTextPrefab == null) return;
-
-        Vector3 screenPos = Camera.main.WorldToScreenPoint(position);
-        GameObject textObj = Instantiate(blockTextPrefab, transform);
-        textObj.transform.position = screenPos + new Vector3(30, 0, 0); // Offset to the side
-
-        TextMeshProUGUI text = textObj.GetComponent<TextMeshProUGUI>();
-        if (text != null)
-        {
-            text.text = $"🛡 {blocked}";
-            text.color = Color.cyan;
-        }
-
-        StartCoroutine(AnimateAndDestroy(textObj, 1f));
+        // Slightly smaller than main damage so it doesn't compete visually
+        SpawnNumber(blockTextPrefab, position, $"🛡 {blocked}", Color.cyan, 0.75f);
     }
 
     public void ShowEvadeText(Vector3 position)
     {
-        if (evadeTextPrefab == null) return;
-
-        Vector3 screenPos = Camera.main.WorldToScreenPoint(position);
-        GameObject textObj = Instantiate(evadeTextPrefab, transform);
-        textObj.transform.position = screenPos;
-
-        TextMeshProUGUI text = textObj.GetComponent<TextMeshProUGUI>();
-        if (text != null)
-        {
-            text.text = "EVADE!";
-            text.color = Color.yellow;
-        }
-
-        StartCoroutine(AnimateAndDestroy(textObj, 1f));
+        SpawnNumber(evadeTextPrefab, position, "EVADE!", Color.yellow, 1.1f);
     }
 
-    #endregion
+    // ── Particle helpers ──────────────────────────────────────────────────────
 
-    #region Animations
-
-    IEnumerator AnimateAndDestroy(GameObject obj, float duration)
+    public void PlayHitEffect(Vector3 position) 
     {
-        RectTransform rect = obj.GetComponent<RectTransform>();
-        TextMeshProUGUI text = obj.GetComponent<TextMeshProUGUI>();
-
-        Vector3 startPos = rect.position;
-        Vector3 endPos = startPos + new Vector3(0, 100, 0); // Float upward
-
-        float elapsed = 0f;
-
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float t = elapsed / duration;
-
-            // Move upward
-            rect.position = Vector3.Lerp(startPos, endPos, t);
-
-            // Fade out
-            if (text != null)
-            {
-                Color color = text.color;
-                color.a = 1f - t;
-                text.color = color;
-            }
-
-            yield return null;
-        }
-
-        Destroy(obj);
-    }
-
-    #endregion
-
-    #region Particle Effects
-
-    public void PlayHitEffect(Vector3 position)
-    {
-        if (hitParticle != null)
-        {
-            GameObject particle = Instantiate(hitParticle, position, Quaternion.identity);
-            Destroy(particle, 2f);
-        }
+        if (hitParticle == null) return;
+        Destroy(Instantiate(hitParticle, position, Quaternion.identity), 2f);
     }
 
     public void PlayCriticalEffect(Vector3 position)
     {
-        if (criticalHitParticle != null)
-        {
-            GameObject particle = Instantiate(criticalHitParticle, position, Quaternion.identity);
-            Destroy(particle, 2f);
-        }
+        if (criticalHitParticle == null) return;
+        Destroy(Instantiate(criticalHitParticle, position, Quaternion.identity), 2f);
     }
 
     public void PlayBuffEffect(Vector3 position)
     {
-        if (buffParticle != null)
-        {
-            GameObject particle = Instantiate(buffParticle, position, Quaternion.identity);
-            Destroy(particle, 2f);
-        }
+        if (buffParticle == null) return;
+        Destroy(Instantiate(buffParticle, position, Quaternion.identity), 2f);
     }
-
-    #endregion
 }

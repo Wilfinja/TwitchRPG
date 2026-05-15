@@ -428,6 +428,9 @@ MonoBehaviour:
   namedUncommons:
   - {fileID: 11400000, guid: f88166c3a53a50d41b544f6365a37e7c, type: 2}
   - {fileID: 11400000, guid: 1bc64043eb5b90746ab0f7bc65d1d682, type: 2}
+  - {fileID: 11400000, guid: 77a264ff4c8e81547a492abfb7d29ee9, type: 2}
+  - {fileID: 11400000, guid: ac8e664eb7fd1de449d0297011b3a611, type: 2}
+  - {fileID: 11400000, guid: d0346e0a932f3a04c9e5e23b437c88e0, type: 2}
   namedCommons:
   - {fileID: 11400000, guid: e5976cc9453df424c87b9efe5ac86cdf, type: 2}
   - {fileID: 11400000, guid: 32c38148bd569154ebb34a02deb9ddda, type: 2}
@@ -1084,8 +1087,8 @@ MonoBehaviour:
   - {x: 12, y: -10.5, z: 0}
   - {x: 15, y: -10.5, z: 0}
   - {x: 18, y: -10.5, z: 0}
-  spectatorLeftX: -8
-  spectatorRightX: 8
+  spectatorLeftX: -15
+  spectatorRightX: 15
 --- !u!114 &668260153
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1357,50 +1360,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &917103214
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 917103216}
-  - component: {fileID: 917103215}
-  m_Layer: 0
-  m_Name: ExtensionSyncManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!114 &917103215
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 917103214}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1d2f2dc131015e74681c9ed00d1f1fc6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ExtensionSync
---- !u!4 &917103216
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 917103214}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.15924, y: -0.99467, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &983822567
 GameObject:
   m_ObjectHideFlags: 0
@@ -1430,10 +1389,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1d9c9f96876e054c9029255351414fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatVisualEffects
-  damageNumberPrefab: {fileID: 0}
-  healNumberPrefab: {fileID: 0}
-  evadeTextPrefab: {fileID: 0}
-  blockTextPrefab: {fileID: 0}
+  damageNumberPrefab: {fileID: 2818678145607611383, guid: 9904ec263d287854db607a0fe567eb1e, type: 3}
+  healNumberPrefab: {fileID: 2818678145607611383, guid: a53c6c79a7d109548ab139e6689f74ab, type: 3}
+  evadeTextPrefab: {fileID: 2818678145607611383, guid: 84cd315d069c0814f853ebca6d9f4b36, type: 3}
+  blockTextPrefab: {fileID: 2818678145607611383, guid: 4d2ffddf69bf3bc42b78601c344800a2, type: 3}
+  spawnHeightOffset: 1.5
   hitParticle: {fileID: 1429954232896169633, guid: 83036083a4ebcd34f98131bd3cf6f4d2, type: 3}
   criticalHitParticle: {fileID: 4021103657954561961, guid: 5c755f9bc5253ea418e919994537dcc7, type: 3}
   healParticle: {fileID: 9017484664307500583, guid: 1245b8d2997d5b34fb1637be70a7eb05, type: 3}
@@ -1689,6 +1649,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1092879187}
   - component: {fileID: 1092879186}
+  - component: {fileID: 1092879188}
   m_Layer: 0
   m_Name: RPGManager
   m_TagString: Untagged
@@ -1726,6 +1687,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1092879188
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1092879185}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6dabf1c434745646844a681a81a5afd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PanelSyncServer
+  ebsUrl: https://twitchrpgebs-production-e7e6.up.railway.app
+  unitySecret: fAquxh3jWudjqPtc7DlilLEEA0Wy9zwR
+  ebsSecret: W2rSwaK6hY7a9lMTEgtnlcyNzcKKSoOB
+  pushIntervalSeconds: 3
+  globalPushIntervalSeconds: 2
+  maxViewersPerBatch: 50
+  inboundPort: 7433
+  rpgCommands: {fileID: 245474490}
+  verboseLogging: 0
 --- !u!1 &1169067069
 GameObject:
   m_ObjectHideFlags: 0
@@ -1736,6 +1718,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1169067071}
   - component: {fileID: 1169067070}
+  - component: {fileID: 1169067072}
   m_Layer: 0
   m_Name: CombatUIManager
   m_TagString: Untagged
@@ -1783,6 +1766,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1169067072
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1169067069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f808d0612dbf08348ae67c64e3918d5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MageChargeUI
+  offset: {x: 0, y: 2, z: 0}
+  pipSpacing: 0.4
+  pipSize: 0.3
 --- !u!1 &1192458942
 GameObject:
   m_ObjectHideFlags: 0
@@ -2357,7 +2355,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: dbe5e06f2c8e1bc46b4811d633d63cde, type: 2}
   - {fileID: 11400000, guid: 89242d7961e34d844848cd4d7c1b56d9, type: 2}
   - {fileID: 11400000, guid: 3d11567c87ed17548ae3b0d385f2d819, type: 2}
-  mediumEnemies: []
+  mediumEnemies:
+  - {fileID: 11400000, guid: 25b29e0b0bd041648a3af60e82c29cf7, type: 2}
+  - {fileID: 11400000, guid: fc96af55cde7e0749ae9420951c2f1d3, type: 2}
   hardEnemies: []
   deadlyEnemies: []
   bossEnemies: []
@@ -3069,4 +3069,3 @@ SceneRoots:
   - {fileID: 1303425155}
   - {fileID: 112329017}
   - {fileID: 1564978304}
-  - {fileID: 917103216}
