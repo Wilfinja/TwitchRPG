@@ -251,7 +251,8 @@ public class CombatEntity : MonoBehaviour
         }
 
         // ── Apply defense to remaining damage ─────────────────────────────────────
-        int finalDamage = Mathf.Max(0, remainingDamage * (1 - (totalDefense / (totalDefense + 100))));
+        float damageReduction = totalDefense / (totalDefense + 100f); // 100f forces float division
+        int finalDamage = Mathf.Max(0, Mathf.RoundToInt(remainingDamage * (1f - damageReduction)));
         currentHealth -= finalDamage;
 
         // ── Visuals ───────────────────────────────────────────────────────────────

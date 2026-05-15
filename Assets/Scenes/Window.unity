@@ -1393,7 +1393,8 @@ MonoBehaviour:
   healNumberPrefab: {fileID: 2818678145607611383, guid: a53c6c79a7d109548ab139e6689f74ab, type: 3}
   evadeTextPrefab: {fileID: 2818678145607611383, guid: 84cd315d069c0814f853ebca6d9f4b36, type: 3}
   blockTextPrefab: {fileID: 2818678145607611383, guid: 4d2ffddf69bf3bc42b78601c344800a2, type: 3}
-  spawnHeightOffset: 1.5
+  spawnHeightOffset: 2.5
+  hitParticleOffset: {x: 0, y: 1.5, z: 0}
   hitParticle: {fileID: 1429954232896169633, guid: 83036083a4ebcd34f98131bd3cf6f4d2, type: 3}
   criticalHitParticle: {fileID: 4021103657954561961, guid: 5c755f9bc5253ea418e919994537dcc7, type: 3}
   healParticle: {fileID: 9017484664307500583, guid: 1245b8d2997d5b34fb1637be70a7eb05, type: 3}

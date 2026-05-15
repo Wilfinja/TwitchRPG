@@ -17,7 +17,7 @@ MonoBehaviour:
   description: The fighter cleaves the first two enemies in the formation, dealing
     5 + .75x STR damage to both.
   requiredClass: 3
-  levelRequired: 3
+  levelRequired: 5
   category: 0
   targetType: 5
   scalingStat: 1
@@ -37,6 +37,8 @@ MonoBehaviour:
   resourcePerHit: 1
   maxHitCount: 5
   consumeResourceAfterHits: 0
+  multiHitTargetMode: 0
+  elementType: 0
   grantsDefenseBoost: 0
   baseDefenseBoost: 0
   defenseScalingStat: 0
@@ -48,6 +50,13 @@ MonoBehaviour:
   statBoostScalingStat: 0
   statBoostScalingMultiplier: 0
   statBoostDuration: 1
+  grantsRiposte: 0
+  riposteDamagePercent: 0.5
+  riposteFlatBonus: 0
+  riposteScalingStat: 0
+  riposteScalingMultiplier: 0
+  riposteDuration: 1
+  riposteConsumedOnUse: 1
   sneakCost: 0
   sneakGain: 0
   requiresStance: 0
@@ -59,6 +68,8 @@ MonoBehaviour:
   balanceGain: 0
   balanceRequirement: 0
   balanceRequirementType: 0
+  wrathScaling: 0
+  wrathScale: 0
   canTargetAllies: 0
   canTargetEnemies: 1
   maxTargetPosition: 2
@@ -69,5 +80,11 @@ MonoBehaviour:
   appliesEffects: []
   shiftPosition: 0
   positionShift: 0
+  grantsLifesteal: 0
+  lifestealPercent: 0
+  lifestealDuration: 1
   animationTrigger: Attack
   particleEffect: {fileID: 0}
+  projectilePrefab: {fileID: 0}
+  projectileSpeed: 0.3
+  zoomToCenter: 1

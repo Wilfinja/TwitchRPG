@@ -18,7 +18,7 @@ MonoBehaviour:
     are in the aggressive stance, they strike three times for the same amount of
     damage.
   requiredClass: 3
-  levelRequired: 5
+  levelRequired: 15
   category: 0
   targetType: 5
   scalingStat: 1

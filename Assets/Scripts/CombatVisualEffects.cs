@@ -1,5 +1,4 @@
-﻿
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 using System.Collections;
 
@@ -21,6 +20,10 @@ public class CombatVisualEffects : MonoBehaviour
     [Header("Number Offsets")]
     [Tooltip("Spawn numbers this far above the entity's pivot")]
     public float spawnHeightOffset = 1.5f;
+
+    [Header("Particle Offsets")]
+    [Tooltip("Offsets hit particle spawn position relative to the entity's pivot. Adjust Y to match your sprite height.")]
+    public Vector3 hitParticleOffset = new Vector3(0f, 0.5f, 0f);
 
     [Header("Particle Effects")]
     public GameObject hitParticle;
@@ -55,7 +58,7 @@ public class CombatVisualEffects : MonoBehaviour
 
         if (hitParticle != null)
         {
-            GameObject p = Instantiate(hitParticle, position, Quaternion.identity);
+            GameObject p = Instantiate(hitParticle, position + hitParticleOffset, Quaternion.identity);
             Destroy(p, 2f);
         }
     }
@@ -84,10 +87,10 @@ public class CombatVisualEffects : MonoBehaviour
 
     // ── Particle helpers ──────────────────────────────────────────────────────
 
-    public void PlayHitEffect(Vector3 position) 
+    public void PlayHitEffect(Vector3 position)
     {
         if (hitParticle == null) return;
-        Destroy(Instantiate(hitParticle, position, Quaternion.identity), 2f);
+        Destroy(Instantiate(hitParticle, position + hitParticleOffset, Quaternion.identity), 2f);
     }
 
     public void PlayCriticalEffect(Vector3 position)
