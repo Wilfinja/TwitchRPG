@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05ef3311a9d67104c854c8f82a9ff26d, type: 3}
+  m_Name: Jagged Razor Passive
+  m_EditorClassIdentifier: Assembly-CSharp::PassiveExecutioner
+  passiveName: Jagged Razor Passive
+  description: Deal 40% extra damage to enemies that are below 25% health.
+  trigger: 12
+  healthThresholdPercent: 0.25
+  bonusDamagePercent: 0.4
