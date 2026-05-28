@@ -391,7 +391,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65877ac2e2bc77640b0dc641f7521c62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShopManager
-  shopSize: 6
+  shopSize: 10
   refreshIntervalHours: 1
 --- !u!4 &306349607
 Transform:
@@ -420,17 +420,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52b685cda27c9284a886ef8441a48f63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HybridItemSystem
-  namedUniques: []
+  namedUniques:
+  - {fileID: 11400000, guid: 39ea536de36e424418e3bd3031d5d604, type: 2}
   namedLegendaries: []
-  namedEpics: []
+  namedEpics:
+  - {fileID: 11400000, guid: 068eceb8457f38f41906eaaf2010ed75, type: 2}
   namedRares:
   - {fileID: 11400000, guid: 7c119bb1c352f604da41d7bce363cdb9, type: 2}
+  - {fileID: 11400000, guid: dc0310463ed19ac438ec8c05c5990f5d, type: 2}
   namedUncommons:
   - {fileID: 11400000, guid: f88166c3a53a50d41b544f6365a37e7c, type: 2}
   - {fileID: 11400000, guid: 1bc64043eb5b90746ab0f7bc65d1d682, type: 2}
   - {fileID: 11400000, guid: 77a264ff4c8e81547a492abfb7d29ee9, type: 2}
   - {fileID: 11400000, guid: ac8e664eb7fd1de449d0297011b3a611, type: 2}
   - {fileID: 11400000, guid: d0346e0a932f3a04c9e5e23b437c88e0, type: 2}
+  - {fileID: 11400000, guid: 0aa657d7cdaecb6448828a0dc9ab2d1c, type: 2}
+  - {fileID: 11400000, guid: e44e0e3ede6a1e34d8cf9e79aa1ad3e5, type: 2}
+  - {fileID: 11400000, guid: a7c260e7dfb143142afcb5ed97075bc5, type: 2}
   namedCommons:
   - {fileID: 11400000, guid: e5976cc9453df424c87b9efe5ac86cdf, type: 2}
   - {fileID: 11400000, guid: 32c38148bd569154ebb34a02deb9ddda, type: 2}
@@ -442,9 +448,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7df03b808be62854dae6ddfc4a68cdf2, type: 2}
   - {fileID: 11400000, guid: fcadba65ca391a145892062de8b2b092, type: 2}
   - {fileID: 11400000, guid: f7b7a86499762b848b24e21f6bc7dd10, type: 2}
-  - {fileID: 11400000, guid: f7b7a86499762b848b24e21f6bc7dd10, type: 2}
-  - {fileID: 11400000, guid: f7b7a86499762b848b24e21f6bc7dd10, type: 2}
-  - {fileID: 11400000, guid: f7b7a86499762b848b24e21f6bc7dd10, type: 2}
+  - {fileID: 11400000, guid: ba4fa0700039f0a4cb66790904b11d31, type: 2}
+  - {fileID: 11400000, guid: 4f8ea7c6fd97b1a4c9468bf5ee49f8b3, type: 2}
+  - {fileID: 11400000, guid: c6c73c33c4fdd0949bfb6156ede113db, type: 2}
+  - {fileID: 11400000, guid: 0cd19b7eb55971743a76bca8a2ef8706, type: 2}
+  - {fileID: 11400000, guid: b1c796d21bbdad74bb085447fae790d9, type: 2}
+  - {fileID: 11400000, guid: b96afa708f674a24e9a836ec37f3c1d4, type: 2}
+  - {fileID: 11400000, guid: b7ac843a8dfbe3d49b5daf0d238ab5c5, type: 2}
 --- !u!1 &310242708
 GameObject:
   m_ObjectHideFlags: 0
@@ -790,10 +800,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.CanvasScaler
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3

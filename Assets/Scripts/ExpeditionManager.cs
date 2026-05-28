@@ -207,7 +207,7 @@ public class ExpeditionManager : MonoBehaviour
         // Move spectators to the edges in two groups: left and right
         int leftCount = 0;
         int rightCount = 0;
-        float yPos = -3f; // match your spawnYPosition
+        float yPos = -10.5f; // match your spawnYPosition
 
         for (int i = 0; i < spectators.Count; i++)
         {
