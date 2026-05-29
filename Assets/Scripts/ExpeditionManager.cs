@@ -482,7 +482,11 @@ public class ExpeditionManager : MonoBehaviour
         foreach (var player in allPlayers)
         {
             player.RegenerateManaIfMage();
-            // TODO: Reset ability cooldowns when implemented
+
+            player.TickDownCooldowns();
+            player.TickDownCooldowns();
+            player.TickDownCooldowns();
+
         }
 
         // Start next wave
@@ -495,6 +499,10 @@ public class ExpeditionManager : MonoBehaviour
 
     public void CompleteExpedition(bool victory)
     {
+        // Stop combat state immediately so the panel clears the combat UI
+        // regardless of victory or defeat. CleanupExpedition handles the rest.
+        CombatTurnManager.Instance?.EndCombat();
+
         if (victory)
         {
             OnScreenNotification.Instance?.ShowNotification("🎉 Victory! The expedition is complete!");

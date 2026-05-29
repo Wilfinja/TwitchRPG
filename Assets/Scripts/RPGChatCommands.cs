@@ -585,6 +585,7 @@ public class RPGChatCommands : MonoBehaviour
             }
 
             string itemName = viewer.equipped.mainHand.itemName;
+            RPGManager.Instance.ClearItemAbilityIfFromItem(viewer, viewer.equipped.mainHand);
             viewer.equipped.mainHand = null;
             RPGManager.Instance.SaveGameData();
             return $"✅ {viewer.username}: Unequipped {itemName} from main hand!";
@@ -603,6 +604,7 @@ public class RPGChatCommands : MonoBehaviour
             }
 
             string itemName = viewer.equipped.offHand.itemName;
+            RPGManager.Instance.ClearItemAbilityIfFromItem(viewer, viewer.equipped.offHand);
             viewer.equipped.offHand = null;
             RPGManager.Instance.SaveGameData();
             return $"✅ {viewer.username}: Unequipped {itemName} from off hand!";

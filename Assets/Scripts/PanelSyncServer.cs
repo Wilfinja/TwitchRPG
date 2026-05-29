@@ -25,6 +25,7 @@ using UnityEngine;
 /// FIX: All floats now use InvariantCulture so "0.123" never becomes "0,123"
 ///      on European/non-English Windows locales, which was causing Bad Request.
 /// </summary>
+
 public class PanelSyncServer : MonoBehaviour
 {
     [Header("EBS Connection")]
@@ -73,7 +74,11 @@ public class PanelSyncServer : MonoBehaviour
 
     // ── Private ──────────────────────────────────────────────────────────────
 
-    private static readonly HttpClient http = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
+    private static readonly HttpClient http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+
+    // Guards to prevent push pileup — if a push is already in flight, skip the next tick
+    private bool _viewerPushInFlight = false;
+    private bool _globalPushInFlight = false;
 
     // Thread-safe queue for work that must run on Unity's main thread.
     // Background threads (inbound HTTP listener) enqueue actions here;
@@ -115,61 +120,168 @@ public class PanelSyncServer : MonoBehaviour
     }
 
     /// <summary>
-    /// Checks the local ngrok agent API for the current public URL and
-    /// sends it to the EBS /unity/register-inbound endpoint.
-    /// Safe to call even if ngrok isn't running — it silently does nothing.
+    /// Registers the current Tailscale Funnel URL (or ngrok URL as fallback) with
+    /// the EBS so Railway always knows where to forward panel commands, without
+    /// needing to update UNITY_INBOUND_URL in Railway env vars after every reboot.
+    ///
+    /// Tailscale Funnel URL is stable (based on machine name) so we construct it
+    /// directly from the Tailscale status API. ngrok is checked as a fallback.
     /// </summary>
     private IEnumerator RegisterTunnelUrl()
     {
-        // Small delay to let ngrok fully start if it was just launched
         yield return new WaitForSeconds(2f);
 
-        // ngrok exposes its current tunnels at localhost:4040/api/tunnels
-        string ngrokApi = "http://localhost:4040/api/tunnels";
-        bool done = false;
         string tunnelUrl = null;
+        bool done = false;
 
         ThreadPool.QueueUserWorkItem(_ =>
         {
             try
             {
-                var req = new System.Net.Http.HttpRequestMessage(
-                    System.Net.Http.HttpMethod.Get, ngrokApi);
-                var task = http.SendAsync(req);
-                task.Wait(3000);
-                if (task.Result.IsSuccessStatusCode)
+                // ── Strategy 1: Read from environment variable ────────────────
+                // If UNITY_INBOUND_URL is already set correctly in Railway, we
+                // just confirm it by reading it from the Inspector field — no
+                // detection needed. This is the most reliable approach.
+                // We try detection anyway so the URL stays fresh after reboots.
+
+                // ── Strategy 2: Tailscale local API (named pipe on Windows) ──
+                // Tailscale on Windows exposes a local HTTP API via a named pipe.
+                // We can reach it through a fixed loopback address it also binds.
+                // Try several known ports/addresses in order.
+                string[] tailscaleApis = new[]
                 {
-                    string json = task.Result.Content.ReadAsStringAsync().Result;
-                    // Parse: {"tunnels":[{"public_url":"https://abc.ngrok-free.app",...}]}
-                    int idx = json.IndexOf("\"public_url\":\"https://");
-                    if (idx >= 0)
+                    "http://100.100.100.100/localapi/v0/status",  // Tailscale's magic DNS loopback
+                    "http://127.0.0.1:41112/localapi/v0/status",  // older Tailscale versions
+                };
+
+                foreach (string api in tailscaleApis)
+                {
+                    try
                     {
-                        int start = idx + 14;
+                        var req = new System.Net.Http.HttpRequestMessage(
+                            System.Net.Http.HttpMethod.Get, api);
+                        var task = http.SendAsync(req);
+                        if (!task.Wait(2000) || !task.Result.IsSuccessStatusCode) continue;
+
+                        string json = task.Result.Content.ReadAsStringAsync().Result;
+                        int idx = json.IndexOf("\"DNSName\":\"", StringComparison.Ordinal);
+                        if (idx < 0) continue;
+                        int start = idx + 11;
                         int end = json.IndexOf('"', start);
-                        if (end > start)
-                            tunnelUrl = json.Substring(start, end - start);
+                        if (end <= start) continue;
+                        string dnsName = json.Substring(start, end - start).TrimEnd('.');
+                        if (!string.IsNullOrEmpty(dnsName))
+                        {
+                            tunnelUrl = $"https://{dnsName}";
+                            UnityEngine.Debug.Log($"[PanelSync] Tailscale API → {tunnelUrl}");
+                            break;
+                        }
+                    }
+                    catch { /* try next */ }
+                }
+
+                // ── Strategy 3: Run tailscale.exe CLI ────────────────────────
+                if (string.IsNullOrEmpty(tunnelUrl))
+                {
+                    string[] exePaths = new[]
+                    {
+                        @"C:\Program Files\Tailscale\tailscale.exe",
+                        @"C:\Program Files (x86)\Tailscale\tailscale.exe",
+                        "tailscale",  // PATH fallback
+                    };
+
+                    foreach (string exe in exePaths)
+                    {
+                        try
+                        {
+                            if (exe != "tailscale" && !System.IO.File.Exists(exe)) continue;
+
+                            var psi = new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = exe,
+                                Arguments = "status --json",
+                                RedirectStandardOutput = true,
+                                RedirectStandardError = true,
+                                UseShellExecute = false,
+                                CreateNoWindow = true,
+                            };
+                            using var proc = System.Diagnostics.Process.Start(psi);
+                            string json = proc.StandardOutput.ReadToEnd();
+                            proc.WaitForExit(3000);
+
+                            int idx = json.IndexOf("\"DNSName\":\"", StringComparison.Ordinal);
+                            if (idx < 0) continue;
+                            int start = idx + 11;
+                            int end = json.IndexOf('"', start);
+                            if (end <= start) continue;
+                            string dnsName = json.Substring(start, end - start).TrimEnd('.');
+                            if (!string.IsNullOrEmpty(dnsName))
+                            {
+                                tunnelUrl = $"https://{dnsName}";
+                                UnityEngine.Debug.Log($"[PanelSync] tailscale CLI → {tunnelUrl}");
+                                break;
+                            }
+                        }
+                        catch { /* try next */ }
                     }
                 }
+
+                // ── Strategy 4: ngrok fallback ────────────────────────────────
+                if (string.IsNullOrEmpty(tunnelUrl))
+                {
+                    try
+                    {
+                        var req = new System.Net.Http.HttpRequestMessage(
+                            System.Net.Http.HttpMethod.Get, "http://localhost:4040/api/tunnels");
+                        var task = http.SendAsync(req);
+                        if (task.Wait(2000) && task.Result.IsSuccessStatusCode)
+                        {
+                            string json = task.Result.Content.ReadAsStringAsync().Result;
+                            int idx = json.IndexOf("\"public_url\":\"https://", StringComparison.Ordinal);
+                            if (idx >= 0)
+                            {
+                                int start = idx + 14;
+                                int end = json.IndexOf('"', start);
+                                if (end > start)
+                                {
+                                    tunnelUrl = json.Substring(start, end - start);
+                                    UnityEngine.Debug.Log($"[PanelSync] ngrok → {tunnelUrl}");
+                                }
+                            }
+                        }
+                    }
+                    catch { /* ngrok not running */ }
+                }
             }
-            catch { /* ngrok not running — normal */ }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogWarning($"[PanelSync] RegisterTunnelUrl error: {ex.Message}");
+            }
             finally { done = true; }
         });
 
         while (!done) yield return null;
 
-        if (string.IsNullOrEmpty(tunnelUrl)) yield break;
+        if (string.IsNullOrEmpty(tunnelUrl))
+        {
+            // Detection failed — but if the Railway env var is already correct
+            // (as shown by UNITY_INBOUND_URL in Railway), this is harmless.
+            // The EBS already knows the right URL from the env var.
+            Debug.Log("[PanelSync] Could not auto-detect tunnel URL — " +
+                      "UNITY_INBOUND_URL in Railway will be used as-is. " +
+                      "This is fine if the env var is already correct.");
+            yield break;
+        }
 
-        Debug.Log($"[PanelSync] Detected ngrok tunnel: {tunnelUrl}");
-
-        // Register with EBS so it updates UNITY_INBOUND_URL in memory
-        string body = "{\"inboundUrl\":\"" + tunnelUrl + "\"}";
+        string body = "{\"url\":\"" + tunnelUrl + "\"}";
         yield return StartCoroutine(PostToEbs("/unity/register-inbound", body,
             success =>
             {
                 if (success)
-                    Debug.Log($"[PanelSync] Registered tunnel URL with EBS: {tunnelUrl}");
+                    Debug.Log($"[PanelSync] EBS inbound URL updated to: {tunnelUrl}");
                 else
-                    Debug.LogWarning("[PanelSync] Failed to register tunnel URL — update UNITY_INBOUND_URL in Railway manually.");
+                    Debug.LogWarning("[PanelSync] Failed to register tunnel URL with EBS — " +
+                                     "update UNITY_INBOUND_URL in Railway manually.");
             }));
     }
 
@@ -186,14 +298,16 @@ public class PanelSyncServer : MonoBehaviour
         if (pushTimer <= 0f)
         {
             pushTimer = pushIntervalSeconds;
-            StartCoroutine(PushAllViewers());
+            if (!_viewerPushInFlight)
+                StartCoroutine(PushAllViewers());
         }
 
         globalPushTimer -= Time.deltaTime;
         if (globalPushTimer <= 0f)
         {
             globalPushTimer = globalPushIntervalSeconds;
-            StartCoroutine(PushGlobalState());
+            if (!_globalPushInFlight)
+                StartCoroutine(PushGlobalState());
         }
     }
 
@@ -213,22 +327,43 @@ public class PanelSyncServer : MonoBehaviour
 
     private IEnumerator PushAllViewers()
     {
-        if (RPGManager.Instance == null) yield break;
-
-        List<ViewerData> allViewers = RPGManager.Instance.GetAllViewers();
-        if (allViewers == null || allViewers.Count == 0) yield break;
-
-        int count = 0;
-        foreach (ViewerData viewer in allViewers)
+        _viewerPushInFlight = true;
+        try
         {
-            yield return StartCoroutine(PushSingleViewer(viewer));
-            count++;
-            if (count >= maxViewersPerBatch) break;
-            yield return new WaitForSeconds(0.05f);
-        }
+            if (RPGManager.Instance == null) yield break;
 
-        if (verboseLogging)
-            Debug.Log($"[PanelSync] Pushed {count} viewer(s)");
+            List<ViewerData> allViewers = RPGManager.Instance.GetAllViewers();
+            if (allViewers == null || allViewers.Count == 0) yield break;
+
+            // Build a single batch payload instead of one request per viewer.
+            // This reduces 27 HTTP round-trips to 1, preventing timeout pile-up.
+            var sb = new StringBuilder("[");
+            int count = 0;
+            foreach (ViewerData viewer in allViewers)
+            {
+                if (count >= maxViewersPerBatch) break;
+                if (count > 0) sb.Append(",");
+                sb.Append("{\"userId\":\"").Append(EscJson(viewer.twitchUserId))
+                  .Append("\",\"state\":").Append(BuildViewerPayload(viewer)).Append("}");
+                count++;
+            }
+            sb.Append("]");
+
+            string body = "{\"viewers\":" + sb.ToString() + "}";
+
+            yield return StartCoroutine(PostToEbs("/unity/push-batch", body,
+                success =>
+                {
+                    if (verboseLogging)
+                        Debug.Log($"[PanelSync] Batch pushed {count} viewer(s) — success: {success}");
+                    else if (!success)
+                        Debug.LogWarning($"[PanelSync] Batch push failed for {count} viewers");
+                }));
+        }
+        finally
+        {
+            _viewerPushInFlight = false;
+        }
     }
 
     /// <summary>Call after any data change to update the panel immediately.</summary>
@@ -239,6 +374,8 @@ public class PanelSyncServer : MonoBehaviour
             StartCoroutine(PushSingleViewer(viewer));
     }
 
+    // Single-viewer push — only used for immediate updates after commands.
+    // Regular interval pushes use the batch endpoint above.
     private IEnumerator PushSingleViewer(ViewerData viewer)
     {
         string stateJson = BuildViewerPayload(viewer);
@@ -298,14 +435,35 @@ public class PanelSyncServer : MonoBehaviour
         invBuilder.Append("]");
 
         // Equipped abilities (in loadout) — viewer.equippedAbilities is List<string> of commandNames
+        // Also read per-ability cooldown remaining turns from CombatEntity if in combat.
         var abilBuilder = new StringBuilder("[");
+
+        // Get OnScreenCharacter and CombatEntity — used for cooldowns and queuedAction below
+        OnScreenCharacter onScreen = CharacterSpawner.Instance?.GetCharacter(viewer.twitchUserId);
+        CombatEntity combatEntity = null;
+        if (onScreen != null)
+            combatEntity = onScreen.GetComponent<CombatEntity>();
+
         for (int i = 0; i < viewer.equippedAbilities.Count; i++)
         {
             string cmd = viewer.equippedAbilities[i];
             AbilityData ab = AbilityDatabase.Instance?.GetAbility(cmd);
             string name = ab != null ? EscJson(ab.abilityName) : EscJson(cmd);
+            int cooldownMax = ab != null ? ab.cooldown : 0;
+
+            // Read remaining cooldown turns from CombatEntity if available
+            int cooldownRemaining = 0;
+            if (combatEntity != null && combatEntity.abilityCooldowns != null
+                && combatEntity.abilityCooldowns.TryGetValue(cmd, out int cd))
+                cooldownRemaining = Mathf.Max(0, cd);
+
             if (i > 0) abilBuilder.Append(",");
-            abilBuilder.Append("{\"cmd\":\"").Append(EscJson(cmd)).Append("\",\"name\":\"").Append(name).Append("\"}");
+            abilBuilder.Append("{")
+                .Append("\"cmd\":\"").Append(EscJson(cmd)).Append("\",")
+                .Append("\"name\":\"").Append(name).Append("\",")
+                .Append("\"cooldownMax\":").Append(cooldownMax).Append(",")
+                .Append("\"cooldownRemaining\":").Append(cooldownRemaining)
+                .Append("}");
         }
         abilBuilder.Append("]");
 
@@ -358,14 +516,35 @@ public class PanelSyncServer : MonoBehaviour
         // Max loadout slots — hardcoded at 4 to match HandleEquipAbilityCommand
         int maxSlots = 4;
 
+        // Item ability slot — single ability granted by an equipped item.
+        // Stored as a command name string on ViewerData; look up display name
+        // and cooldown the same way class abilities are handled above.
+        string itemAbilityJson = "null";
+        if (!string.IsNullOrEmpty(viewer.equippedItemAbility))
+        {
+            string iaCmd = viewer.equippedItemAbility;
+            AbilityData iaData = AbilityDatabase.Instance?.GetAbility(iaCmd);
+            string iaName = iaData != null ? EscJson(iaData.abilityName) : EscJson(iaCmd);
+            int iaCdMax = iaData != null ? iaData.cooldown : 0;
+            int iaCdLeft = 0;
+            if (combatEntity != null && combatEntity.abilityCooldowns != null
+                && combatEntity.abilityCooldowns.TryGetValue(iaCmd, out int iacd))
+                iaCdLeft = Mathf.Max(0, iacd);
+
+            itemAbilityJson = "{" +
+                "\"cmd\":\"" + EscJson(iaCmd) + "\"," +
+                "\"name\":\"" + iaName + "\"," +
+                "\"cooldownMax\":" + iaCdMax + "," +
+                "\"cooldownRemaining\":" + iaCdLeft +
+                "}";
+        }
+
         // Queued combat action
         string queuedAction = "";
-        OnScreenCharacter onScreen = CharacterSpawner.Instance?.GetCharacter(viewer.twitchUserId);
         if (onScreen != null)
         {
-            CombatEntity entity = onScreen.GetComponent<CombatEntity>();
-            if (entity != null && !string.IsNullOrEmpty(entity.queuedAction))
-                queuedAction = EscJson(entity.queuedAction);
+            if (combatEntity != null && !string.IsNullOrEmpty(combatEntity.queuedAction))
+                queuedAction = EscJson(combatEntity.queuedAction);
         }
 
         // Build final JSON using StringBuilder to avoid any interpolation ambiguity
@@ -425,6 +604,7 @@ public class PanelSyncServer : MonoBehaviour
         sb.Append("\"pvpWins\":").Append(viewer.pvpWins).Append(",");
         sb.Append("\"pvpLosses\":").Append(viewer.pvpLosses).Append(",");
         sb.Append("\"isDead\":").Append(viewer.isDead ? "true" : "false").Append(",");
+        sb.Append("\"itemAbility\":").Append(itemAbilityJson).Append(",");
         sb.Append("\"queuedAction\":\"").Append(queuedAction).Append("\"");
         sb.Append("}");
 
@@ -435,47 +615,79 @@ public class PanelSyncServer : MonoBehaviour
 
     private IEnumerator PushGlobalState()
     {
-        bool expeditionActive = ExpeditionManager.Instance != null &&
-                                ExpeditionManager.Instance.currentExpedition.isActive;
-        bool combatActive = CombatTurnManager.Instance != null &&
-                                CombatTurnManager.Instance.combatActive;
-        bool pvpActive = PvPManager.Instance != null &&
-                                PvPManager.Instance.pvpActive;
-        bool isPlayerTurn = combatActive && CombatTurnManager.Instance.playerTurn;
-
-        float turnTimer = isPlayerTurn ? CombatTurnManager.Instance.turnTimer : 0f;
-        float maxTurnTime = CombatTurnManager.Instance != null
-                                ? CombatTurnManager.Instance.maxTurnTime : 45f;
-
-        int wave = 0, totalWaves = 0;
-        if (expeditionActive)
+        _globalPushInFlight = true;
+        try
         {
-            wave = ExpeditionManager.Instance.currentExpedition.currentWave;
-            totalWaves = ExpeditionManager.Instance.currentExpedition.totalWaves;
-        }
+            bool expeditionActive = ExpeditionManager.Instance != null &&
+                                    ExpeditionManager.Instance.currentExpedition.isActive;
+            bool combatActive = CombatTurnManager.Instance != null &&
+                                    CombatTurnManager.Instance.combatActive;
+            bool pvpActive = PvPManager.Instance != null &&
+                                    PvPManager.Instance.pvpActive;
+            bool isPlayerTurn = combatActive && CombatTurnManager.Instance.playerTurn;
 
-        string shopRefresh = "";
-        if (ShopManager.Instance != null)
+            float turnTimer = isPlayerTurn ? CombatTurnManager.Instance.turnTimer : 0f;
+            float maxTurnTime = CombatTurnManager.Instance != null
+                                    ? CombatTurnManager.Instance.maxTurnTime : 45f;
+
+            int wave = 0, totalWaves = 0;
+            if (expeditionActive)
+            {
+                wave = ExpeditionManager.Instance.currentExpedition.currentWave;
+                totalWaves = ExpeditionManager.Instance.currentExpedition.totalWaves;
+            }
+
+            string shopRefresh = "";
+            if (ShopManager.Instance != null)
+            {
+                TimeSpan ts = ShopManager.Instance.GetTimeUntilRefresh();
+                shopRefresh = ts.Hours + "h " + ts.Minutes + "m";
+            }
+
+            // Build shop items array for the panel
+            // Sent in global state so all viewers see the same shop without
+            // duplicating the data in every per-viewer payload.
+            var shopBuilder = new StringBuilder("[");
+            if (ShopManager.Instance != null)
+            {
+                List<RPGItem> shopItems = ShopManager.Instance.GetCurrentShopItems();
+                for (int i = 0; i < shopItems.Count; i++)
+                {
+                    RPGItem item = shopItems[i];
+                    if (i > 0) shopBuilder.Append(",");
+                    shopBuilder.Append("{");
+                    shopBuilder.Append("\"name\":\"").Append(EscJson(item.itemName)).Append("\",");
+                    shopBuilder.Append("\"rarity\":\"").Append(item.rarity).Append("\",");
+                    shopBuilder.Append("\"type\":\"").Append(item.itemType).Append("\",");
+                    shopBuilder.Append("\"price\":").Append(item.price).Append(",");
+                    shopBuilder.Append("\"dmg\":").Append(item.damageBonus).Append(",");
+                    shopBuilder.Append("\"def\":").Append(item.defenseBonus);
+                    shopBuilder.Append("}");
+                }
+            }
+            shopBuilder.Append("]");
+
+            // Floats use IC so decimal is always "."
+            var sb = new StringBuilder();
+            sb.Append("{");
+            sb.Append("\"expeditionActive\":").Append(expeditionActive ? "true" : "false").Append(",");
+            sb.Append("\"combatActive\":").Append(combatActive ? "true" : "false").Append(",");
+            sb.Append("\"pvpActive\":").Append(pvpActive ? "true" : "false").Append(",");
+            sb.Append("\"isPlayerTurn\":").Append(isPlayerTurn ? "true" : "false").Append(",");
+            sb.Append("\"turnTimer\":").Append(turnTimer.ToString("F1", IC)).Append(",");
+            sb.Append("\"maxTurnTime\":").Append(maxTurnTime.ToString("F1", IC)).Append(",");
+            sb.Append("\"wave\":").Append(wave).Append(",");
+            sb.Append("\"totalWaves\":").Append(totalWaves).Append(",");
+            sb.Append("\"shopRefresh\":\"").Append(EscJson(shopRefresh)).Append("\",");
+            sb.Append("\"shopItems\":").Append(shopBuilder);
+            sb.Append("}");
+
+            yield return StartCoroutine(PostToEbs("/unity/broadcast", sb.ToString(), null));
+        }
+        finally
         {
-            TimeSpan ts = ShopManager.Instance.GetTimeUntilRefresh();
-            shopRefresh = ts.Hours + "h " + ts.Minutes + "m";
+            _globalPushInFlight = false;
         }
-
-        // Floats use IC so decimal is always "."
-        var sb = new StringBuilder();
-        sb.Append("{");
-        sb.Append("\"expeditionActive\":").Append(expeditionActive ? "true" : "false").Append(",");
-        sb.Append("\"combatActive\":").Append(combatActive ? "true" : "false").Append(",");
-        sb.Append("\"pvpActive\":").Append(pvpActive ? "true" : "false").Append(",");
-        sb.Append("\"isPlayerTurn\":").Append(isPlayerTurn ? "true" : "false").Append(",");
-        sb.Append("\"turnTimer\":").Append(turnTimer.ToString("F1", IC)).Append(",");
-        sb.Append("\"maxTurnTime\":").Append(maxTurnTime.ToString("F1", IC)).Append(",");
-        sb.Append("\"wave\":").Append(wave).Append(",");
-        sb.Append("\"totalWaves\":").Append(totalWaves).Append(",");
-        sb.Append("\"shopRefresh\":\"").Append(EscJson(shopRefresh)).Append("\"");
-        sb.Append("}");
-
-        yield return StartCoroutine(PostToEbs("/unity/broadcast", sb.ToString(), null));
     }
 
     // ── HTTP POST ────────────────────────────────────────────────────────────
@@ -488,6 +700,9 @@ public class PanelSyncServer : MonoBehaviour
 
         ThreadPool.QueueUserWorkItem(_ =>
         {
+            // Per-request CancellationToken — prevents TaskCanceledException from
+            // the global HttpClient timeout firing while other requests are in flight.
+            using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(15));
             try
             {
                 var req = new HttpRequestMessage(HttpMethod.Post, url)
@@ -496,17 +711,24 @@ public class PanelSyncServer : MonoBehaviour
                 };
                 req.Headers.Add("X-Unity-Secret", unitySecret);
 
-                var task = http.SendAsync(req);
-                task.Wait();
+                var task = http.SendAsync(req, cts.Token);
+                task.Wait(cts.Token);
                 success = task.Result.IsSuccessStatusCode;
 
                 if (!success)
                 {
                     string resp = task.Result.Content.ReadAsStringAsync().Result;
-                    // Trim HTML error pages to a readable length
                     if (resp.Length > 300) resp = resp.Substring(0, 300) + "…";
                     Debug.LogWarning($"[PanelSync] EBS {task.Result.StatusCode} on {endpoint}: {resp}");
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.LogWarning($"[PanelSync] POST {endpoint} timed out after 15s — Railway may be slow or batch is too large");
+            }
+            catch (AggregateException ae) when (ae.InnerException is OperationCanceledException)
+            {
+                Debug.LogWarning($"[PanelSync] POST {endpoint} timed out (aggregate) — consider reducing maxViewersPerBatch");
             }
             catch (Exception ex)
             {
@@ -636,14 +858,16 @@ public class PanelSyncServer : MonoBehaviour
             {
                 try
                 {
+                    Debug.Log($"[PanelSync] Executing inbound command '{command}' for {username} ({userId}) args: [{string.Join(", ", args)}]");
                     result = rpgCommands.HandleRPGCommand(command, userId, username, args)
                              ?? $"Command '{command}' processed.";
+                    Debug.Log($"[PanelSync] Command '{command}' result: {result}");
                     PushViewerImmediate(userId);
                 }
                 catch (Exception ex)
                 {
                     result = $"Error: {ex.Message}";
-                    Debug.LogError($"[PanelSync] Command error '{command}': {ex.Message}");
+                    Debug.LogError($"[PanelSync] Command error '{command}': {ex.Message}\n{ex.StackTrace}");
                 }
                 finally
                 {

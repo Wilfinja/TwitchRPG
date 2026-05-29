@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed1d154c8d2eb1d408c5ddd8aabc8691, type: 3}
+  m_Name: StoneMade Chestplate
+  m_EditorClassIdentifier: Assembly-CSharp::RPGItemData
+  itemName: StoneMade Chestplate
+  description: 'This StoneMade Chesplate enhances STR and CON by 15% and has a  '
+  itemType: 4
+  rarity: 2
+  weaponCategory: 0
+  requiredLevel: 1
+  price: 850
+  isTwoHanded: 0
+  strengthBonusPercent: 0.15
+  constitutionBonusPercent: 0.15
+  dexterityBonusPercent: 0
+  willpowerBonusPercent: 0
+  charismaBonusPercent: 0
+  intelligenceBonusPercent: 0
+  strengthBonus: 3
+  constitutionBonus: 3
+  dexterityBonus: 0
+  willpowerBonus: 0
+  charismaBonus: 0
+  intelligenceBonus: 0
+  damageBonus: 0
+  defenseBonus: 20
+  healAmount: 0
+  maxManaBonus: 0
+  manaRegenBonus: 0
+  manaCostReduction: 0
+  passives:
+  - {fileID: 11400000, guid: 43f4d821209293444b93093fc34b7988, type: 2}
+  grantAbility: {fileID: 0}
+  allowedClasses: 
+  abilities: []
+  properties: []

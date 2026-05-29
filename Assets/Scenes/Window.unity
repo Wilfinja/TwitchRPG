@@ -428,6 +428,7 @@ MonoBehaviour:
   namedRares:
   - {fileID: 11400000, guid: 7c119bb1c352f604da41d7bce363cdb9, type: 2}
   - {fileID: 11400000, guid: dc0310463ed19ac438ec8c05c5990f5d, type: 2}
+  - {fileID: 11400000, guid: 323aeec68938b334781f97d759f1ebc0, type: 2}
   namedUncommons:
   - {fileID: 11400000, guid: f88166c3a53a50d41b544f6365a37e7c, type: 2}
   - {fileID: 11400000, guid: 1bc64043eb5b90746ab0f7bc65d1d682, type: 2}

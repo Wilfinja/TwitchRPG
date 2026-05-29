@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -233,6 +233,9 @@ public class RPGManager : MonoBehaviour
             viewer.equipped.SetEquippedItem(item.itemType, item);
             viewer.RemoveItem(itemId);
 
+            // Grant item ability if the new item has one
+            ApplyItemAbility(viewer, item);
+
             Debug.Log($"[RPG] {viewer.username} equipped {item.itemName}");
             SaveGameData();
             return true;
@@ -252,6 +255,7 @@ public class RPGManager : MonoBehaviour
                     Debug.LogWarning($"[RPG] Inventory full, cannot unequip main hand");
                     return false;
                 }
+                ClearItemAbilityIfFromItem(viewer, viewer.equipped.mainHand);
                 viewer.equipped.mainHand = null;
             }
 
@@ -263,12 +267,14 @@ public class RPGManager : MonoBehaviour
                     Debug.LogWarning($"[RPG] Inventory full, cannot unequip off hand");
                     return false;
                 }
+                ClearItemAbilityIfFromItem(viewer, viewer.equipped.offHand);
                 viewer.equipped.offHand = null;
             }
 
             // Equip two-handed weapon in main hand
             viewer.equipped.mainHand = weapon;
             viewer.RemoveItem(weapon.itemId);
+            ApplyItemAbility(viewer, weapon);
 
             Debug.Log($"[RPG] {viewer.username} equipped two-handed weapon {weapon.itemName}");
             SaveGameData();
@@ -285,6 +291,7 @@ public class RPGManager : MonoBehaviour
                 Debug.LogWarning($"[RPG] Inventory full, cannot unequip two-handed weapon");
                 return false;
             }
+            ClearItemAbilityIfFromItem(viewer, viewer.equipped.mainHand);
             viewer.equipped.mainHand = null;
         }
 
@@ -296,10 +303,12 @@ public class RPGManager : MonoBehaviour
                 Debug.LogWarning($"[RPG] Inventory full!");
                 return false;
             }
+            ClearItemAbilityIfFromItem(viewer, viewer.equipped.mainHand);
         }
 
         viewer.equipped.mainHand = weapon;
         viewer.RemoveItem(weapon.itemId);
+        ApplyItemAbility(viewer, weapon);
 
         Debug.Log($"[RPG] {viewer.username} equipped {weapon.itemName} in main hand");
         SaveGameData();
@@ -323,10 +332,12 @@ public class RPGManager : MonoBehaviour
                 Debug.LogWarning($"[RPG] Inventory full!");
                 return false;
             }
+            ClearItemAbilityIfFromItem(viewer, viewer.equipped.offHand);
         }
 
         viewer.equipped.offHand = offhandItem;
         viewer.RemoveItem(offhandItem.itemId);
+        ApplyItemAbility(viewer, offhandItem);
 
         Debug.Log($"[RPG] {viewer.username} equipped {offhandItem.itemName} in off hand");
         SaveGameData();
@@ -350,12 +361,53 @@ public class RPGManager : MonoBehaviour
             return false;
         }
 
+        ClearItemAbilityIfFromItem(viewer, item);
         viewer.equipped.SetEquippedItem(slot, null);
         Debug.Log($"[RPG] {viewer.username} unequipped {item.itemName}");
         return true;
     }
 
-    // ==================== CLASS MANAGEMENT ====================
+    // ── Item ability helpers ──────────────────────────────────────────────────
+
+    /// <summary>
+    /// If <paramref name="item"/> has an ability in its abilities list,
+    /// set viewer.equippedItemAbility to that command and warn if it's not
+    /// in AbilityDatabase. Clears the slot first so equipping a new item
+    /// always overwrites the old one.
+    /// </summary>
+    private void ApplyItemAbility(ViewerData viewer, RPGItem item)
+    {
+        if (item == null || !item.HasAbilities()) return;
+
+        string cmd = item.abilities[0].abilityCommand;
+        if (string.IsNullOrEmpty(cmd)) return;
+
+        // Validate it resolves in the database so combat doesn't silently fail
+        if (AbilityDatabase.Instance != null && AbilityDatabase.Instance.GetAbility(cmd) == null)
+            Debug.LogWarning($"[RPG] Item '{item.itemName}' grants ability '{cmd}' but it was not found in AbilityDatabase. Check the commandName spelling.");
+
+        viewer.equippedItemAbility = cmd;
+        Debug.Log($"[RPG] {viewer.username} gained item ability slot: {cmd} (from {item.itemName})");
+    }
+
+    /// <summary>
+    /// If the item being unequipped is the source of the current item ability,
+    /// clear the slot. Safe to call even if the item had no ability.
+    /// </summary>
+    public void ClearItemAbilityIfFromItem(ViewerData viewer, RPGItem item)
+    {
+        if (item == null || !item.HasAbilities()) return;
+        if (string.IsNullOrEmpty(viewer.equippedItemAbility)) return;
+
+        string cmd = item.abilities[0].abilityCommand;
+        if (viewer.equippedItemAbility == cmd)
+        {
+            viewer.equippedItemAbility = "";
+            Debug.Log($"[RPG] {viewer.username} lost item ability slot: {cmd} (unequipped {item.itemName})");
+        }
+    }
+
+
 
     public bool SetViewerClass(string userId, CharacterClass newClass)
     {

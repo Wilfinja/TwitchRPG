@@ -68,6 +68,20 @@ public class CombatTurnManager : MonoBehaviour
         StartPlayerTurn();
     }
 
+    /// <summary>
+    /// Called by ExpeditionManager when the expedition fully ends (victory or defeat).
+    /// Clears all combat state so the panel stops showing combat UI.
+    /// </summary>
+    public void EndCombat()
+    {
+        combatActive = false;
+        playerTurn = false;
+        turnTimer = 0f;
+        isExecutingTurn = false;
+        queuedActions.Clear();
+        Debug.Log("[CombatTurnManager] Combat ended — state cleared.");
+    }
+
     void StartPlayerTurn()
     {
         playerTurn = true;
@@ -210,8 +224,11 @@ public class CombatTurnManager : MonoBehaviour
         if (CheckWaveCleared())
         {
             Debug.Log("[Combat] WAVE CLEARED!");
-            // Expedition wave cleared
+            // Expedition wave cleared — combatActive stays true, ExpeditionManager
+            // will call StartCombat() again for the next wave, or CompleteExpedition
+            // if all waves are done (which sets combatActive false via EndCombat).
             isExecutingTurn = false;
+            playerTurn = false;
             ExpeditionManager.Instance.OnWaveCleared();
             yield break;
         }
@@ -535,7 +552,7 @@ public class CombatTurnManager : MonoBehaviour
                 ExecutePlayerTurn();
             }
         }
-        
+
     }
 
     /// <summary>

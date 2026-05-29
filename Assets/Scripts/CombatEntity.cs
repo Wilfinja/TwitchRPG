@@ -338,7 +338,7 @@ public class CombatEntity : MonoBehaviour
         //Fire passive hooks after all damage is resolved
         PassiveEffectProcessor.OnTakeDamage(this, attacker, finalDamage);
         if (attacker != null && !attacker.isDead)
-        PassiveEffectProcessor.OnDealDamage(attacker, this, finalDamage);
+            PassiveEffectProcessor.OnDealDamage(attacker, this, finalDamage);
     }
 
     public void Heal(int amount, CombatEntity healer)
@@ -613,7 +613,13 @@ public class CombatEntity : MonoBehaviour
     {
         if (isPlayer && viewerData != null)
         {
-            viewerData.baseStats.currentHealth = currentHealth;
+            // Restore HP to max after expedition ends — combat HP is tracked
+            // separately on CombatEntity and should not persist as the viewer's
+            // "permanent" HP. The panel would otherwise show depleted HP forever.
+            viewerData.baseStats.currentHealth = viewerData.baseStats.maxHealth > 0
+                ? viewerData.baseStats.maxHealth
+                : maxHealth;
+
             viewerData.classResources.sneak = sneakPoints;
             viewerData.classResources.mana = mana;
             viewerData.classResources.wrath = wrath;
@@ -621,7 +627,7 @@ public class CombatEntity : MonoBehaviour
             viewerData.classResources.currentStance = currentStance.ToString();
 
             RPGManager.Instance.SaveGameData();
-            Debug.Log($"[CombatEntity] Synced all combat data for {entityName} back to ViewerData");
+            Debug.Log($"[CombatEntity] Synced all combat data for {entityName} back to ViewerData (HP restored to max)");
         }
     }
 
