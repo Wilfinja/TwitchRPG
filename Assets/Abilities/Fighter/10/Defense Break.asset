@@ -18,7 +18,7 @@ MonoBehaviour:
     dealing .75x STR damage.
   requiredClass: 3
   levelRequired: 10
-  category: 3
+  category: 0
   targetType: 5
   scalingStat: 1
   statMultiplier: 0.75
@@ -84,7 +84,7 @@ MonoBehaviour:
     isNegativeEffect: 0
     statusResistanceBonus: 0
     damageMultiplier: 1
-    defenseMultiplier: 0.5
+    defenseMultiplier: 0.85
     damageOverTime: 0
     temporaryDefenseBonus: 0
     baseDefenseAmount: 0

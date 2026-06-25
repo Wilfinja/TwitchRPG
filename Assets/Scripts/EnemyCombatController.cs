@@ -35,7 +35,7 @@ public class EnemyCombatController : MonoBehaviour
     {
         if (entity.isDead) yield break;
 
-        // ✅ Choose ability and target using role-based AI
+        // Choose ability and target using role-based AI
         AbilityData chosenAbility = ChooseAbility();
 
         if (chosenAbility != null)
@@ -44,7 +44,7 @@ public class EnemyCombatController : MonoBehaviour
 
             if (target != null)
             {
-                // ✅ NEW: Zoom to center if ability requires it
+                // Zoom to center if ability requires it
                 Vector3 originalPosition = entity.transform.position;
                 bool didZoom = false;
 
@@ -57,7 +57,7 @@ public class EnemyCombatController : MonoBehaviour
                 // Trigger animation
                 entity.animator?.SetTrigger(chosenAbility.animationTrigger);
 
-                // ✅ Spawn projectile from current position (center if zoomed)
+                // Spawn projectile from current position (center if zoomed)
                 if (chosenAbility.projectilePrefab != null)
                 {
                     SpawnProjectile(entity, target, chosenAbility);
@@ -73,10 +73,16 @@ public class EnemyCombatController : MonoBehaviour
 
                 yield return new WaitForSeconds(0.5f);
 
-                // ✅ NEW: Zoom back if we zoomed
+                //Zoom back if we zoomed
                 if (didZoom && !entity.isDead)
                 {
                     yield return StartCoroutine(ZoomToPosition(entity.transform, originalPosition, CombatTurnManager.Instance.zoomDuration));
+                }
+
+                //return to idle
+                if (!entity.isDead)
+                {
+                    entity.animator.Play("Idle");
                 }
 
                 // Set cooldown
@@ -92,7 +98,7 @@ public class EnemyCombatController : MonoBehaviour
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // ✅ ROLE-BASED ABILITY SELECTION
+    // ROLE-BASED ABILITY SELECTION
     // ═══════════════════════════════════════════════════════════════
     AbilityData ChooseAbility()
     {
@@ -118,7 +124,7 @@ public class EnemyCombatController : MonoBehaviour
             return enemyData.abilities.Count > 0 ? enemyData.abilities[0] : null;
         }
 
-        // ✅ ROLE-BASED SELECTION
+        // ROLE-BASED SELECTION
         switch (enemyData.role)
         {
             case EnemyRole.Boss:
@@ -165,7 +171,7 @@ public class EnemyCombatController : MonoBehaviour
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // ✅ ROLE-BASED TARGETING
+    // ROLE-BASED TARGETING
     // ═══════════════════════════════════════════════════════════════
     CombatEntity ChooseTarget(AbilityData ability)
     {
@@ -178,7 +184,7 @@ public class EnemyCombatController : MonoBehaviour
 
         if (players.Count == 0) return null;
 
-        // ✅ ROLE-BASED TARGETING
+        // ROLE-BASED TARGETING
         switch (enemyData.role)
         {
             case EnemyRole.Assassin:
@@ -227,7 +233,7 @@ public class EnemyCombatController : MonoBehaviour
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // ✅ ZOOM ANIMATION
+    // ZOOM ANIMATION
     // ═══════════════════════════════════════════════════════════════
     IEnumerator ZoomToPosition(Transform target, Vector3 destination, float duration)
     {
@@ -252,7 +258,7 @@ public class EnemyCombatController : MonoBehaviour
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // ✅ PROJECTILE SPAWNING
+    // PROJECTILE SPAWNING
     // ═══════════════════════════════════════════════════════════════
     void SpawnProjectile(CombatEntity caster, CombatEntity target, AbilityData ability)
     {

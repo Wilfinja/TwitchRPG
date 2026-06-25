@@ -309,6 +309,17 @@ public class StatusEffect
     [Tooltip("If true, the Primed effect itself is removed after it detonates. " +
              "If false, it can keep detonating every qualifying hit for its full duration.")]
     public bool primedConsumedOnTrigger = true;
+
+    [Header("Condition Indicator (Visual Only)")]
+    [Tooltip("Short key used to pick an icon/emoji in the health bar and panel. " +
+         "Built-in keys: dot, bleed, stun, silence, barrier, mark, taunt, " +
+         "curse, exposed, enrage, haste, riposte, primed, defense, statboost, lifesteal, buff. " +
+         "Leave empty to fall back to auto-detection from the effect's bool flags.")]
+    public string iconKey = "";
+
+    [Tooltip("Hex colour for this condition's icon background (e.g. \"#FF4444\" for red DoT). " +
+             "Leave empty to use the default colour for the iconKey.")]
+    public string colorHex = "";
 }
 
 public enum AbilityCategory
@@ -398,6 +409,8 @@ public class CharacterStats
 
         currentHealth = Mathf.Min(currentHealth, maxHealth);
     }
+
+
 }
 
 [Serializable]

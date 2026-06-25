@@ -63,6 +63,16 @@ public class CombatTurnManager : MonoBehaviour
 
         CombatUIManager.Instance?.ShowCombatUI();
 
+        // Show position numbers on all entities so viewers know which
+        // panel buttons correspond to which characters on screen.
+        if (ExpeditionManager.Instance != null)
+        {
+            foreach (var e in ExpeditionManager.Instance.GetAllEnemyEntities())
+                e.ShowPositionNumber();
+            foreach (var p in ExpeditionManager.Instance.GetAllPlayerEntities())
+                p.ShowPositionNumber();
+        }
+
         OnScreenNotification.Instance?.ShowNotification("⚔️ Combat begins! Players, queue your actions with !queue <ability> [target]");
 
         StartPlayerTurn();
@@ -79,6 +89,16 @@ public class CombatTurnManager : MonoBehaviour
         turnTimer = 0f;
         isExecutingTurn = false;
         queuedActions.Clear();
+
+        // Hide position numbers — only meaningful during combat.
+        if (ExpeditionManager.Instance != null)
+        {
+            foreach (var e in ExpeditionManager.Instance.GetAllEnemyEntities())
+                e.HidePositionNumber();
+            foreach (var p in ExpeditionManager.Instance.GetAllPlayerEntities())
+                p.HidePositionNumber();
+        }
+
         Debug.Log("[CombatTurnManager] Combat ended — state cleared.");
     }
 
@@ -224,11 +244,8 @@ public class CombatTurnManager : MonoBehaviour
         if (CheckWaveCleared())
         {
             Debug.Log("[Combat] WAVE CLEARED!");
-            // Expedition wave cleared — combatActive stays true, ExpeditionManager
-            // will call StartCombat() again for the next wave, or CompleteExpedition
-            // if all waves are done (which sets combatActive false via EndCombat).
+            // Expedition wave cleared
             isExecutingTurn = false;
-            playerTurn = false;
             ExpeditionManager.Instance.OnWaveCleared();
             yield break;
         }
@@ -1042,11 +1059,27 @@ public class CombatTurnManager : MonoBehaviour
                 }
                 else
                 {
-                    // Normal expedition enemy targeting
                     List<CombatEntity> enemies = ExpeditionManager.Instance.GetAllEnemyEntities();
-                    CombatEntity enemy = enemies.Find(e => e.entityName.ToLower() == targetName.ToLower());
-                    if (enemy != null && !enemy.isDead)
-                        return enemy;
+
+                    // Position-based enemy targeting — panel sends "1", "2", "3", "4"
+                    if (int.TryParse(targetName, out int targetPos))
+                    {
+                        CombatEntity posEnemy = enemies.Find(e => e.position == targetPos && !e.isDead);
+                        if (posEnemy != null)
+                        {
+                            Debug.Log($"[Targeting] Enemy position {targetPos} → {posEnemy.entityName}");
+                            return posEnemy;
+                        }
+                        // Position provided but no enemy there — fall through to default
+                        Debug.Log($"[Targeting] No enemy at position {targetPos}, defaulting to front-most");
+                    }
+                    else
+                    {
+                        // Name-based enemy targeting
+                        CombatEntity enemy = enemies.Find(e => e.entityName.ToLower() == targetName.ToLower());
+                        if (enemy != null && !enemy.isDead)
+                            return enemy;
+                    }
                 }
             }
         }

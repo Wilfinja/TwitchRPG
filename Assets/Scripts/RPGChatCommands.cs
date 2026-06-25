@@ -178,6 +178,8 @@ public class RPGChatCommands : MonoBehaviour
 
         if (RPGManager.Instance.SetViewerClass(viewer.twitchUserId, newClass))
         {
+            PanelSyncServer.Instance?.PushViewerImmediate(viewer.twitchUserId);
+
             return $"🎉 {viewer.username}: Welcome, {newClass}! You start at Level 1.\n" +
                    "Use !join to appear on screen and start collecting coins!\n" +
                    "Use !help to see all commands.";
@@ -196,6 +198,8 @@ public class RPGChatCommands : MonoBehaviour
 
         if (CharacterSpawner.Instance.SpawnCharacter(viewer.twitchUserId, viewer.username))
         {
+            PanelSyncServer.Instance?.PushViewerImmediate(viewer.twitchUserId);
+
             return $"⚔️ {viewer.username} has appeared on screen!\n" +
                    $"Level {viewer.baseStats.level} {viewer.characterClass}\n" +
                    $"Collect falling coins to gain XP and gold!";

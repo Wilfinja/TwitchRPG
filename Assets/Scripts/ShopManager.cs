@@ -407,6 +407,8 @@ public class ShopManager : MonoBehaviour
             rarity = item.rarity,
             requiredLevel = item.requiredLevel,
             price = item.price,
+            isTwoHanded = item.isTwoHanded,
+            weaponCategory = item.weaponCategory,
 
             strengthBonusPercent = item.strengthBonusPercent,
             constitutionBonusPercent = item.constitutionBonusPercent,
@@ -415,12 +417,27 @@ public class ShopManager : MonoBehaviour
             charismaBonusPercent = item.charismaBonusPercent,
             intelligenceBonusPercent = item.intelligenceBonusPercent,
 
+            strengthBonus = item.strengthBonus,
+            constitutionBonus = item.constitutionBonus,
+            dexterityBonus = item.dexterityBonus,
+            willpowerBonus = item.willpowerBonus,
+            charismaBonus = item.charismaBonus,
+            intelligenceBonus = item.intelligenceBonus,
+
+            maxManaBonus = item.maxManaBonus,
+            manaRegenBonus = item.manaRegenBonus,
+            manaCostReduction = item.manaCostReduction,
+
             damageBonus = item.damageBonus,
             defenseBonus = item.defenseBonus,
             healAmount = item.healAmount,
 
+            grantAbility = item.grantAbility,
+
             allowedClasses = new List<CharacterClass>(item.allowedClasses),
-            properties = new Dictionary<string, string>(item.properties)
+            passives = new List<ItemPassiveEffect>(item.passives),
+            properties = new Dictionary<string, string>(item.properties),
+            abilities = new List<ItemAbility>(item.abilities),
         };
 
         viewer.AddItem(purchasedItem);

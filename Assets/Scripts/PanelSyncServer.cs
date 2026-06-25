@@ -11,19 +11,6 @@ using UnityEngine;
 
 /// <summary>
 /// Pushes viewer + global state to Railway EBS so the Twitch panel can display it.
-///
-/// SETUP:
-///   1. Add this script to a persistent GameObject in your scene.
-///   2. Wire the rpgCommands reference in the Inspector.
-///   3. Set ebsUrl      = your Railway URL  (e.g. https://xyz.up.railway.app)
-///   4. Set unitySecret = UNITY_SECRET env var in Railway
-///   5. Set ebsSecret   = EBS_SECRET   env var in Railway
-///   6. In Railway env vars: UNITY_INBOUND_URL = http://<tailscale-ip>:7433
-///   7. Allow port 7433 inbound in Windows Firewall (or run cmd as admin):
-///      netsh http add urlacl url=http://+:7433/ user=Everyone
-///
-/// FIX: All floats now use InvariantCulture so "0.123" never becomes "0,123"
-///      on European/non-English Windows locales, which was causing Bad Request.
 /// </summary>
 
 public class PanelSyncServer : MonoBehaviour
@@ -462,7 +449,12 @@ public class PanelSyncServer : MonoBehaviour
                 .Append("\"cmd\":\"").Append(EscJson(cmd)).Append("\",")
                 .Append("\"name\":\"").Append(name).Append("\",")
                 .Append("\"cooldownMax\":").Append(cooldownMax).Append(",")
-                .Append("\"cooldownRemaining\":").Append(cooldownRemaining)
+                .Append("\"cooldownRemaining\":").Append(cooldownRemaining).Append(",")
+                .Append("\"canTargetEnemies\":").Append(ab != null && ab.canTargetEnemies ? "true" : "false").Append(",")
+                .Append("\"canTargetAllies\":").Append(ab != null && ab.canTargetAllies ? "true" : "false").Append(",")
+                .Append("\"targetType\":\"").Append(ab != null ? ab.targetType.ToString() : "SingleEnemy").Append("\",")
+                .Append("\"minTargetPosition\":").Append(ab != null ? ab.minTargetPosition : 1).Append(",")
+                .Append("\"maxTargetPosition\":").Append(ab != null ? ab.maxTargetPosition : 1)
                 .Append("}");
         }
         abilBuilder.Append("]");
@@ -535,7 +527,12 @@ public class PanelSyncServer : MonoBehaviour
                 "\"cmd\":\"" + EscJson(iaCmd) + "\"," +
                 "\"name\":\"" + iaName + "\"," +
                 "\"cooldownMax\":" + iaCdMax + "," +
-                "\"cooldownRemaining\":" + iaCdLeft +
+                "\"cooldownRemaining\":" + iaCdLeft + "," +
+                "\"canTargetEnemies\":" + (iaData != null && iaData.canTargetEnemies ? "true" : "false") + "," +
+                "\"canTargetAllies\":" + (iaData != null && iaData.canTargetAllies ? "true" : "false") + "," +
+                "\"targetType\":\"" + (iaData != null ? iaData.targetType.ToString() : "SingleEnemy") + "\"," +
+                "\"minTargetPosition\":" + (iaData != null ? iaData.minTargetPosition : 1) + "," +
+                "\"maxTargetPosition\":" + (iaData != null ? iaData.maxTargetPosition : 1) +
                 "}";
         }
 
@@ -667,6 +664,57 @@ public class PanelSyncServer : MonoBehaviour
             }
             shopBuilder.Append("]");
 
+            // Build enemy positions array — sent in global state since all
+            // viewers see the same enemies. Each slot: {pos, name, alive}.
+            // Positions 1-4 always emitted so the panel can show empty slots.
+            var enemyBuilder = new StringBuilder("[");
+            var allyBuilder = new StringBuilder("[");
+
+            if (expeditionActive && ExpeditionManager.Instance != null)
+            {
+                List<CombatEntity> liveEnemies = ExpeditionManager.Instance.GetAllEnemyEntities();
+                List<CombatEntity> livePlayers = ExpeditionManager.Instance.GetAllPlayerEntities();
+
+                // Build a position→entity lookup for enemies (positions 1-6)
+                for (int pos = 1; pos <= 6; pos++)
+                {
+                    CombatEntity e = liveEnemies.Find(en => en.position == pos);
+                    if (pos > 1) enemyBuilder.Append(",");
+                    enemyBuilder.Append("{")
+                        .Append("\"pos\":").Append(pos).Append(",")
+                        .Append("\"alive\":").Append(e != null ? "true" : "false")
+                        .Append("}");
+                }
+
+                // Build a position→entity lookup for allies (positions 1-4)
+                for (int pos = 1; pos <= 4; pos++)
+                {
+                    CombatEntity p = livePlayers.Find(pl => pl.position == pos);
+                    if (pos > 1) allyBuilder.Append(",");
+                    allyBuilder.Append("{")
+                        .Append("\"pos\":").Append(pos).Append(",")
+                        .Append("\"alive\":").Append(p != null ? "true" : "false")
+                        .Append("}");
+                }
+            }
+            else
+            {
+                // Not in expedition — emit empty slots so panel always has arrays
+                for (int pos = 1; pos <= 6; pos++)
+                {
+                    if (pos > 1) enemyBuilder.Append(",");
+                    enemyBuilder.Append("{\"pos\":").Append(pos).Append(",\"alive\":false}");
+                }
+                for (int pos = 1; pos <= 4; pos++)
+                {
+                    if (pos > 1) allyBuilder.Append(",");
+                    allyBuilder.Append("{\"pos\":").Append(pos).Append(",\"alive\":false}");
+                }
+            }
+
+            enemyBuilder.Append("]");
+            allyBuilder.Append("]");
+
             // Floats use IC so decimal is always "."
             var sb = new StringBuilder();
             sb.Append("{");
@@ -679,7 +727,9 @@ public class PanelSyncServer : MonoBehaviour
             sb.Append("\"wave\":").Append(wave).Append(",");
             sb.Append("\"totalWaves\":").Append(totalWaves).Append(",");
             sb.Append("\"shopRefresh\":\"").Append(EscJson(shopRefresh)).Append("\",");
-            sb.Append("\"shopItems\":").Append(shopBuilder);
+            sb.Append("\"shopItems\":").Append(shopBuilder).Append(",");
+            sb.Append("\"enemyPositions\":").Append(enemyBuilder).Append(",");
+            sb.Append("\"allyPositions\":").Append(allyBuilder);
             sb.Append("}");
 
             yield return StartCoroutine(PostToEbs("/unity/broadcast", sb.ToString(), null));

@@ -244,12 +244,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1671f072856dcdb4d9d3b7ea645fbff1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemDropManager
-  commonItemPrefab: {fileID: 638413935280566832, guid: 19fed58fcda9e1e4fb749a1027db3fbf, type: 3}
-  uncommonItemPrefab: {fileID: 0}
-  rareItemPrefab: {fileID: 0}
-  epicItemPrefab: {fileID: 0}
-  legendaryItemPrefab: {fileID: 0}
-  uniqueItemPrefab: {fileID: 0}
+  commonItemPrefab: {fileID: -2253911629886400664, guid: 214a26583e3fe454083fbe1acfc7927d, type: 3}
+  uncommonItemPrefab: {fileID: -2253911629886400664, guid: f11e601b0cea6c9499fde129de3f98d0, type: 3}
+  rareItemPrefab: {fileID: -2253911629886400664, guid: f11e601b0cea6c9499fde129de3f98d0, type: 3}
+  epicItemPrefab: {fileID: -2253911629886400664, guid: 98d3fa98729dac54288584f5ae4e746d, type: 3}
+  legendaryItemPrefab: {fileID: -2253911629886400664, guid: e77b47548111b964e940038274bbd162, type: 3}
+  uniqueItemPrefab: {fileID: -2253911629886400664, guid: 13d2504579dbebe41a586e6bf25b94ba, type: 3}
   spawnHeight: 14
   dropParent: {fileID: 1769051486}
   queueDelay: 0.3
@@ -2024,10 +2024,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.CanvasScaler
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -2388,6 +2388,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1731515871
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1731515872}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1731515872
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1731515871}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -3.6783, y: -1.62622, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1769051485
 GameObject:
   m_ObjectHideFlags: 0
@@ -2537,6 +2568,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 515587e6c3599df46963b44ad8e1f2ee, type: 2}
   - {fileID: 11400000, guid: 845f3ead92b8696458b01116d80b25f0, type: 2}
   - {fileID: 11400000, guid: 51a06c65dd06cfa4f92ef1248cb2cabd, type: 2}
+  - {fileID: 11400000, guid: a90974ea96312494bb241f32e2e256aa, type: 2}
   mageAbilities:
   - {fileID: 11400000, guid: ecf56a095941ec74c801432a63df5e97, type: 2}
   - {fileID: 11400000, guid: 8fd51a715cdcfcf49ae06f83d9f45531, type: 2}
@@ -3081,3 +3113,4 @@ SceneRoots:
   - {fileID: 1303425155}
   - {fileID: 112329017}
   - {fileID: 1564978304}
+  - {fileID: 1731515872}

@@ -541,6 +541,7 @@ public class CombatEntity : MonoBehaviour
             {
                 CombatLog.Instance?.AddEntry($"{entityName}'s barrier was broken!");
                 activeEffects.RemoveAt(i);
+                RefreshConditionIcons();
                 continue;
             }
 
@@ -565,6 +566,33 @@ public class CombatEntity : MonoBehaviour
             CombatHealthBar healthBar = healthBarObject.GetComponent<CombatHealthBar>();
             healthBar?.UpdateHealth(currentHealth, maxHealth);
         }
+    }
+
+    public void RefreshConditionIcons()
+    {
+        if (healthBarObject == null) return;
+        CombatHealthBar bar = healthBarObject.GetComponent<CombatHealthBar>();
+        bar?.RefreshConditions(activeEffects);
+    }
+
+    /// <summary>
+    /// Shows the position number on this entity's health bar UI.
+    /// Called when combat starts so viewers know which panel button to press.
+    /// </summary>
+    public void ShowPositionNumber()
+    {
+        if (healthBarObject != null)
+            healthBarObject.GetComponent<CombatHealthBar>()?.ShowPositionText();
+    }
+
+    /// <summary>
+    /// Hides the position number on this entity's health bar UI.
+    /// Called when combat ends to avoid confusing viewers out of combat.
+    /// </summary>
+    public void HidePositionNumber()
+    {
+        if (healthBarObject != null)
+            healthBarObject.GetComponent<CombatHealthBar>()?.HidePositionText();
     }
 
     public bool IsAbilityOnCooldown(string commandName)
@@ -670,6 +698,7 @@ public class CombatEntity : MonoBehaviour
         // ── Effect applied ─────────────────────────────────────────────────────
         activeEffects.Add(effect);
         CombatLog.Instance?.AddEntry($"{entityName} is now affected by {effect.effectName}!");
+        RefreshConditionIcons();
     }
 
     /// <summary>
@@ -771,6 +800,7 @@ public class CombatEntity : MonoBehaviour
             {
                 CombatLog.Instance?.AddEntry($"{entityName}'s {effect.effectName} barrier was shattered!");
                 activeEffects.RemoveAt(i);
+                RefreshConditionIcons();
             }
 
             if (remaining <= 0) break;
@@ -1086,6 +1116,7 @@ public class CombatEntity : MonoBehaviour
             {
                 CombatLog.Instance?.AddEntry($"{entityName}'s {effect.effectName} was consumed!");
                 activeEffects.RemoveAt(i);
+                RefreshConditionIcons();
             }
         }
     }
@@ -1213,6 +1244,7 @@ public class CombatEntity : MonoBehaviour
             {
                 CombatLog.Instance?.AddEntry($"{entityName}'s {effect.effectName} was consumed!");
                 activeEffects.RemoveAt(i);
+                RefreshConditionIcons();
             }
 
             // Only one Riposte triggers per hit (the first one found).
@@ -1335,6 +1367,7 @@ public class CombatEntity : MonoBehaviour
             {
                 CombatLog.Instance?.AddEntry($"  ↳ {effect.effectName} was consumed.");
                 activeEffects.RemoveAt(i);
+                RefreshConditionIcons();
             }
         }
     }

@@ -10,29 +10,30 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ed1d154c8d2eb1d408c5ddd8aabc8691, type: 3}
-  m_Name: Sinna's Silly Slicer
+  m_Name: Woven Effigy
   m_EditorClassIdentifier: Assembly-CSharp::RPGItemData
-  itemName: Sinna's Silly Slicer
-  description: A sword that is extremely silly.
-  itemType: 0
-  rarity: 5
-  weaponCategory: 1
+  itemName: Woven Effigy
+  description: This effigy gives +5% to every stat. It also gives the equipped hero
+    +10 damage.
+  itemType: 2
+  rarity: 1
+  weaponCategory: 0
   requiredLevel: 1
-  price: 10000
+  price: 300
   isTwoHanded: 0
-  strengthBonusPercent: 0
-  constitutionBonusPercent: 0
-  dexterityBonusPercent: 0.15
-  willpowerBonusPercent: 0
-  charismaBonusPercent: 0
-  intelligenceBonusPercent: 0
+  strengthBonusPercent: 0.05
+  constitutionBonusPercent: 0.05
+  dexterityBonusPercent: 0.05
+  willpowerBonusPercent: 0.05
+  charismaBonusPercent: 0.05
+  intelligenceBonusPercent: 0.05
   strengthBonus: 0
   constitutionBonus: 0
   dexterityBonus: 0
   willpowerBonus: 0
   charismaBonus: 0
   intelligenceBonus: 0
-  damageBonus: 20
+  damageBonus: 10
   defenseBonus: 0
   healAmount: 0
   maxManaBonus: 0
