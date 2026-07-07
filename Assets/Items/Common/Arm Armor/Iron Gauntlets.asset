@@ -20,13 +20,13 @@ MonoBehaviour:
   requiredLevel: 1
   price: 60
   isTwoHanded: 0
-  strengthBonusPercent: 0
-  constitutionBonusPercent: 0.15
+  strengthBonusPercent: 0.1
+  constitutionBonusPercent: 0.1
   dexterityBonusPercent: 0
   willpowerBonusPercent: 0
   charismaBonusPercent: 0
   intelligenceBonusPercent: 0
-  strengthBonus: 0
+  strengthBonus: 1
   constitutionBonus: 1
   dexterityBonus: 0
   willpowerBonus: 0

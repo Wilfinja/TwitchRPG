@@ -274,6 +274,83 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &4641265197372219690
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1944907002768105227}
+  - component: {fileID: 443841782922145250}
+  - component: {fileID: 6408857414759781134}
+  m_Layer: 5
+  m_Name: ConditionIconContainer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1944907002768105227
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4641265197372219690}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3491376874831731853}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -75, y: -20}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &443841782922145250
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4641265197372219690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.HorizontalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 3
+  m_Spacing: 3
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 1
+  m_ChildControlHeight: 1
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
+--- !u!114 &6408857414759781134
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4641265197372219690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
+  m_HorizontalFit: 2
+  m_VerticalFit: 2
 --- !u!1 &6456504973222071716
 GameObject:
   m_ObjectHideFlags: 0
@@ -498,6 +575,7 @@ GameObject:
   - component: {fileID: 6259706820006548746}
   - component: {fileID: 5922211146320837333}
   - component: {fileID: 3179891915579835026}
+  - component: {fileID: 4882479332230163044}
   m_Layer: 5
   m_Name: HealthbarPrefab
   m_TagString: Untagged
@@ -521,6 +599,7 @@ RectTransform:
   - {fileID: 4801841527861571657}
   - {fileID: 7981664083638390642}
   - {fileID: 4732151019533585209}
+  - {fileID: 1944907002768105227}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -583,7 +662,43 @@ MonoBehaviour:
   nameText: {fileID: 6147368977328204615}
   canvas: {fileID: 0}
   positionText: {fileID: 5441766475583260429}
+  conditionIconRow: {fileID: 0}
   fullHealthColor: {r: 0, g: 1, b: 0, a: 1}
   midHealthColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   lowHealthColor: {r: 1, g: 0, b: 0, a: 1}
   offset: {x: 0, y: 3.9, z: 0}
+--- !u!114 &4882479332230163044
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8788164397996377571}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b6fbcf8201d3aa4190603d451af8d7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ConditionIconRow
+  iconContainer: {fileID: 1944907002768105227}
+  iconSlotPrefab: {fileID: 6709306772174132197, guid: c370026930e87a14ea3e690e8c4b4a05, type: 3}
+  builtInSprites:
+    dot: {fileID: 0}
+    bleed: {fileID: 0}
+    stun: {fileID: 0}
+    silence: {fileID: 0}
+    barrier: {fileID: 0}
+    mark: {fileID: 0}
+    taunt: {fileID: 0}
+    curse: {fileID: 0}
+    exposed: {fileID: 0}
+    enrage: {fileID: 0}
+    haste: {fileID: 0}
+    riposte: {fileID: 0}
+    primed: {fileID: 0}
+    defense: {fileID: 0}
+    statBoost: {fileID: 0}
+    lifesteal: {fileID: 0}
+    buff: {fileID: 0}
+    debuff: {fileID: 0}
+  customConditions: []
+  maxVisibleIcons: 6

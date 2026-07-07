@@ -70,6 +70,7 @@ public class DiscordBridgeServer : MonoBehaviour
         "pvpleaderboard",
         "help",
         // ── Write (safe via RPGManager) ──
+        "buy",
         "equip",
         "unequip",
         "equipability",
@@ -227,7 +228,7 @@ public class DiscordBridgeServer : MonoBehaviour
                 return;
             }
 
-            bridgeReq.command = bridgeReq.command.Trim().ToLower();
+            bridgeReq.command = bridgeReq.command.Trim().ToLower().TrimStart('!');
             if (bridgeReq.args == null)
                 bridgeReq.args = new string[0];
 

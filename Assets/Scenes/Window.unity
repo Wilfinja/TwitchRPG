@@ -422,13 +422,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HybridItemSystem
   namedUniques:
   - {fileID: 11400000, guid: 39ea536de36e424418e3bd3031d5d604, type: 2}
-  namedLegendaries: []
+  namedLegendaries:
+  - {fileID: 11400000, guid: 48adff88ddba3f14ea91dc1979728238, type: 2}
   namedEpics:
   - {fileID: 11400000, guid: 068eceb8457f38f41906eaaf2010ed75, type: 2}
   namedRares:
   - {fileID: 11400000, guid: 7c119bb1c352f604da41d7bce363cdb9, type: 2}
   - {fileID: 11400000, guid: dc0310463ed19ac438ec8c05c5990f5d, type: 2}
   - {fileID: 11400000, guid: 323aeec68938b334781f97d759f1ebc0, type: 2}
+  - {fileID: 11400000, guid: 36022d01f5990a74584d6a06ed95026e, type: 2}
+  - {fileID: 11400000, guid: e28dd639b8bbd3b4c9f3a72a7f129e74, type: 2}
+  - {fileID: 11400000, guid: c3eb0ba2af493f5499696d973b87d285, type: 2}
+  - {fileID: 11400000, guid: b7e6f31412da3524b8aeffbc079c0a8c, type: 2}
+  - {fileID: 11400000, guid: 81f0bc1f4be8cc14ba3bb50f92fabc5e, type: 2}
   namedUncommons:
   - {fileID: 11400000, guid: f88166c3a53a50d41b544f6365a37e7c, type: 2}
   - {fileID: 11400000, guid: 1bc64043eb5b90746ab0f7bc65d1d682, type: 2}
@@ -438,6 +444,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0aa657d7cdaecb6448828a0dc9ab2d1c, type: 2}
   - {fileID: 11400000, guid: e44e0e3ede6a1e34d8cf9e79aa1ad3e5, type: 2}
   - {fileID: 11400000, guid: a7c260e7dfb143142afcb5ed97075bc5, type: 2}
+  - {fileID: 11400000, guid: b158ed29c801e084e9af092ae1901c3b, type: 2}
+  - {fileID: 11400000, guid: b7ac843a8dfbe3d49b5daf0d238ab5c5, type: 2}
   namedCommons:
   - {fileID: 11400000, guid: e5976cc9453df424c87b9efe5ac86cdf, type: 2}
   - {fileID: 11400000, guid: 32c38148bd569154ebb34a02deb9ddda, type: 2}
@@ -456,6 +464,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b1c796d21bbdad74bb085447fae790d9, type: 2}
   - {fileID: 11400000, guid: b96afa708f674a24e9a836ec37f3c1d4, type: 2}
   - {fileID: 11400000, guid: b7ac843a8dfbe3d49b5daf0d238ab5c5, type: 2}
+  - {fileID: 11400000, guid: 33240818bc3b9e8499188329b6ee9a7b, type: 2}
+  - {fileID: 11400000, guid: b422e1bc72811104789d684fd11bc69e, type: 2}
+  - {fileID: 11400000, guid: 3dbef62fc7ba42449a9f91ddc09c6868, type: 2}
+  - {fileID: 11400000, guid: bbca549d2df7219499e012138c4f2b68, type: 2}
+  - {fileID: 11400000, guid: 2c9d6be4388fd704a9afc4ee86571fd6, type: 2}
+  - {fileID: 11400000, guid: ddaf39462c9857b40b4558f201d8c00a, type: 2}
 --- !u!1 &310242708
 GameObject:
   m_ObjectHideFlags: 0
@@ -985,7 +999,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: 394.70172}
+  m_AnchoredPosition: {x: 0, y: 545}
   m_SizeDelta: {x: 300, y: 80}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &636782202
@@ -1731,6 +1745,7 @@ GameObject:
   - component: {fileID: 1169067071}
   - component: {fileID: 1169067070}
   - component: {fileID: 1169067072}
+  - component: {fileID: 1169067073}
   m_Layer: 0
   m_Name: CombatUIManager
   m_TagString: Untagged
@@ -1793,6 +1808,41 @@ MonoBehaviour:
   offset: {x: 0, y: 2, z: 0}
   pipSpacing: 0.4
   pipSize: 0.3
+--- !u!114 &1169067073
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1169067069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b6fbcf8201d3aa4190603d451af8d7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ConditionIconRow
+  iconContainer: {fileID: 0}
+  iconSlotPrefab: {fileID: 0}
+  builtInSprites:
+    dot: {fileID: 0}
+    bleed: {fileID: 0}
+    stun: {fileID: 0}
+    silence: {fileID: 0}
+    barrier: {fileID: 0}
+    mark: {fileID: 0}
+    taunt: {fileID: 0}
+    curse: {fileID: 0}
+    exposed: {fileID: 0}
+    enrage: {fileID: 0}
+    haste: {fileID: 0}
+    riposte: {fileID: 0}
+    primed: {fileID: 0}
+    defense: {fileID: 0}
+    statBoost: {fileID: 0}
+    lifesteal: {fileID: 0}
+    buff: {fileID: 0}
+    debuff: {fileID: 0}
+  customConditions: []
+  maxVisibleIcons: 6
 --- !u!1 &1192458942
 GameObject:
   m_ObjectHideFlags: 0
@@ -1897,7 +1947,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: -138.09174, z: -300.9693, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -1927,8 +1977,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 510.42725, y: 216.3346}
-  m_SizeDelta: {x: 560.748, y: 333.298}
+  m_AnchoredPosition: {x: 510, y: 215}
+  m_SizeDelta: {x: 560, y: 340}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1210868018
 GameObject:
@@ -2383,37 +2433,6 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1.46654, y: 0.40025, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1731515871
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1731515872}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1731515872
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1731515871}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.6783, y: -1.62622, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3113,4 +3132,3 @@ SceneRoots:
   - {fileID: 1303425155}
   - {fileID: 112329017}
   - {fileID: 1564978304}
-  - {fileID: 1731515872}

@@ -10,36 +10,38 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ed1d154c8d2eb1d408c5ddd8aabc8691, type: 3}
-  m_Name: Anointed Straps
+  m_Name: Crown of the Last Berserker
   m_EditorClassIdentifier: Assembly-CSharp::RPGItemData
-  itemName: Anointed Straps
-  description: These Anointed Straps give 10% WIL and STR
-  itemType: 6
-  rarity: 0
+  itemName: Crown of the Last Berserker
+  description: +25% STR, +25% CON, +15% DEX, +15% WIL, +8 flat STR, +8 flat CON,
+    +25 defense
+  itemType: 3
+  rarity: 4
   weaponCategory: 0
   requiredLevel: 1
-  price: 50
+  price: 10000
   isTwoHanded: 0
-  strengthBonusPercent: 0.1
-  constitutionBonusPercent: 0
-  dexterityBonusPercent: 0
-  willpowerBonusPercent: 0.1
+  strengthBonusPercent: 0.25
+  constitutionBonusPercent: 0.25
+  dexterityBonusPercent: 0.15
+  willpowerBonusPercent: 0.15
   charismaBonusPercent: 0
   intelligenceBonusPercent: 0
-  strengthBonus: 1
-  constitutionBonus: 0
+  strengthBonus: 8
+  constitutionBonus: 8
   dexterityBonus: 0
-  willpowerBonus: 1
+  willpowerBonus: 0
   charismaBonus: 0
   intelligenceBonus: 0
   damageBonus: 0
-  defenseBonus: 5
+  defenseBonus: 25
   healAmount: 0
   maxManaBonus: 0
   manaRegenBonus: 0
   manaCostReduction: 0
-  passives: []
-  grantAbility: {fileID: 0}
+  passives:
+  - {fileID: 11400000, guid: 659b5a82eea54aa46a3d5214b68b185a, type: 2}
+  grantAbility: {fileID: 11400000, guid: 1999788e12a02b847a51f2817fd78ec1, type: 2}
   allowedClasses: 
   abilities: []
   properties: []

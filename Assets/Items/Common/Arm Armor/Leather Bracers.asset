@@ -22,18 +22,18 @@ MonoBehaviour:
   isTwoHanded: 0
   strengthBonusPercent: 0
   constitutionBonusPercent: 0
-  dexterityBonusPercent: 0.15
+  dexterityBonusPercent: 0.1
   willpowerBonusPercent: 0
   charismaBonusPercent: 0
-  intelligenceBonusPercent: 0
+  intelligenceBonusPercent: 0.1
   strengthBonus: 0
   constitutionBonus: 0
   dexterityBonus: 1
   willpowerBonus: 0
   charismaBonus: 0
-  intelligenceBonus: 0
+  intelligenceBonus: 1
   damageBonus: 0
-  defenseBonus: 0
+  defenseBonus: 5
   healAmount: 0
   maxManaBonus: 0
   manaRegenBonus: 0
