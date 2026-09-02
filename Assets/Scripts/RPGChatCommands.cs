@@ -140,6 +140,9 @@ public class RPGChatCommands : MonoBehaviour
             case "stances":
                 return HandleStancesCommand(userId);
 
+            case "me":
+                return HandleMeCommand(viewer);
+
             default:
                 return null;
         }
@@ -1323,10 +1326,32 @@ public class RPGChatCommands : MonoBehaviour
                "Change with: !stance <type>";
     }
 
+    // ===== NAME REVEAL COMMAND =====
+    private string HandleMeCommand(ViewerData viewer)
+    {
+        if (viewer.characterClass == CharacterClass.None)
+        {
+            return $"{viewer.username}: Choose a class first with !class";
+        }
+
+        OnScreenCharacter character = CharacterSpawner.Instance?.GetCharacter(viewer.twitchUserId);
+
+        if (character == null)
+        {
+            return $"{viewer.username}: You're not on screen. Use !join first!";
+        }
+
+        character.RevealName();
+
+        return $"👁️ {viewer.username}: That's you — " +
+               $"Level {viewer.baseStats.level} {viewer.characterClass}.";
+    }
+
     private string HandleHelpCommand(ViewerData viewer)
     {
         return "=== RPG Commands ===\n" +
                "!class <rogue/fighter/mage/cleric/ranger> - Choose class\n" +
+               "!me - Reveal your character on screen\n" +
                "!stats - View character stats\n" +
                "!inventory - View equipment & items\n" +
                "!equip <number or name> - Equip item\n" +
@@ -1465,7 +1490,7 @@ public class RPGChatCommands : MonoBehaviour
                $"Unallocated points: {targetViewer.baseStats.unallocatedStatPoints}";
     }
 
-    private string HandleAdminGive(string[] args)
+    public string HandleAdminGive(string[] args)
     {
         if (args.Length < 3)
         {

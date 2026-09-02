@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using TMPro;
 
 public class OnScreenCharacter : MonoBehaviour
@@ -47,6 +48,15 @@ public class OnScreenCharacter : MonoBehaviour
     [SerializeField] private TMP_Text nameLabel;
     [SerializeField] private TMP_Text levelLabel;
     [SerializeField] private GameObject nameContainer;
+
+    [Header("Name Visibility")]
+    [Tooltip("When true, the username and level are hidden until the viewer types !me")]
+    [SerializeField] private bool hideNameByDefault = true;
+    [Tooltip("How long the nameplate stays visible after !me, in seconds")]
+    [SerializeField] private float revealDuration = 8f;
+
+    private bool nameRevealed = false;
+    private Coroutine revealRoutine;
 
     private void Awake()
     {
@@ -445,21 +455,30 @@ public class OnScreenCharacter : MonoBehaviour
         scale.x *= -1;
         transform.localScale = scale;
 
-        Vector3 nameScale = nameContainer.transform.localScale;
-        nameScale.x *= -1;
-        nameContainer.transform.localScale = nameScale;
+        // Guarded: prefabs without a nameContainer assigned used to throw here
+        // on every direction change.
+        if (nameContainer != null)
+        {
+            Vector3 nameScale = nameContainer.transform.localScale;
+            nameScale.x *= -1;
+            nameContainer.transform.localScale = nameScale;
+        }
     }
 
     private void UpdateUI()
     {
+        bool plateVisible = !hideNameByDefault || nameRevealed;
+
         if (nameLabel != null)
         {
             nameLabel.text = username;
+            nameLabel.gameObject.SetActive(plateVisible);
         }
 
         if (levelLabel != null)
         {
             levelLabel.text = $"Lv.{level}";
+            levelLabel.gameObject.SetActive(plateVisible);
         }
     }
 
@@ -467,6 +486,51 @@ public class OnScreenCharacter : MonoBehaviour
     {
         level = newLevel;
         UpdateUI();
+    }
+
+    // ==================== NAME REVEAL (!me) ====================
+
+    /// <summary>
+    /// Reveals this character's username for a limited time.
+    /// Called by the !me chat command. Pass a negative duration to use
+    /// the Inspector-configured revealDuration.
+    /// </summary>
+    public void RevealName(float duration = -1f)
+    {
+        if (duration < 0f) duration = revealDuration;
+
+        // Restart the timer if !me is spammed rather than stacking coroutines.
+        if (revealRoutine != null)
+        {
+            StopCoroutine(revealRoutine);
+            revealRoutine = null;
+        }
+
+        nameRevealed = true;
+        UpdateUI();
+
+        // gameObject could be inactive during a scene transition; guard the start.
+        if (isActiveAndEnabled)
+            revealRoutine = StartCoroutine(HideNameAfterDelay(duration));
+    }
+
+    private IEnumerator HideNameAfterDelay(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+
+        nameRevealed = false;
+        UpdateUI();
+        revealRoutine = null;
+    }
+
+    public bool IsNameRevealed()
+    {
+        return nameRevealed;
+    }
+
+    public float GetRevealDuration()
+    {
+        return revealDuration;
     }
 
     // ==================== PUBLIC GETTERS ====================

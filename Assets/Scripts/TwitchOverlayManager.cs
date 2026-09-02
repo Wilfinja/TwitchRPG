@@ -377,6 +377,7 @@ public class TwitchOverlayManager : MonoBehaviour
             return Task.CompletedTask;
         }
 
+        string userId = eventData.UserId;
         string user = eventData.UserName ?? "UNKNOWN";
         string reward = eventData.Reward?.Title ?? "UNKNOWN";
         string input = eventData.UserInput ?? "";
@@ -386,13 +387,13 @@ public class TwitchOverlayManager : MonoBehaviour
         // Dispatch safely to Unity
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
         {
-            HandleChannelPointReward(reward);
+            HandleChannelPointReward(reward, userId, user);
         });
 
         return Task.CompletedTask;
     }
 
-    private void HandleChannelPointReward(string reward)
+    private void HandleChannelPointReward(string reward, string userId, string username)
     {
         if (string.IsNullOrEmpty(reward)) return;
 
@@ -417,10 +418,44 @@ public class TwitchOverlayManager : MonoBehaviour
             case "rain":
                 coinSpawner.SpawnCoins(100);
                 break;
+            case "first!":
+                GrantPlaceReward(userId, username, 30, 30, "FIRST!");
+                break;
+            case "second!":
+                GrantPlaceReward(userId, username, 20, 20, "SECOND!");
+                break;
+            case "third!":
+                GrantPlaceReward(userId, username, 10, 10, "THIRD!");
+                break;
             default:
                 Debug.Log($"[TwitchOverlay] Unknown reward: {reward}");
                 break;
         }
+    }
+
+    private void GrantPlaceReward(string userId, string username, int xp, int coins, string label)
+    {
+        if (string.IsNullOrEmpty(userId))
+        {
+            Debug.LogWarning($"[TwitchOverlay] {label} redeemed but userId was empty — can't award.");
+            return;
+        }
+
+        // Ensure the viewer exists before touching their stats
+        RPGManager.Instance.GetOrCreateViewer(userId, username);
+
+        RPGManager.Instance.AddCoins(userId, coins);
+
+        if (ExperienceManager.Instance != null)
+        {
+            ExperienceManager.Instance.AddExperience(userId, xp);
+        }
+        else
+        {
+            Debug.LogError("[TwitchOverlay] ExperienceManager.Instance is NULL — XP not granted!");
+        }
+
+        OnScreenNotification.Instance?.ShowSuccess($"{label} {username} earned {xp} XP + {coins} coins!");
     }
 
     private async void OnApplicationQuit()

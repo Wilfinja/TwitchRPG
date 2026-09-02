@@ -544,6 +544,22 @@ public class PanelSyncServer : MonoBehaviour
                 queuedAction = EscJson(combatEntity.queuedAction);
         }
 
+        //   PvP  → viewer is one of the two registered fighters in the match
+        //   PvE  → viewer's userId is in the current expedition's participant list
+        bool isCombatant = false;
+        if (CombatTurnManager.Instance != null && CombatTurnManager.Instance.combatActive)
+        {
+            if (PvPManager.Instance != null && PvPManager.Instance.pvpActive && PvPManager.Instance.currentMatch != null)
+            {
+                isCombatant = viewer.twitchUserId == PvPManager.Instance.currentMatch.fighter1UserId ||
+                              viewer.twitchUserId == PvPManager.Instance.currentMatch.fighter2UserId;
+            }
+            else if (ExpeditionManager.Instance != null && ExpeditionManager.Instance.currentExpedition.isActive)
+            {
+                isCombatant = ExpeditionManager.Instance.currentExpedition.participantUserIds.Contains(viewer.twitchUserId);
+            }
+        }
+
         // Build final JSON using StringBuilder to avoid any interpolation ambiguity
         var sb = new StringBuilder();
         sb.Append("{");
@@ -601,6 +617,7 @@ public class PanelSyncServer : MonoBehaviour
         sb.Append("\"pvpWins\":").Append(viewer.pvpWins).Append(",");
         sb.Append("\"pvpLosses\":").Append(viewer.pvpLosses).Append(",");
         sb.Append("\"isDead\":").Append(viewer.isDead ? "true" : "false").Append(",");
+        sb.Append("\"isCombatant\":").Append(isCombatant ? "true" : "false").Append(",");
         sb.Append("\"itemAbility\":").Append(itemAbilityJson).Append(",");
         sb.Append("\"queuedAction\":\"").Append(queuedAction).Append("\"");
         sb.Append("}");

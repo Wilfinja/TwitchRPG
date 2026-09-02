@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1eac8a112960f14ca7362d6348d51d3, type: 3}
+  m_Name: GraveGhoul
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  enemyName: Grave Ghoul
+  enemyPrefab: {fileID: 0}
+  role: 0
+  baseHealth: 35
+  baseStrength: 12
+  baseDexterity: 7
+  baseConstitution: 8
+  baseIntelligence: 2
+  baseDefense: 2
+  healthScaling: 1.15
+  damageScaling: 1.15
+  abilities: []
+  basicAttackCooldown: 0
+  prioritizeLowHP: 1
+  prioritizeHighDefense: 0
+  prioritizeBackline: 0
+  useAOEWhenPossible: 0
+  buffAllies: 0
+  coinDropMin: 8
+  coinDropMax: 35
+  possibleDrops:
+  - item:
+      itemId: GhoulClaw
+      itemName: Ghoul Claw
+      description: A jagged claw that carries the stench of fresh graves.
+      itemType: 0
+      rarity: 0
+      requiredLevel: 1
+      price: 40
+      maxManaBonus: 0
+      manaRegenBonus: 0
+      manaCostReduction: 0
+      isTwoHanded: 0
+      weaponCategory: 3
+      strengthBonusPercent: 0.08
+      constitutionBonusPercent: 0
+      dexterityBonusPercent: 0.05
+      willpowerBonusPercent: 0
+      charismaBonusPercent: 0
+      intelligenceBonusPercent: 0
+      damageBonus: 6
+      defenseBonus: 0
+      healAmount: 0
+      allowedClasses: 
+      abilities: []
+    dropChance: 8
+  xpReward: 28

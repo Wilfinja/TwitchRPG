@@ -108,8 +108,13 @@ public class CombatTurnManager : MonoBehaviour
         turnTimer = maxTurnTime;
         queuedActions.Clear();
 
-        // Reset all player turn flags
-        List<CombatEntity> players = ExpeditionManager.Instance.GetAllPlayerEntities();
+        // Reset all player turn flags — PvP-aware: the expedition roster is empty
+        // during a PvP match, so fall back to GetAllLivingCombatants() which reads
+        // fighters straight off CharacterSpawner instead of currentExpedition.participantUsernames.
+        List<CombatEntity> players = (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
+            ? GetAllLivingCombatants()
+            : ExpeditionManager.Instance.GetAllPlayerEntities();
+
         foreach (CombatEntity player in players)
         {
             player.ResetTurn();
@@ -604,24 +609,65 @@ public class CombatTurnManager : MonoBehaviour
 
     void AutoSubmitDefaultActions()
     {
-        List<CombatEntity> players = ExpeditionManager.Instance.GetAllPlayerEntities();
+        // PvP-aware roster: expedition roster is empty during a PvP match, so
+        // fall back to GetAllLivingCombatants() — same fix as StartPlayerTurn().
+        List<CombatEntity> players = (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
+            ? GetAllLivingCombatants()
+            : ExpeditionManager.Instance.GetAllPlayerEntities();
 
         foreach (CombatEntity player in players)
         {
             if (!queuedActions.ContainsKey(player.entityName) || !queuedActions[player.entityName].confirmed)
             {
-                // Use default ability
-                string defaultAbility = GetDefaultAbility(player.characterClass);
-                QueueAction(player.userId, player.entityName, defaultAbility);
+                AbilityData chosenAbility = FindFirstUsableAbility(player);
 
-                if (queuedActions.ContainsKey(player.entityName))
+                if (chosenAbility != null)
                 {
-                    queuedActions[player.entityName].confirmed = true;
-                }
+                    QueueAction(player.userId, player.entityName, chosenAbility.commandName);
 
-                OnScreenNotification.Instance?.ShowNotification($"@{player.entityName} auto-used {defaultAbility} (time expired)");
+                    if (queuedActions.ContainsKey(player.entityName))
+                    {
+                        queuedActions[player.entityName].confirmed = true;
+                    }
+
+                    OnScreenNotification.Instance?.ShowNotification($"@{player.entityName} auto-used {chosenAbility.abilityName} (time expired)");
+                }
+                else
+                {
+                    // Nothing in loadout or item slot is usable — skip their turn entirely.
+                    OnScreenNotification.Instance?.ShowNotification($"@{player.entityName} had nothing usable ready — turn skipped!");
+                }
             }
         }
+    }
+
+    /// <summary>
+    /// Checks the player's loadout slots (in equip order 1→4), then their item-ability
+    /// slot, and returns the first ability that's off cooldown and affordable.
+    /// Returns null if nothing in that pool is currently usable — caller should
+    /// skip the turn rather than force a fallback attack.
+    /// </summary>
+    AbilityData FindFirstUsableAbility(CombatEntity player)
+    {
+        if (player.viewerData == null) return null;
+
+        List<string> pool = new List<string>(player.viewerData.equippedAbilities);
+
+        if (!string.IsNullOrEmpty(player.viewerData.equippedItemAbility))
+            pool.Add(player.viewerData.equippedItemAbility);
+
+        foreach (string commandName in pool)
+        {
+            AbilityData ability = AbilityDatabase.Instance?.GetAbility(commandName);
+            if (ability == null) continue;
+
+            if (player.IsAbilityOnCooldown(ability.commandName)) continue;
+            if (!CanAffordAbility(player, ability)) continue;
+
+            return ability;
+        }
+
+        return null;
     }
 
     string GetDefaultAbility(CharacterClass charClass)
@@ -797,7 +843,7 @@ public class CombatTurnManager : MonoBehaviour
         // ── Execute ability ───────────────────────────────────────────────────────
         if (ability.isAOE)
         {
-            List<CombatEntity> targets = GetAOETargets(ability, target);
+            List<CombatEntity> targets = GetAOETargets(ability, target, caster);
             foreach (CombatEntity aoeTarget in targets)
             {
                 if (!aoeTarget.isDead)
@@ -876,7 +922,7 @@ public class CombatTurnManager : MonoBehaviour
     /// <summary>
     /// Get multiple targets for AOE abilities
     /// </summary>
-    List<CombatEntity> GetAOETargets(AbilityData ability, CombatEntity primaryTarget)
+    List<CombatEntity> GetAOETargets(AbilityData ability, CombatEntity primaryTarget, CombatEntity caster)
     {
         List<CombatEntity> targets = new List<CombatEntity>();
 
@@ -900,8 +946,20 @@ public class CombatTurnManager : MonoBehaviour
         }
         else if (ability.canTargetAllies)
         {
-            // Get all alive players (for AOE heals/buffs)
-            List<CombatEntity> allPlayers = ExpeditionManager.Instance.GetAllPlayerEntities();
+            List<CombatEntity> allPlayers;
+
+            if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
+            {
+                // 1v1 PvP has no teammates — the only valid "ally" AOE target is
+                // the caster. GetAllLivingCombatants() would include the opponent
+                // here, since it has no notion of teams.
+                allPlayers = new List<CombatEntity> { caster };
+            }
+            else
+            {
+                // Get all alive players (for AOE heals/buffs)
+                allPlayers = ExpeditionManager.Instance.GetAllPlayerEntities();
+            }
 
             for (int i = 0; i < Mathf.Min(ability.aoETargets, allPlayers.Count); i++)
             {
