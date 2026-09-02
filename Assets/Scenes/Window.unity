@@ -2590,6 +2590,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a90974ea96312494bb241f32e2e256aa, type: 2}
   - {fileID: 11400000, guid: e1292c9d29753ce40814ca47b30248a6, type: 2}
   - {fileID: 11400000, guid: d56b4cb6ea73274458500dd5e0f05c9e, type: 2}
+  - {fileID: 11400000, guid: 1946661d28a8c5546b21621cc3c9fd26, type: 2}
   mageAbilities:
   - {fileID: 11400000, guid: ecf56a095941ec74c801432a63df5e97, type: 2}
   - {fileID: 11400000, guid: 8fd51a715cdcfcf49ae06f83d9f45531, type: 2}

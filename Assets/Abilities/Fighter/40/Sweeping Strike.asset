@@ -10,16 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Taunt
+  m_Name: Sweeping Strike
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Taunt
-  commandName: taunt
-  description: 'Forces the target enemies to focus their attacks on the frontline
-    hero. '
-  requiredClass: 3
-  levelRequired: 35
-  category: 3
-  targetType: 6
+  abilityName: 
+  commandName: 
+  description: 
+  requiredClass: 0
+  levelRequired: 1
+  category: 0
+  targetType: 0
   scalingStat: 0
   statMultiplier: 1
   useSecondaryScaling: 0
@@ -73,18 +72,18 @@ MonoBehaviour:
   canTargetAllies: 0
   canTargetEnemies: 1
   maxTargetPosition: 1
-  minTargetPosition: 2
-  isAOE: 1
-  aoETargets: 2
-  cooldown: 3
+  minTargetPosition: 1
+  isAOE: 0
+  aoETargets: 1
+  cooldown: 0
   appliesEffects:
-  - effectName: Taunted
-    duration: 2
-    applicationChance: 0.9
-    isNegativeEffect: 1
+  - effectName: 
+    duration: 0
+    applicationChance: 0
+    isNegativeEffect: 0
     statusResistanceBonus: 0
-    damageMultiplier: 1
-    defenseMultiplier: 1
+    damageMultiplier: 0
+    defenseMultiplier: 0
     damageOverTime: 0
     temporaryDefenseBonus: 0
     baseDefenseAmount: 0
@@ -115,8 +114,8 @@ MonoBehaviour:
     healingReductionPercent: 0
     isExposed: 0
     exposedDefenseReduction: 0
-    isEnrage: 1
-    enrageDamageMultiplier: 1.1
+    isEnrage: 0
+    enrageDamageMultiplier: 0
     isHaste: 0
     isPrimed: 0
     primeThresholdType: 0
@@ -129,8 +128,8 @@ MonoBehaviour:
   grantsLifesteal: 0
   lifestealPercent: 0
   lifestealDuration: 1
-  animationTrigger: Debuff
-  particleEffect: {fileID: 5880797563127281583, guid: 265d3a5ba69981a4698ceabcedf368b0, type: 3}
+  animationTrigger: Attack
+  particleEffect: {fileID: 0}
   projectilePrefab: {fileID: 0}
   projectileSpeed: 0.3
   zoomToCenter: 1
