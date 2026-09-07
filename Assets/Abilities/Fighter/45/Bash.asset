@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Sweeping Strike
+  m_Name: Bash
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Sweeping Strike
-  commandName: sweepingstrike
-  description: The Fighter strikes the front three enemies, having a 25% chance to
-    apply curse.
+  abilityName: Bash
+  commandName: bash
+  description: The Fighter deals 1.75x Str damage to a single target, range 2, with
+    a 65% chance to stun.
   requiredClass: 3
-  levelRequired: 40
+  levelRequired: 45
   category: 0
-  targetType: 6
+  targetType: 0
   scalingStat: 1
-  statMultiplier: 1.25
+  statMultiplier: 1.75
   useSecondaryScaling: 0
   secondaryScalingStat: 0
   secondaryStatMultiplier: 0
@@ -72,15 +72,15 @@ MonoBehaviour:
   wrathScale: 0
   canTargetAllies: 0
   canTargetEnemies: 1
-  maxTargetPosition: 2
-  minTargetPosition: 2
-  isAOE: 1
-  aoETargets: 3
-  cooldown: 4
+  maxTargetPosition: 1
+  minTargetPosition: 1
+  isAOE: 0
+  aoETargets: 1
+  cooldown: 0
   appliesEffects:
-  - effectName: Sweeped
-    duration: 2
-    applicationChance: 0.25
+  - effectName: Stunned
+    duration: 1
+    applicationChance: 0.65
     isNegativeEffect: 1
     statusResistanceBonus: 0
     damageMultiplier: 1
@@ -100,7 +100,7 @@ MonoBehaviour:
     riposteScalingStat: 0
     riposteScalingMultiplier: 0
     riposteConsumedOnUse: 0
-    isStun: 0
+    isStun: 1
     isSilence: 0
     isBleed: 0
     bleedDamagePerTurn: 0
@@ -111,8 +111,8 @@ MonoBehaviour:
     markedDamageMultiplier: 0
     isTaunt: 0
     tauntTargetEntityName: 
-    isCurse: 1
-    healingReductionPercent: 0.5
+    isCurse: 0
+    healingReductionPercent: 0
     isExposed: 0
     exposedDefenseReduction: 0
     isEnrage: 0

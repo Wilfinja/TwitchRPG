@@ -55,6 +55,10 @@ public class OnScreenCharacter : MonoBehaviour
     [Tooltip("How long the nameplate stays visible after !me, in seconds")]
     [SerializeField] private float revealDuration = 8f;
 
+    [Header("Chat Bubble")]
+    [SerializeField] private Vector3 chatBubbleOffset = new Vector3(0f, 1.8f, 0f);
+    private ChatBubble chatBubble;
+
     private bool nameRevealed = false;
     private Coroutine revealRoutine;
 
@@ -78,6 +82,8 @@ public class OnScreenCharacter : MonoBehaviour
 
         UpdateUI();
         PlayAnimation(idleAnimationName);
+
+        chatBubble = ChatBubble.CreateFor(transform, chatBubbleOffset);
     }
 
     private void Update()
@@ -553,5 +559,10 @@ public class OnScreenCharacter : MonoBehaviour
     public CharacterClass GetCharacterClass()
     {
         return characterClass;
+    }
+
+    public void ShowChatMessage(string message)
+    {
+        chatBubble?.ShowMessage(message);
     }
 }

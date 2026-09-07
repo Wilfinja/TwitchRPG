@@ -2438,6 +2438,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1731515871
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1731515873}
+  - component: {fileID: 1731515872}
+  m_Layer: 0
+  m_Name: ChatBubble
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1731515872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1731515871}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 637e91b7531ff4d42bec1067a41f4dad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChatBubble
+  displayDuration: 5
+  fadeDuration: 0.4
+  maxCharacters: 140
+--- !u!4 &1731515873
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1731515871}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 835.93054, y: 314.73526, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1769051485
 GameObject:
   m_ObjectHideFlags: 0
@@ -2591,6 +2638,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e1292c9d29753ce40814ca47b30248a6, type: 2}
   - {fileID: 11400000, guid: d56b4cb6ea73274458500dd5e0f05c9e, type: 2}
   - {fileID: 11400000, guid: 1946661d28a8c5546b21621cc3c9fd26, type: 2}
+  - {fileID: 11400000, guid: a5b6e41c3f28b0e4ba618632e83ce405, type: 2}
+  - {fileID: 11400000, guid: a326a75c8fbb67049994ee048befe47c, type: 2}
+  - {fileID: 11400000, guid: 9714109f06daead4b8fb1428868670d9, type: 2}
   mageAbilities:
   - {fileID: 11400000, guid: ecf56a095941ec74c801432a63df5e97, type: 2}
   - {fileID: 11400000, guid: 8fd51a715cdcfcf49ae06f83d9f45531, type: 2}
@@ -3135,3 +3185,4 @@ SceneRoots:
   - {fileID: 1303425155}
   - {fileID: 112329017}
   - {fileID: 1564978304}
+  - {fileID: 1731515873}

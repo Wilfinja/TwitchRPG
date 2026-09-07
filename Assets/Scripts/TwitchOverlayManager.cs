@@ -150,9 +150,45 @@ public class TwitchOverlayManager : MonoBehaviour
         return Task.CompletedTask;
     }
 
+    private static readonly HashSet<string> knownBotUsernames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "nightbot",
+        "streamelements",
+        "streamlabs",
+        "moobot",
+        "fossabot"
+    };
+
+    private bool IsBotMessage(string username)
+    {
+        if (string.Equals(username, botUsername, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return knownBotUsernames.Contains(username);
+    }
+
     private Task OnChatMessage(object sender, OnMessageReceivedArgs e)
     {
         Debug.Log($"[TwitchOverlay] {e.ChatMessage.Username}: {e.ChatMessage.Message}");
+
+        string username = e.ChatMessage.Username;
+        string userId = e.ChatMessage.UserId;
+        string message = e.ChatMessage.Message;
+
+        // Suppress bubbles for commands — they already get an OnScreenNotification response
+        if (message.StartsWith("!"))
+            return Task.CompletedTask;
+
+        // Suppress bubbles for the RPG bot itself and known third-party bots
+        if (IsBotMessage(username))
+            return Task.CompletedTask;
+
+        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            OnScreenCharacter character = CharacterSpawner.Instance?.GetCharacter(userId);
+            character?.ShowChatMessage(message);
+        });
+
         return Task.CompletedTask;
     }
 
