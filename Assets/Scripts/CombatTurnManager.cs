@@ -1,32 +1,39 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-
+ 
 /// <summary>
 /// Manages combat turns, action queuing, and execution order
 /// </summary>
 public class CombatTurnManager : MonoBehaviour
 {
     public static CombatTurnManager Instance;
-
+ 
     [Header("Turn State")]
     public bool combatActive;
     public bool playerTurn;
     public float turnTimer;
     public float maxTurnTime = 45f;
     private bool isExecutingTurn = false;
-
+ 
     [Header("Combat Visuals")]
     [Tooltip("Where characters zoom to when using abilities")]
     public Vector3 centerPosition = new Vector3(0, -10.5f, 0);
-
+ 
     [Tooltip("Zoom animation duration")]
     public float zoomDuration = 0.3f;
-
+ 
     [Header("Action Queue")]
     private Dictionary<string, QueuedAction> queuedActions = new Dictionary<string, QueuedAction>();
-
+ 
+    [Header("Debug/Testing")]
+    [Tooltip("TESTING ONLY. When enabled, the 2nd enemy in any enemy turn will " +
+             "deliberately throw an exception, letting you verify the crash-recovery " +
+             "safety net without waiting for a real bug to happen. Turn OFF for live play.")]
+    public bool debugForceSecondEnemyException = false;
+ 
     void Awake()
     {
         if (Instance == null)
@@ -34,18 +41,18 @@ public class CombatTurnManager : MonoBehaviour
         else
             Destroy(gameObject);
     }
-
+ 
     void Update()
     {
         if (!combatActive || !playerTurn) return;
-
+ 
         // Turn timer countdown
         if (turnTimer > 0)
         {
             turnTimer -= Time.deltaTime;
             CombatUIManager.Instance?.UpdateTurnTimer(turnTimer, maxTurnTime);
         }
-
+ 
         if (turnTimer <= 0)
         {
             // Time's up! Auto-submit default actions for players who haven't acted
@@ -53,16 +60,16 @@ public class CombatTurnManager : MonoBehaviour
             ExecutePlayerTurn();
         }
     }
-
+ 
     #region Combat Flow
-
+ 
     public void StartCombat()
     {
         combatActive = true;
         queuedActions.Clear();
-
+ 
         CombatUIManager.Instance?.ShowCombatUI();
-
+ 
         // Show position numbers on all entities so viewers know which
         // panel buttons correspond to which characters on screen.
         if (ExpeditionManager.Instance != null)
@@ -72,12 +79,12 @@ public class CombatTurnManager : MonoBehaviour
             foreach (var p in ExpeditionManager.Instance.GetAllPlayerEntities())
                 p.ShowPositionNumber();
         }
-
+ 
         OnScreenNotification.Instance?.ShowNotification("⚔️ Combat begins! Players, queue your actions with !queue <ability> [target]");
-
+ 
         StartPlayerTurn();
     }
-
+ 
     /// <summary>
     /// Called by ExpeditionManager when the expedition fully ends (victory or defeat).
     /// Clears all combat state so the panel stops showing combat UI.
@@ -89,7 +96,7 @@ public class CombatTurnManager : MonoBehaviour
         turnTimer = 0f;
         isExecutingTurn = false;
         queuedActions.Clear();
-
+ 
         // Hide position numbers — only meaningful during combat.
         if (ExpeditionManager.Instance != null)
         {
@@ -98,32 +105,32 @@ public class CombatTurnManager : MonoBehaviour
             foreach (var p in ExpeditionManager.Instance.GetAllPlayerEntities())
                 p.HidePositionNumber();
         }
-
+ 
         Debug.Log("[CombatTurnManager] Combat ended — state cleared.");
     }
-
+ 
     void StartPlayerTurn()
     {
         playerTurn = true;
         turnTimer = maxTurnTime;
         queuedActions.Clear();
-
+ 
         // Reset all player turn flags — PvP-aware: the expedition roster is empty
         // during a PvP match, so fall back to GetAllLivingCombatants() which reads
         // fighters straight off CharacterSpawner instead of currentExpedition.participantUsernames.
         List<CombatEntity> players = (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
             ? GetAllLivingCombatants()
             : ExpeditionManager.Instance.GetAllPlayerEntities();
-
+ 
         foreach (CombatEntity player in players)
         {
             player.ResetTurn();
         }
-
+ 
         CombatUIManager.Instance?.ShowTurnIndicator(true);
         OnScreenNotification.Instance?.ShowNotification($"🎯 Player turn! {maxTurnTime} seconds to queue actions. Use !queue <ability>");
     }
-
+ 
     void ExecutePlayerTurn()
     {
         // ✅ CRITICAL FIX: Prevent concurrent execution
@@ -132,152 +139,218 @@ public class CombatTurnManager : MonoBehaviour
             Debug.LogWarning("[Combat] Already executing turn! Ignoring duplicate call.");
             return;
         }
-
+ 
         isExecutingTurn = true;
         playerTurn = false;
         CombatUIManager.Instance?.ShowTurnIndicator(false);
-
+ 
         StartCoroutine(ExecutePlayerActions());
-
+ 
         Debug.Log("[Combat] Starting player action execution...");
     }
-
+ 
     IEnumerator ExecutePlayerActions()
     {
-        Debug.Log("[Combat] ═══ STARTING PLAYER TURN EXECUTION ═══");
-
-        List<CombatEntity> players = ExpeditionManager.Instance.GetAllPlayerEntities();
-        Debug.Log($"[Combat] Found {players.Count} alive players");
-
-        // Organize actions by category: Buffs -> Heals -> Damage
-        List<QueuedAction> buffActions = new List<QueuedAction>();
-        List<QueuedAction> healActions = new List<QueuedAction>();
-        List<QueuedAction> damageActions = new List<QueuedAction>();
-
-        Debug.Log($"[Combat] Total queued actions: {queuedActions.Count}");
-
-        foreach (var kvp in queuedActions)
+        // ✅ CRASH-RECOVERY SAFETY NET
+        // If anything below throws an unhandled exception, this flag stays false,
+        // and the `finally` block will force combat back to a player turn instead
+        // of leaving isExecutingTurn stuck true forever (the freeze bug).
+        bool reachedACleanExit = false;
+ 
+        try
         {
-            QueuedAction action = kvp.Value;
-            Debug.Log($"[Combat] Action: {action.caster.entityName} → {action.ability.abilityName} → {action.target.entityName}");
-
-            if (action.ability.category == AbilityCategory.Buff)
-                buffActions.Add(action);
-            else if (action.ability.category == AbilityCategory.Heal)
-                healActions.Add(action);
-            else
-                damageActions.Add(action);
-        }
-
-        Debug.Log($"[Combat] Organized: {buffActions.Count} buffs, {healActions.Count} heals, {damageActions.Count} damage");
-
-        // Sort each category by position (1 -> 4)
-        buffActions = buffActions.OrderBy(a => a.caster.position).ToList();
-        healActions = healActions.OrderBy(a => a.caster.position).ToList();
-        damageActions = damageActions.OrderBy(a => a.caster.position).ToList();
-
-        // Execute buffs
-        Debug.Log("[Combat] Executing BUFF actions...");
-        foreach (QueuedAction action in buffActions)
-        {
-            yield return StartCoroutine(ExecuteActionWithHaste(action));
-        }
-
-        // Execute heals
-        Debug.Log("[Combat] Executing HEAL actions...");
-        foreach (QueuedAction action in healActions)
-        {
-            yield return StartCoroutine(ExecuteActionWithHaste(action));
-        }
-
-        // Execute damage
-        Debug.Log("[Combat] Executing DAMAGE actions...");
-        foreach (QueuedAction action in damageActions)
-        {
-            yield return StartCoroutine(ExecuteActionWithHaste(action));
-        }
-
-        Debug.Log("[Combat] All actions executed!");
-
-        // Process status effects for all players
-        foreach (CombatEntity player in players)
-        {
-            player.ProcessStatusEffects();
-        }
-
-        // Check for PvP FIRST, use correct method to get fighters
-        if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
-        {
-            Debug.Log("[Combat] PvP mode - checking for match end");
-
-            // Use GetAllLivingCombatants() instead of GetAllPlayerEntities()
-            List<CombatEntity> aliveFighters = GetAllLivingCombatants();
-
-            Debug.Log($"[Combat] PvP fighters alive: {aliveFighters.Count}");
-
-            if (aliveFighters.Count <= 1)
+            Debug.Log("[Combat] ═══ STARTING PLAYER TURN EXECUTION ═══");
+ 
+            List<CombatEntity> players = ExpeditionManager.Instance.GetAllPlayerEntities();
+            Debug.Log($"[Combat] Found {players.Count} alive players");
+ 
+            // Organize actions by category: Buffs -> Heals -> Damage
+            List<QueuedAction> buffActions = new List<QueuedAction>();
+            List<QueuedAction> healActions = new List<QueuedAction>();
+            List<QueuedAction> damageActions = new List<QueuedAction>();
+ 
+            Debug.Log($"[Combat] Total queued actions: {queuedActions.Count}");
+ 
+            foreach (var kvp in queuedActions)
             {
-                Debug.Log($"[Combat] PvP match over! {aliveFighters.Count} fighter(s) remaining");
-
-                if (aliveFighters.Count == 1)
-                {
-                    // Winner!
-                    PvPManager.Instance.OnPvPMatchEnd(aliveFighters[0].userId);
-                }
+                QueuedAction action = kvp.Value;
+                Debug.Log($"[Combat] Action: {action.caster.entityName} → {action.ability.abilityName} → {action.target.entityName}");
+ 
+                if (action.ability.category == AbilityCategory.Buff)
+                    buffActions.Add(action);
+                else if (action.ability.category == AbilityCategory.Heal)
+                    healActions.Add(action);
                 else
+                    damageActions.Add(action);
+            }
+ 
+            Debug.Log($"[Combat] Organized: {buffActions.Count} buffs, {healActions.Count} heals, {damageActions.Count} damage");
+ 
+            // Sort each category by position (1 -> 4)
+            buffActions = buffActions.OrderBy(a => a.caster.position).ToList();
+            healActions = healActions.OrderBy(a => a.caster.position).ToList();
+            damageActions = damageActions.OrderBy(a => a.caster.position).ToList();
+ 
+            // Execute buffs
+            Debug.Log("[Combat] Executing BUFF actions...");
+            foreach (QueuedAction action in buffActions)
+            {
+                yield return StartCoroutine(RunProtected(ExecuteActionWithHaste(action),
+                    $"{action.caster.entityName}'s {action.ability.abilityName} (buff)"));
+            }
+ 
+            // Execute heals
+            Debug.Log("[Combat] Executing HEAL actions...");
+            foreach (QueuedAction action in healActions)
+            {
+                yield return StartCoroutine(RunProtected(ExecuteActionWithHaste(action),
+                    $"{action.caster.entityName}'s {action.ability.abilityName} (heal)"));
+            }
+ 
+            // Execute damage
+            Debug.Log("[Combat] Executing DAMAGE actions...");
+            foreach (QueuedAction action in damageActions)
+            {
+                yield return StartCoroutine(RunProtected(ExecuteActionWithHaste(action),
+                    $"{action.caster.entityName}'s {action.ability.abilityName} (damage)"));
+            }
+ 
+            Debug.Log("[Combat] All actions executed!");
+ 
+            // Process status effects for all players
+            foreach (CombatEntity player in players)
+            {
+                try
                 {
-                    // Draw (both died somehow)
-                    Debug.LogWarning("[Combat] PvP ended in a draw!");
-                    PvPManager.Instance.OnPvPMatchEnd(null);
+                    player.ProcessStatusEffects();
                 }
-
-                combatActive = false;
-                isExecutingTurn = false;
+                catch (Exception e)
+                {
+                    Debug.LogError($"[CombatError] ProcessStatusEffects failed for {player.entityName}: {e}");
+                    CombatLog.Instance?.AddEntry($"⚠️ Status effect error on {player.entityName} — recovered automatically. (See console)");
+                }
+            }
+ 
+            // Check for PvP FIRST, use correct method to get fighters
+            if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
+            {
+                Debug.Log("[Combat] PvP mode - checking for match end");
+ 
+                // Use GetAllLivingCombatants() instead of GetAllPlayerEntities()
+                List<CombatEntity> aliveFighters = GetAllLivingCombatants();
+ 
+                Debug.Log($"[Combat] PvP fighters alive: {aliveFighters.Count}");
+ 
+                if (aliveFighters.Count <= 1)
+                {
+                    Debug.Log($"[Combat] PvP match over! {aliveFighters.Count} fighter(s) remaining");
+ 
+                    if (aliveFighters.Count == 1)
+                    {
+                        // Winner!
+                        PvPManager.Instance.OnPvPMatchEnd(aliveFighters[0].userId);
+                    }
+                    else
+                    {
+                        // Draw (both died somehow)
+                        Debug.LogWarning("[Combat] PvP ended in a draw!");
+                        PvPManager.Instance.OnPvPMatchEnd(null);
+                    }
+ 
+                    combatActive = false;
+                    reachedACleanExit = true;
+                    yield break;
+                }
+ 
+                // Match continues - skip enemy turn (no enemies in PvP)
+                Debug.Log("[Combat] PvP continuing - both fighters alive, starting next player turn");
+                yield return new WaitForSeconds(0.5f);
+                reachedACleanExit = true;
+                StartPlayerTurn();
                 yield break;
             }
-
-            // Match continues - skip enemy turn (no enemies in PvP)
-            Debug.Log("[Combat] PvP continuing - both fighters alive, starting next player turn");
-            yield return new WaitForSeconds(0.5f);
-            isExecutingTurn = false;
+ 
+            // PvE expedition logic (only runs if NOT PvP)
+            // Check if wave is cleared
+            if (CheckWaveCleared())
+            {
+                Debug.Log("[Combat] WAVE CLEARED!");
+                // Expedition wave cleared
+                reachedACleanExit = true;
+                ExpeditionManager.Instance.OnWaveCleared();
+                yield break;
+            }
+ 
+            Debug.Log("[Combat] Wave not cleared, starting enemy turn...");
+ 
+            // Enemy turn (PvE only) — protected so one broken enemy can't freeze combat
+            yield return StartCoroutine(RunProtected(ExecuteEnemyTurn(), "enemy turn"));
+ 
+            // Check for player wipe (PvE only)
+            if (CheckPlayerWipe())
+            {
+                Debug.Log("[Combat] PLAYER WIPE!");
+                // Expedition failure
+                reachedACleanExit = true;
+                ExpeditionManager.Instance.CompleteExpedition(false);
+                yield break;
+            }
+ 
+            Debug.Log("[Combat] Starting next player turn...");
+ 
+            queuedActions.Clear();
+            reachedACleanExit = true;
+            // Start next player turn (also handled by `finally` — see below — but
+            // doing it here keeps the normal-path timing identical to before)
             StartPlayerTurn();
-            yield break;
         }
-
-        // PvE expedition logic (only runs if NOT PvP)
-        // Check if wave is cleared
-        if (CheckWaveCleared())
+        finally
         {
-            Debug.Log("[Combat] WAVE CLEARED!");
-            // Expedition wave cleared
             isExecutingTurn = false;
-            ExpeditionManager.Instance.OnWaveCleared();
-            yield break;
+ 
+            if (!reachedACleanExit && combatActive)
+            {
+                // Something above threw and wasn't caught by RunProtected (e.g. in
+                // glue code between actions). Log it loudly and self-heal instead
+                // of leaving combat frozen on "enemy turn" forever.
+                Debug.LogError("[CombatError] ExecutePlayerActions exited unexpectedly — forcing recovery to next player turn.");
+                CombatLog.Instance?.AddEntry("⚠️ Combat hit an unexpected error and self-recovered — check console for details.");
+                queuedActions.Clear();
+                StartPlayerTurn();
+            }
         }
-
-        Debug.Log("[Combat] Wave not cleared, starting enemy turn...");
-
-        // Enemy turn (PvE only)
-        yield return StartCoroutine(ExecuteEnemyTurn());
-
-        // Check for player wipe (PvE only)
-        if (CheckPlayerWipe())
-        {
-            Debug.Log("[Combat] PLAYER WIPE!");
-            // Expedition failure
-            isExecutingTurn = false;
-            ExpeditionManager.Instance.CompleteExpedition(false);
-            yield break;
-        }
-
-        Debug.Log("[Combat] Starting next player turn...");
-
-        queuedActions.Clear();
-        isExecutingTurn = false;
-        // Start next player turn
-        StartPlayerTurn();
     }
-
+ 
+    /// <summary>
+    /// Drives a child coroutine manually (rather than a plain `yield return
+    /// StartCoroutine(...)`) so that an exception thrown anywhere inside it can be
+    /// caught, logged with context (which enemy/ability/player), and reported to
+    /// the visible CombatLog — without killing the whole turn-execution coroutine.
+    /// This is the fix for the "combat freezes on enemy turn forever" bug: previously
+    /// an exception deep in enemy AI would silently kill ExecutePlayerActions and
+    /// isExecutingTurn would never reset.
+    /// </summary>
+    IEnumerator RunProtected(IEnumerator routine, string context)
+    {
+        while (true)
+        {
+            object current;
+            try
+            {
+                if (!routine.MoveNext())
+                    yield break;
+                current = routine.Current;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[CombatError] Exception during {context}: {e}");
+                CombatLog.Instance?.AddEntry($"⚠️ Combat error during {context} — recovered automatically. (See console)");
+                yield break;
+            }
+            yield return current;
+        }
+    }
+ 
     /// <summary>
     /// Executes an action, then executes it a second time if the caster is Hasted.
     /// </summary>
@@ -285,13 +358,13 @@ public class CombatTurnManager : MonoBehaviour
     {
         yield return StartCoroutine(ExecuteAction(action));
         yield return new WaitForSeconds(0.5f);
-
+ 
         // Haste check: if caster is still alive and hasted, act again
         if (!action.caster.isDead && action.caster.IsHasted())
         {
             CombatLog.Instance?.AddEntry($"⚡ {action.caster.entityName} acts again from HASTE!");
             OnScreenNotification.Instance?.ShowNotification($"⚡ {action.caster.entityName} acts twice!");
-
+ 
             // Re-determine target in case original is dead
             if (action.target.isDead)
             {
@@ -299,58 +372,95 @@ public class CombatTurnManager : MonoBehaviour
                 if (enemies != null && enemies.Count > 0)
                     action.target = enemies[0];
             }
-
+ 
             yield return StartCoroutine(ExecuteAction(action));
             yield return new WaitForSeconds(0.5f);
         }
     }
-
+ 
     IEnumerator ExecuteEnemyTurn()
     {
         OnScreenNotification.Instance?.ShowNotification("Enemy turn!");
         CombatUIManager.Instance?.ShowTurnIndicator(false);
-
+ 
         yield return new WaitForSeconds(1f);
-
+ 
         List<CombatEntity> enemies = ExpeditionManager.Instance.GetAllEnemyEntities();
-
+ 
+        int enemyIndex = 0;
         foreach (CombatEntity enemy in enemies)
         {
-            if (enemy.isDead) continue;
-
+            if (enemy.isDead)
+            {
+                enemyIndex++;
+                continue;
+            }
+ 
             // Enemy AI chooses action
             EnemyCombatController controller = enemy.GetComponent<EnemyCombatController>();
             if (controller != null)
             {
-                yield return StartCoroutine(controller.ExecuteAIAction());
+                // DEBUG ONLY: lets you deliberately reproduce "2nd enemy breaks" to
+                // verify the crash-recovery safety net. See debugForceSecondEnemyException.
+                IEnumerator action = (debugForceSecondEnemyException && enemyIndex == 1)
+                    ? DebugThrowTestException(enemy)
+                    : controller.ExecuteAIAction();
+ 
+                yield return StartCoroutine(RunProtected(action,
+                    $"enemy turn for {enemy.entityName} (position {enemy.position})"));
             }
-
+ 
             yield return new WaitForSeconds(0.8f);
+            enemyIndex++;
         }
-
+ 
         // Process status effects for all enemies
         foreach (CombatEntity enemy in enemies)
         {
             if (!enemy.isDead)
             {
-                enemy.ProcessStatusEffects();
+                try
+                {
+                    enemy.ProcessStatusEffects();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[CombatError] ProcessStatusEffects failed for {enemy.entityName}: {e}");
+                    CombatLog.Instance?.AddEntry($"⚠️ Status effect error on {enemy.entityName} — recovered automatically. (See console)");
+                }
             }
         }
-
+ 
         yield return new WaitForSeconds(0.5f);
     }
-
+ 
+    /// <summary>
+    /// DEBUG ONLY — deliberately throws so you can verify the crash-recovery safety
+    /// net actually works, without waiting for a real bug to happen live. Enable
+    /// debugForceSecondEnemyException in the Inspector, start a fight with 2+
+    /// enemies, and confirm: enemy #1 acts normally, enemy #2's turn logs this test
+    /// exception (console + CombatLog), and the NEXT PLAYER TURN STILL STARTS
+    /// instead of combat freezing. Turn the checkbox back off afterward.
+    /// </summary>
+    IEnumerator DebugThrowTestException(CombatEntity enemy)
+    {
+        yield return null; // behave like a real coroutine (at least one frame)
+        throw new Exception(
+            $"[DEBUG TEST] Simulated crash on {enemy.entityName}'s turn. " +
+            "If combat recovered and moved on instead of freezing, the fix is working.");
+    }
+ 
     /// <summary>
     /// Get all living combatants (works for both PvE and PvP)
     /// </summary>
     List<CombatEntity> GetAllLivingCombatants()
     {
         List<CombatEntity> entities = new List<CombatEntity>();
-
+ 
         // Get all characters on screen
         List<OnScreenCharacter> allCharacters = CharacterSpawner.Instance?.GetAllCharacters();
         if (allCharacters == null) return entities;
-
+ 
         foreach (var character in allCharacters)
         {
             CombatEntity entity = character.GetComponent<CombatEntity>();
@@ -359,52 +469,52 @@ public class CombatTurnManager : MonoBehaviour
                 entities.Add(entity);
             }
         }
-
+ 
         return entities;
     }
-
+ 
     #endregion
-
+ 
     #region Action Management
-
+ 
     public bool QueueAction(string userId, string username, string abilityName, string targetName = null)
     {
         CombatEntity caster = ExpeditionManager.Instance.GetPlayerEntity(userId, username);
-
+ 
         if (caster == null)
         {
             OnScreenNotification.Instance?.ShowNotification($"@{username} You're not in this expedition!");
             return false;
         }
-
+ 
         if (caster.isDead)
         {
             OnScreenNotification.Instance?.ShowNotification($"@{username} You're dead! You cannot act.");
             return false;
         }
-
+ 
         if (!playerTurn)
         {
             OnScreenNotification.Instance?.ShowNotification($"@{username} It's not the player turn right now!");
             return false;
         }
-
+ 
         // Get ability
         AbilityData ability = AbilityDatabase.Instance?.GetAbility(abilityName);
-
+ 
         if (ability == null)
         {
             OnScreenNotification.Instance?.ShowNotification($"@{username} Unknown ability: {abilityName}");
             return false;
         }
-
+ 
         ViewerData viewer = RPGManager.Instance.GetViewer(userId);
         if (viewer != null)
         {
             bool isInLoadout = viewer.equippedAbilities.Contains(ability.commandName);
             bool isItemAbility = !string.IsNullOrEmpty(viewer.equippedItemAbility) &&
                                 viewer.equippedItemAbility == ability.commandName;
-
+ 
             if (!isInLoadout && !isItemAbility)
             {
                 OnScreenNotification.Instance?.ShowNotification(
@@ -413,20 +523,20 @@ public class CombatTurnManager : MonoBehaviour
                 return false;
             }
         }
-
+ 
         // Check if player can use this ability (CLASS)
         if (ability.requiredClass != caster.characterClass)
         {
             OnScreenNotification.Instance?.ShowNotification($"@{username} You can't use that ability!");
             return false;
         }
-
+ 
         // Check LEVEL requirement
         if (!CheckLevelRequirement(caster, ability, username))
         {
             return false;
         }
-
+ 
         // Check cooldown
         if (caster.IsAbilityOnCooldown(ability.commandName))
         {
@@ -436,14 +546,14 @@ public class CombatTurnManager : MonoBehaviour
             );
             return false;
         }
-
+ 
         // Check resource costs
         if (!CanAffordAbility(caster, ability))
         {
             OnScreenNotification.Instance?.ShowNotification($"@{username} Not enough resources to use {ability.abilityName}!");
             return false;
         }
-
+ 
         // Check if ability is in loadout (if loadout system is being used)
         if (caster.viewerData != null &&
             caster.viewerData.equippedAbilities != null &&
@@ -458,18 +568,18 @@ public class CombatTurnManager : MonoBehaviour
                 return false;
             }
         }
-
+ 
         // Find target
         CombatEntity target = DetermineTarget(ability, targetName, caster);
-
+ 
         if (target == null)
         {
             string errorMsg = $"@{username} Invalid target!";
-
+ 
             if (ability.canTargetAllies && !string.IsNullOrEmpty(targetName))
             {
                 List<CombatEntity> allies = ExpeditionManager.Instance.GetAllPlayerEntities();
-
+ 
                 if (allies.Count > 0)
                 {
                     List<string> targetInfo = new List<string>();
@@ -477,24 +587,24 @@ public class CombatTurnManager : MonoBehaviour
                     {
                         targetInfo.Add($"[{ally.position}] {ally.entityName}");
                     }
-
+ 
                     errorMsg = $"@{username} Target '{targetName}' not found.\n" +
                               $"Valid: {string.Join(", ", targetInfo)}\n" +
                               $"Use: !q {ability.commandName} <position or name>";
                 }
             }
-
+ 
             OnScreenNotification.Instance?.ShowNotification(errorMsg);
             return false;
         }
-
+ 
         if (caster.IsSilenced())
         {
             bool isBasicAttack = ability.manaCost == 0 &&
                                  ability.wrathCost == 0 &&
                                  ability.sneakCost == 0 &&
                                  ability.balanceCost == 0;
-
+ 
             if (!isBasicAttack)
             {
                 OnScreenNotification.Instance?.ShowNotification(
@@ -504,7 +614,7 @@ public class CombatTurnManager : MonoBehaviour
                 return false;
             }
         }
-
+ 
         // Queue the action
         QueuedAction action = new QueuedAction
         {
@@ -513,19 +623,19 @@ public class CombatTurnManager : MonoBehaviour
             target = target,
             confirmed = false
         };
-
+ 
         if (queuedActions.ContainsKey(username))
             queuedActions[username] = action;
         else
             queuedActions.Add(username, action);
-
+ 
         caster.queuedAction = abilityName;
-
+ 
         OnScreenNotification.Instance?.ShowNotification($"@{username} queued {ability.abilityName} → {target.entityName}. Type !confirm to lock it in or !queue <ability> to change.");
-
+ 
         return true;
     }
-
+ 
     public bool ConfirmAction(string userId, string username)
     {
         if (!queuedActions.ContainsKey(username))
@@ -533,50 +643,50 @@ public class CombatTurnManager : MonoBehaviour
             OnScreenNotification.Instance?.ShowNotification($"@{username} You haven't queued an action yet!");
             return false;
         }
-
+ 
         queuedActions[username].confirmed = true;
-
+ 
         CombatEntity caster = queuedActions[username].caster;
         caster.actionConfirmed = true;
-
+ 
         OnScreenNotification.Instance?.ShowNotification($"@{username} ✅ Action confirmed!");
-
+ 
         // Check if all alive players have confirmed
         CheckAllPlayersReady();
-
+ 
         return true;
     }
-
+ 
     void CheckAllPlayersReady()
     {
         if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
         {
-
+ 
             int confirmedCount = queuedActions.Values.Count(a => a.confirmed);
-
+ 
             if (confirmedCount >= 2)
             {
                 OnScreenNotification.Instance?.ShowNotification("All players ready! Executing actions...");
-
+ 
                 ExecutePlayerTurn();
             }
         }
         else
         {
             List<CombatEntity> alivePlayers = ExpeditionManager.Instance.GetAllPlayerEntities();
-
+ 
             int confirmedCount = queuedActions.Values.Count(a => a.confirmed);
-
+ 
             if (confirmedCount >= alivePlayers.Count)
             {
                 OnScreenNotification.Instance?.ShowNotification("All players ready! Executing actions...");
-
+ 
                 ExecutePlayerTurn();
             }
         }
-
+ 
     }
-
+ 
     /// <summary>
     /// Check if the caster meets the level requirement for an ability
     /// </summary>
@@ -584,16 +694,16 @@ public class CombatTurnManager : MonoBehaviour
     {
         // Get player's ViewerData to check level
         ViewerData viewer = RPGManager.Instance?.GetViewer(caster.userId);
-
+ 
         if (viewer == null)
         {
             Debug.LogWarning($"[Combat] Could not find ViewerData for {username}");
             return true; // Fallback: allow if we can't check
         }
-
+ 
         int playerLevel = viewer.baseStats.level;
         int requiredLevel = ability.levelRequired;
-
+ 
         // Check level requirement
         if (playerLevel < requiredLevel)
         {
@@ -603,10 +713,10 @@ public class CombatTurnManager : MonoBehaviour
             );
             return false;
         }
-
+ 
         return true;
     }
-
+ 
     void AutoSubmitDefaultActions()
     {
         // PvP-aware roster: expedition roster is empty during a PvP match, so
@@ -614,22 +724,22 @@ public class CombatTurnManager : MonoBehaviour
         List<CombatEntity> players = (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
             ? GetAllLivingCombatants()
             : ExpeditionManager.Instance.GetAllPlayerEntities();
-
+ 
         foreach (CombatEntity player in players)
         {
             if (!queuedActions.ContainsKey(player.entityName) || !queuedActions[player.entityName].confirmed)
             {
                 AbilityData chosenAbility = FindFirstUsableAbility(player);
-
+ 
                 if (chosenAbility != null)
                 {
                     QueueAction(player.userId, player.entityName, chosenAbility.commandName);
-
+ 
                     if (queuedActions.ContainsKey(player.entityName))
                     {
                         queuedActions[player.entityName].confirmed = true;
                     }
-
+ 
                     OnScreenNotification.Instance?.ShowNotification($"@{player.entityName} auto-used {chosenAbility.abilityName} (time expired)");
                 }
                 else
@@ -640,7 +750,7 @@ public class CombatTurnManager : MonoBehaviour
             }
         }
     }
-
+ 
     /// <summary>
     /// Checks the player's loadout slots (in equip order 1→4), then their item-ability
     /// slot, and returns the first ability that's off cooldown and affordable.
@@ -650,26 +760,26 @@ public class CombatTurnManager : MonoBehaviour
     AbilityData FindFirstUsableAbility(CombatEntity player)
     {
         if (player.viewerData == null) return null;
-
+ 
         List<string> pool = new List<string>(player.viewerData.equippedAbilities);
-
+ 
         if (!string.IsNullOrEmpty(player.viewerData.equippedItemAbility))
             pool.Add(player.viewerData.equippedItemAbility);
-
+ 
         foreach (string commandName in pool)
         {
             AbilityData ability = AbilityDatabase.Instance?.GetAbility(commandName);
             if (ability == null) continue;
-
+ 
             if (player.IsAbilityOnCooldown(ability.commandName)) continue;
             if (!CanAffordAbility(player, ability)) continue;
-
+ 
             return ability;
         }
-
+ 
         return null;
     }
-
+ 
     string GetDefaultAbility(CharacterClass charClass)
     {
         switch (charClass)
@@ -682,26 +792,26 @@ public class CombatTurnManager : MonoBehaviour
             default: return "strike";
         }
     }
-
+ 
     #endregion
-
+ 
     #region Action Execution
-
+ 
     IEnumerator ExecuteAction(QueuedAction action)
     {
         CombatEntity caster = action.caster;
         CombatEntity target = action.target;
         AbilityData ability = action.ability;
-
+ 
         if (caster.isDead) yield break;
-
+ 
         Vector3 originalPosition = caster.transform.position;
         bool didZoom = false;
-
+ 
         if (target.isDead)
         {
             Debug.Log($"[Combat] {target.entityName} is dead! Attempting to retarget...");
-
+ 
             // Retarget to alive enemy
             if (ability.canTargetEnemies)
             {
@@ -749,13 +859,13 @@ public class CombatTurnManager : MonoBehaviour
                 yield break;
             }
         }
-
+ 
         if (ability.zoomToCenter)
         {
             yield return StartCoroutine(ZoomToPosition(caster.transform, centerPosition, zoomDuration));
             didZoom = true;
         }
-
+ 
         // ── Stun: entity loses their turn entirely ────────────────────────────────
         if (caster.IsStunned())
         {
@@ -764,13 +874,13 @@ public class CombatTurnManager : MonoBehaviour
             caster.animator?.SetTrigger("Hit"); // Stagger animation
             yield break;
         }
-
+ 
         // ── Silence: force basic attack if they tried to use an ability ───────────
         if (caster.IsSilenced() && ability.manaCost + ability.wrathCost + ability.sneakCost + ability.balanceCost > 0)
         {
             CombatLog.Instance?.AddEntry($"🔇 {caster.entityName} is SILENCED! Forced to basic attack.");
             OnScreenNotification.Instance?.ShowNotification($"{caster.entityName} is silenced – using basic attack instead!");
-
+ 
             // Swap to the class default basic ability
             string defaultAbilityName = GetDefaultAbility(caster.characterClass);
             AbilityData defaultAbility = AbilityDatabase.Instance?.GetAbility(defaultAbilityName);
@@ -780,12 +890,12 @@ public class CombatTurnManager : MonoBehaviour
                 action = new QueuedAction { caster = caster, ability = ability, target = target, confirmed = true };
             }
         }
-
+ 
         if (target.isDead)
         {
             Debug.LogWarning($"[Combat] Target died during processing. Skipping turn.");
             CombatLog.Instance?.AddEntry($"{caster.entityName}'s target died!");
-
+ 
             // Zoom back before exiting
             if (didZoom && !caster.isDead)
             {
@@ -793,7 +903,7 @@ public class CombatTurnManager : MonoBehaviour
             }
             yield break;
         }
-
+ 
         // ── Enrage: override target to front enemy ────────────────────────────────
         if (caster.IsEnraged() && ability.canTargetEnemies)
         {
@@ -804,10 +914,10 @@ public class CombatTurnManager : MonoBehaviour
                 Debug.Log($"[Enrage] {caster.entityName} forced to target {target.entityName}");
             }
         }
-
+ 
         // ── Trigger animation ─────────────────────────────────────────────────────
         caster.animator?.SetTrigger(ability.animationTrigger);
-
+ 
         // ── Projectile ────────────────────────────────────────────────────────────
         if (ability.projectilePrefab != null)
         {
@@ -818,13 +928,13 @@ public class CombatTurnManager : MonoBehaviour
         {
             yield return new WaitForSeconds(0.3f);
         }
-
+ 
         // Spawn ability particle effect at target
         if (ability.particleEffect != null)
         {
             Vector3 particlePosition = target.transform.position;
             GameObject particle = Instantiate(ability.particleEffect, particlePosition, Quaternion.identity);
-
+ 
             ParticleSystem ps = particle.GetComponent<ParticleSystem>();
             if (ps != null)
             {
@@ -839,7 +949,7 @@ public class CombatTurnManager : MonoBehaviour
                 Destroy(particle, 2f);
             }
         }
-
+ 
         // ── Execute ability ───────────────────────────────────────────────────────
         if (ability.isAOE)
         {
@@ -856,7 +966,7 @@ public class CombatTurnManager : MonoBehaviour
         {
             CombatCalculations.ExecuteAbility(caster, target, ability);
         }
-
+ 
         if (ability.cooldown > 0)
         {
             caster.SetAbilityCooldown(ability.commandName, ability.cooldown);
@@ -864,23 +974,23 @@ public class CombatTurnManager : MonoBehaviour
                 $"{caster.entityName}'s {ability.abilityName} is on cooldown for {ability.cooldown} turn(s)."
             );
         }
-
+ 
         yield return new WaitForSeconds(0.5f);
-
+ 
         // Zoom back to original position if we zoomed
         if (didZoom && !caster.isDead)
         {
             Debug.Log($"[Zoom] {caster.entityName} zooming back to {originalPosition}");
             yield return StartCoroutine(ZoomToPosition(caster.transform, originalPosition, zoomDuration));
         }
-
+ 
         OnScreenCharacter onScreenChar = caster.GetComponent<OnScreenCharacter>();
         if (onScreenChar != null && caster.animator != null)
         {
             caster.animator.Play("Idle");
             Debug.Log($"[Zoom] {caster.entityName} returned to idle");
         }
-
+ 
         // Track action for XP
         if (ExpeditionManager.Instance.currentExpedition.actionsPerformed.ContainsKey(caster.entityName))
         {
@@ -890,9 +1000,9 @@ public class CombatTurnManager : MonoBehaviour
         {
             ExpeditionManager.Instance.currentExpedition.actionsPerformed[caster.entityName] = 1;
         }
-
+ 
     }
-
+ 
     /// <summary>
     /// Smoothly move a transform to a target position with ease-in-out
     /// </summary>
@@ -900,42 +1010,42 @@ public class CombatTurnManager : MonoBehaviour
     {
         Vector3 startPosition = target.position;
         float elapsed = 0f;
-
+ 
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
-
+ 
             // ✅ Ease-in-out curve (smooth start and stop)
             float easedT = t < 0.5f
                 ? 2f * t * t  // Ease in (first half)
                 : 1f - Mathf.Pow(-2f * t + 2f, 2f) / 2f; // Ease out (second half)
-
+ 
             target.position = Vector3.Lerp(startPosition, destination, easedT);
             yield return null;
         }
-
+ 
         // Ensure exact final position
         target.position = destination;
     }
-
+ 
     /// <summary>
     /// Get multiple targets for AOE abilities
     /// </summary>
     List<CombatEntity> GetAOETargets(AbilityData ability, CombatEntity primaryTarget, CombatEntity caster)
     {
         List<CombatEntity> targets = new List<CombatEntity>();
-
+ 
         if (ability.canTargetEnemies)
         {
             // Get all alive enemies
             List<CombatEntity> allEnemies = ExpeditionManager.Instance.GetAllEnemyEntities();
-
+ 
             // Get enemies in position range
             for (int i = 0; i < Mathf.Min(ability.aoETargets, allEnemies.Count); i++)
             {
                 CombatEntity enemy = allEnemies[i];
-
+ 
                 // Check if enemy is in valid position range
                 if (enemy.position >= ability.minTargetPosition &&
                     enemy.position <= ability.maxTargetPosition)
@@ -947,7 +1057,7 @@ public class CombatTurnManager : MonoBehaviour
         else if (ability.canTargetAllies)
         {
             List<CombatEntity> allPlayers;
-
+ 
             if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
             {
                 // 1v1 PvP has no teammates — the only valid "ally" AOE target is
@@ -960,18 +1070,18 @@ public class CombatTurnManager : MonoBehaviour
                 // Get all alive players (for AOE heals/buffs)
                 allPlayers = ExpeditionManager.Instance.GetAllPlayerEntities();
             }
-
+ 
             for (int i = 0; i < Mathf.Min(ability.aoETargets, allPlayers.Count); i++)
             {
                 targets.Add(allPlayers[i]);
             }
         }
-
+ 
         Debug.Log($"[Combat] AOE targeting {targets.Count} targets for {ability.abilityName}");
-
+ 
         return targets;
     }
-
+ 
     /// <summary>
     /// Spawn and launch a projectile from caster to target
     /// </summary>
@@ -979,66 +1089,66 @@ public class CombatTurnManager : MonoBehaviour
     {
         Vector3 startPos = caster.transform.position;
         Vector3 endPos = target.transform.position;
-
+ 
         GameObject projectileObj = Instantiate(ability.projectilePrefab, startPos, Quaternion.identity);
-
+ 
         Projectile projectile = projectileObj.GetComponent<Projectile>();
         if (projectile == null)
         {
             projectile = projectileObj.AddComponent<Projectile>();
         }
-
+ 
         projectile.Launch(startPos, endPos, ability.projectileSpeed);
-
+ 
         Debug.Log($"[Projectile] {caster.entityName} fired projectile at {target.entityName}");
     }
-
+ 
     #endregion
-
+ 
     #region Helper Methods
-
+ 
     bool CanAffordAbility(CombatEntity caster, AbilityData ability)
     {
         switch (caster.characterClass)
         {
             case CharacterClass.Rogue:
                 return caster.sneakPoints >= ability.sneakCost;
-
+ 
             case CharacterClass.Fighter:
                 if (ability.requiresStance && caster.currentStance != ability.requiredStance)
                     return false;
                 return true;
-
+ 
             case CharacterClass.Mage:
                 return caster.mana >= ability.manaCost;
-
+ 
             case CharacterClass.Cleric:
                 return caster.wrath >= ability.wrathCost;
-
+ 
             case CharacterClass.Ranger:
                 bool hasBalance = caster.balance >= ability.balanceCost;
                 bool meetsRequirement = CheckBalanceRequirement(caster.balance, ability);
                 return hasBalance && meetsRequirement;
-
+ 
             default:
                 return true;
         }
     }
-
+ 
     bool CheckBalanceRequirement(int currentBalance, AbilityData ability)
     {
         if (ability.balanceRequirementType == BalanceRequirementType.None)
             return true;
-
+ 
         if (ability.balanceRequirementType == BalanceRequirementType.Above)
             return currentBalance > ability.balanceRequirement;
-
+ 
         if (ability.balanceRequirementType == BalanceRequirementType.Below)
             return currentBalance < ability.balanceRequirement;
-
+ 
         return true;
     }
-
+ 
     CombatEntity DetermineTarget(AbilityData ability, string targetName, CombatEntity caster)
     {
         if (ability.canTargetEnemies)
@@ -1050,7 +1160,7 @@ public class CombatTurnManager : MonoBehaviour
                 List<CombatEntity> allEntities = new List<CombatEntity>();
                 allEntities.AddRange(ExpeditionManager.Instance?.GetAllPlayerEntities() ?? new List<CombatEntity>());
                 allEntities.AddRange(ExpeditionManager.Instance?.GetAllEnemyEntities() ?? new List<CombatEntity>());
-
+ 
                 CombatEntity taunter = allEntities.Find(e => e.entityName == tauntTarget && !e.isDead);
                 if (taunter != null)
                 {
@@ -1059,11 +1169,11 @@ public class CombatTurnManager : MonoBehaviour
                 }
             }
         }
-
+ 
         // Self-target
         if (ability.targetType == AbilityTargetType.Self)
             return caster;
-
+ 
         // Specific target name provided
         if (!string.IsNullOrEmpty(targetName))
         {
@@ -1074,14 +1184,14 @@ public class CombatTurnManager : MonoBehaviour
                 {
                     List<CombatEntity> allies = ExpeditionManager.Instance.GetAllPlayerEntities();
                     CombatEntity ally = allies.Find(a => a.position == targetPosition && !a.isDead);
-
+ 
                     if (ally != null)
                     {
                         Debug.Log($"[Targeting] Position {targetPosition} → {ally.entityName}");
                         return ally;
                     }
                 }
-
+ 
                 // Priority 2 - PvP mode check
                 if (PvPManager.Instance != null && PvPManager.Instance.pvpActive)
                 {
@@ -1102,7 +1212,7 @@ public class CombatTurnManager : MonoBehaviour
                     }
                 }
             }
-
+ 
             if (ability.canTargetEnemies)
             {
                 // ✅ NEW: Check PvP first for enemy targeting
@@ -1118,7 +1228,7 @@ public class CombatTurnManager : MonoBehaviour
                 else
                 {
                     List<CombatEntity> enemies = ExpeditionManager.Instance.GetAllEnemyEntities();
-
+ 
                     // Position-based enemy targeting — panel sends "1", "2", "3", "4"
                     if (int.TryParse(targetName, out int targetPos))
                     {
@@ -1141,7 +1251,7 @@ public class CombatTurnManager : MonoBehaviour
                 }
             }
         }
-
+ 
         // Default targeting - check PvP mode
         if (ability.canTargetEnemies)
         {
@@ -1158,7 +1268,7 @@ public class CombatTurnManager : MonoBehaviour
                     return enemies[0];
             }
         }
-
+ 
         /// <summary>
         /// Get the opponent in a PvP match
         /// </summary>
@@ -1166,13 +1276,13 @@ public class CombatTurnManager : MonoBehaviour
         {
             if (PvPManager.Instance == null || !PvPManager.Instance.pvpActive)
                 return null;
-
+ 
             PvPMatch match = PvPManager.Instance.currentMatch;
             if (match == null) return null;
-
+ 
             // Determine which fighter the caster is, return the other one
             string opponentUserId;
-
+ 
             if (caster.userId == match.fighter1UserId)
             {
                 opponentUserId = match.fighter2UserId;
@@ -1186,7 +1296,7 @@ public class CombatTurnManager : MonoBehaviour
                 Debug.LogError($"[PvP] {caster.entityName} is not in the current PvP match!");
                 return null;
             }
-
+ 
             // Get the opponent's character
             OnScreenCharacter opponentChar = CharacterSpawner.Instance?.GetCharacter(opponentUserId);
             if (opponentChar == null)
@@ -1194,17 +1304,17 @@ public class CombatTurnManager : MonoBehaviour
                 Debug.LogError($"[PvP] Opponent character not found for userId: {opponentUserId}");
                 return null;
             }
-
+ 
             CombatEntity opponent = opponentChar.GetComponent<CombatEntity>();
             if (opponent == null)
             {
                 Debug.LogError($"[PvP] Opponent has no CombatEntity component!");
                 return null;
             }
-
+ 
             return opponent;
         }
-
+ 
         // Default targeting: Smart Default
         if (ability.canTargetAllies)
         {
@@ -1212,7 +1322,7 @@ public class CombatTurnManager : MonoBehaviour
             if (ability.category == AbilityCategory.Heal)
             {
                 List<CombatEntity> allies = ExpeditionManager.Instance.GetAllPlayerEntities();
-
+ 
                 if (allies.Count > 0)
                 {
                     // Find ally with lowest HP percentage
@@ -1220,7 +1330,7 @@ public class CombatTurnManager : MonoBehaviour
                         .Where(a => !a.isDead)
                         .OrderBy(a => (float)a.currentHealth / a.maxHealth)
                         .FirstOrDefault();
-
+ 
                     if (mostInjured != null)
                     {
                         Debug.Log($"[Targeting] Auto-heal → {mostInjured.entityName} ({mostInjured.currentHealth}/{mostInjured.maxHealth} HP)");
@@ -1228,29 +1338,29 @@ public class CombatTurnManager : MonoBehaviour
                     }
                 }
             }
-
+ 
             // Default to self for buffs
             return caster;
         }
-
+ 
         return null;
     }
-
+ 
     bool CheckWaveCleared()
     {
         List<CombatEntity> enemies = ExpeditionManager.Instance.GetAllEnemyEntities();
         return enemies.Count == 0;
     }
-
+ 
     bool CheckPlayerWipe()
     {
         List<CombatEntity> players = ExpeditionManager.Instance.GetAllPlayerEntities();
         return players.Count == 0;
     }
-
+ 
     #endregion
 }
-
+ 
 [System.Serializable]
 public class QueuedAction
 {
