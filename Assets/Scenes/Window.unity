@@ -154,6 +154,7 @@ MonoBehaviour:
   maxTurnTime: 45
   centerPosition: {x: 0, y: -10.5, z: 0}
   zoomDuration: 0.3
+  debugForceSecondEnemyException: 0
 --- !u!4 &104625423
 Transform:
   m_ObjectHideFlags: 0
@@ -2454,7 +2455,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1731515872
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2470,6 +2471,15 @@ MonoBehaviour:
   displayDuration: 5
   fadeDuration: 0.4
   maxCharacters: 140
+  fontSize: 0.35
+  maxWidth: 3
+  padding: 0.05
+  textColor: {r: 1, g: 1, b: 1, a: 1}
+  outlineColor: {r: 0, g: 0, b: 0, a: 1}
+  outlineWidth: 0.2
+  backgroundColor: {r: 0, g: 0, b: 0, a: 0.65}
+  sortingLayerName: Default
+  sortingOrder: 100
 --- !u!4 &1731515873
 Transform:
   m_ObjectHideFlags: 0

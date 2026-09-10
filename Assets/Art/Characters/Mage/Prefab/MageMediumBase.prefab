@@ -521,6 +521,9 @@ MonoBehaviour:
   nameLabel: {fileID: 2839194978780272151}
   levelLabel: {fileID: 6015921192260034112}
   nameContainer: {fileID: 1365636353048223515}
+  hideNameByDefault: 1
+  revealDuration: 8
+  chatBubbleOffset: {x: 0, y: 0.5, z: 0}
 --- !u!70 &5648935104161257993
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

@@ -296,7 +296,10 @@ public class CombatEntity : MonoBehaviour
             GrantWrathToClericAllies(finalDamage);
 
         // ── Hit animation ─────────────────────────────────────────────────────────
-        animator?.SetTrigger("Hit");
+        if (animator != null)
+        {
+            animator?.SetTrigger("Hit");
+        }
 
         // ── Riposte counter-attack ────────────────────────────────────────────────
         if (finalDamage > 0 && attacker != null && !attacker.isDead)

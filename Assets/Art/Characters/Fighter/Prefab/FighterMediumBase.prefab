@@ -84,6 +84,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &6566595675627858503
 MonoBehaviour:
@@ -143,6 +144,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -263,6 +265,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &7560166910596434361
 MonoBehaviour:
@@ -322,6 +325,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -520,6 +524,9 @@ MonoBehaviour:
   nameLabel: {fileID: 6566595675627858503}
   levelLabel: {fileID: 7560166910596434361}
   nameContainer: {fileID: 6626961083631403339}
+  hideNameByDefault: 1
+  revealDuration: 8
+  chatBubbleOffset: {x: 0, y: 0.5, z: 0}
 --- !u!70 &4976484780236154660
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -649,6 +656,7 @@ MonoBehaviour:
   damageBonus: 0
   isDead: 0
   hasActedThisTurn: 0
+  wasHealedThisTurn: 0
   queuedAction: 
   actionConfirmed: 0
   characterClass: 3
@@ -662,4 +670,271 @@ MonoBehaviour:
   activeEffects: []
   healthBarObject: {fileID: 0}
   animator: {fileID: 0}
+  classResourceBarObject: {fileID: 0}
   currentStance: 0
+  viewerData:
+    twitchUserId: 
+    username: 
+    discordUserId: 
+    coins: 0
+    characterClass: 0
+    baseStats:
+      strength: 1
+      constitution: 1
+      dexterity: 1
+      willpower: 1
+      charisma: 1
+      intelligence: 1
+      maxHealth: 100
+      currentHealth: 100
+      level: 1
+      experience: 0
+      unallocatedStatPoints: 0
+    classResources:
+      sneak: 0
+      maxSneak: 6
+      currentStance: None
+      mana: 0
+      maxMana: 100
+      wrath: 0
+      maxWrath: 100
+      balance: 0
+      maxBalance: 10
+      minBalance: -10
+    equipped:
+      head:
+        itemId: aa7210c8-965b-4e41-b9c5-2588cd92644c
+        itemName: 
+        description: 
+        itemType: 0
+        rarity: 0
+        requiredLevel: 0
+        price: 0
+        maxManaBonus: 0
+        manaRegenBonus: 0
+        manaCostReduction: 0
+        isTwoHanded: 0
+        weaponCategory: 0
+        strengthBonusPercent: 0
+        constitutionBonusPercent: 0
+        dexterityBonusPercent: 0
+        willpowerBonusPercent: 0
+        charismaBonusPercent: 0
+        intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
+        damageBonus: 0
+        defenseBonus: 0
+        healAmount: 0
+        allowedClasses: 
+        abilities: []
+      chest:
+        itemId: 7e693fa9-56ae-45b1-b4a6-b320bfc2eb62
+        itemName: 
+        description: 
+        itemType: 0
+        rarity: 0
+        requiredLevel: 0
+        price: 0
+        maxManaBonus: 0
+        manaRegenBonus: 0
+        manaCostReduction: 0
+        isTwoHanded: 0
+        weaponCategory: 0
+        strengthBonusPercent: 0
+        constitutionBonusPercent: 0
+        dexterityBonusPercent: 0
+        willpowerBonusPercent: 0
+        charismaBonusPercent: 0
+        intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
+        damageBonus: 0
+        defenseBonus: 0
+        healAmount: 0
+        allowedClasses: 
+        abilities: []
+      legs:
+        itemId: 53cb235c-bd09-444d-bc43-9bffa30d8cf4
+        itemName: 
+        description: 
+        itemType: 0
+        rarity: 0
+        requiredLevel: 0
+        price: 0
+        maxManaBonus: 0
+        manaRegenBonus: 0
+        manaCostReduction: 0
+        isTwoHanded: 0
+        weaponCategory: 0
+        strengthBonusPercent: 0
+        constitutionBonusPercent: 0
+        dexterityBonusPercent: 0
+        willpowerBonusPercent: 0
+        charismaBonusPercent: 0
+        intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
+        damageBonus: 0
+        defenseBonus: 0
+        healAmount: 0
+        allowedClasses: 
+        abilities: []
+      arms:
+        itemId: 9333994b-0a1a-4397-a86e-25a3135e1260
+        itemName: 
+        description: 
+        itemType: 0
+        rarity: 0
+        requiredLevel: 0
+        price: 0
+        maxManaBonus: 0
+        manaRegenBonus: 0
+        manaCostReduction: 0
+        isTwoHanded: 0
+        weaponCategory: 0
+        strengthBonusPercent: 0
+        constitutionBonusPercent: 0
+        dexterityBonusPercent: 0
+        willpowerBonusPercent: 0
+        charismaBonusPercent: 0
+        intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
+        damageBonus: 0
+        defenseBonus: 0
+        healAmount: 0
+        allowedClasses: 
+        abilities: []
+      mainHand:
+        itemId: 008eea5e-f8b5-452d-ba8b-f4b91771cd31
+        itemName: 
+        description: 
+        itemType: 0
+        rarity: 0
+        requiredLevel: 0
+        price: 0
+        maxManaBonus: 0
+        manaRegenBonus: 0
+        manaCostReduction: 0
+        isTwoHanded: 0
+        weaponCategory: 0
+        strengthBonusPercent: 0
+        constitutionBonusPercent: 0
+        dexterityBonusPercent: 0
+        willpowerBonusPercent: 0
+        charismaBonusPercent: 0
+        intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
+        damageBonus: 0
+        defenseBonus: 0
+        healAmount: 0
+        allowedClasses: 
+        abilities: []
+      offHand:
+        itemId: 0d96e098-6ca1-466c-9795-4eba0245cad6
+        itemName: 
+        description: 
+        itemType: 0
+        rarity: 0
+        requiredLevel: 0
+        price: 0
+        maxManaBonus: 0
+        manaRegenBonus: 0
+        manaCostReduction: 0
+        isTwoHanded: 0
+        weaponCategory: 0
+        strengthBonusPercent: 0
+        constitutionBonusPercent: 0
+        dexterityBonusPercent: 0
+        willpowerBonusPercent: 0
+        charismaBonusPercent: 0
+        intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
+        damageBonus: 0
+        defenseBonus: 0
+        healAmount: 0
+        allowedClasses: 
+        abilities: []
+      feet:
+        itemId: 49472f2e-0f3a-4d93-8033-2aeda1577f26
+        itemName: 
+        description: 
+        itemType: 0
+        rarity: 0
+        requiredLevel: 0
+        price: 0
+        maxManaBonus: 0
+        manaRegenBonus: 0
+        manaCostReduction: 0
+        isTwoHanded: 0
+        weaponCategory: 0
+        strengthBonusPercent: 0
+        constitutionBonusPercent: 0
+        dexterityBonusPercent: 0
+        willpowerBonusPercent: 0
+        charismaBonusPercent: 0
+        intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
+        damageBonus: 0
+        defenseBonus: 0
+        healAmount: 0
+        allowedClasses: 
+        abilities: []
+    inventory: []
+    equippedAbilities: []
+    equippedItemAbility: 
+    totalWatchTimeMinutes: 0
+    isInCombat: 0
+    isDead: 0
+    isBanned: 0
+    isInExpedition: 0
+    expeditionActionsPerformed: 0
+    pvpWins: 0
+    pvpLosses: 0
+    tradeHistory: []

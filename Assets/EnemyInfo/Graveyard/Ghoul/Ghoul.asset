@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Ghoul
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Ghoul
-  enemyPrefab: {fileID: -2253911629886400664, guid: 425cfdc6c01791c48b2f595419414b21, type: 3}
+  enemyPrefab: {fileID: 6110471412497229600, guid: 681715f511905904698703f5faa7c6bc, type: 3}
   role: 1
   baseHealth: 150
   baseStrength: 20

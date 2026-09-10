@@ -405,7 +405,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -2253911629886400664, guid: 92a073af0abfef64ba33ee823deacd24, type: 3}
       propertyPath: m_Name
-      value: RogueMeduimBase 1
+      value: SinnaMeduimBase
       objectReference: {fileID: 0}
     - target: {fileID: -2253911629886400664, guid: 92a073af0abfef64ba33ee823deacd24, type: 3}
       propertyPath: m_Layer
@@ -532,6 +532,9 @@ MonoBehaviour:
   nameLabel: {fileID: 2127811491006632282}
   levelLabel: {fileID: 1642077439527044584}
   nameContainer: {fileID: 4664539674723803139}
+  hideNameByDefault: 1
+  revealDuration: 8
+  chatBubbleOffset: {x: 0, y: 0.5, z: 0}
 --- !u!70 &2943048654199271528
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -726,6 +729,14 @@ MonoBehaviour:
         willpowerBonusPercent: 0
         charismaBonusPercent: 0
         intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
         damageBonus: 0
         defenseBonus: 0
         healAmount: 0
@@ -750,6 +761,14 @@ MonoBehaviour:
         willpowerBonusPercent: 0
         charismaBonusPercent: 0
         intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
         damageBonus: 0
         defenseBonus: 0
         healAmount: 0
@@ -774,6 +793,14 @@ MonoBehaviour:
         willpowerBonusPercent: 0
         charismaBonusPercent: 0
         intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
         damageBonus: 0
         defenseBonus: 0
         healAmount: 0
@@ -798,6 +825,14 @@ MonoBehaviour:
         willpowerBonusPercent: 0
         charismaBonusPercent: 0
         intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
         damageBonus: 0
         defenseBonus: 0
         healAmount: 0
@@ -822,6 +857,14 @@ MonoBehaviour:
         willpowerBonusPercent: 0
         charismaBonusPercent: 0
         intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
         damageBonus: 0
         defenseBonus: 0
         healAmount: 0
@@ -846,6 +889,14 @@ MonoBehaviour:
         willpowerBonusPercent: 0
         charismaBonusPercent: 0
         intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
         damageBonus: 0
         defenseBonus: 0
         healAmount: 0
@@ -870,6 +921,14 @@ MonoBehaviour:
         willpowerBonusPercent: 0
         charismaBonusPercent: 0
         intelligenceBonusPercent: 0
+        strengthBonus: 0
+        constitutionBonus: 0
+        dexterityBonus: 0
+        willpowerBonus: 0
+        charismaBonus: 0
+        intelligenceBonus: 0
+        passives: []
+        grantAbility: {fileID: 0}
         damageBonus: 0
         defenseBonus: 0
         healAmount: 0

@@ -35,6 +35,17 @@ public class TwitchOverlayManager : MonoBehaviour
     private TwitchAPI twitchApi;
     private string sessionId;
 
+    // Chat (IRC) reconnect state
+    private bool isReconnectingChat = false;
+    private int chatReconnectAttempt = 0;
+    private const int MaxReconnectDelaySeconds = 60;
+    private bool isQuitting = false;
+
+    // EventSub (cheers / channel points) reconnect state
+    private bool isEventSubConnected = false;
+    private bool isReconnectingEventSub = false;
+    private int eventSubReconnectAttempt = 0;
+
     private async void Start()
     {
         System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
@@ -70,6 +81,13 @@ public class TwitchOverlayManager : MonoBehaviour
             client.OnMessageReceived += OnChatMessage;
             client.OnChatCommandReceived += OnChatCommand;
             client.OnJoinedChannel += OnJoinedChannel;
+
+            // These two were never wired up — without them, a dropped IRC
+            // connection (ping timeout, network blip, Twitch-side restart)
+            // goes completely unnoticed and !stats/!startexpedition etc.
+            // just stop responding with no error anywhere.
+            client.OnDisconnected += OnChatDisconnected;
+            client.OnConnectionError += OnChatConnectionError;
 
             await client.ConnectAsync();
             Debug.Log($"[TwitchOverlay] Twitch Chat: ConnectAsync completed");
@@ -112,6 +130,98 @@ public class TwitchOverlayManager : MonoBehaviour
         Debug.Log($"[TwitchOverlay] ✓✓✓ OnJoinedChannel EVENT FIRED! Channel: {e.Channel} ✓✓✓");
         isJoinedToChannel = true;
         return Task.CompletedTask;
+    }
+
+    // NOTE: verified against your build error — OnDisconnected uses
+    // OnDisconnectedArgs (not OnDisconnectedEventArgs). OnConnectionError's
+    // signature compiled clean, so OnConnectionErrorArgs is correct as-is.
+    private Task OnChatDisconnected(object sender, TwitchLib.Client.Events.OnDisconnectedArgs e)
+    {
+        Debug.LogWarning("[TwitchOverlay] Twitch Chat Disconnected.");
+        isJoinedToChannel = false;
+
+        if (!isQuitting)
+        {
+            _ = AttemptChatReconnect();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnChatConnectionError(object sender, TwitchLib.Client.Events.OnConnectionErrorArgs e)
+    {
+        Debug.LogError($"[TwitchOverlay] Twitch Chat connection error: {e.Error?.Message}");
+        isJoinedToChannel = false;
+
+        if (!isQuitting)
+        {
+            _ = AttemptChatReconnect();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    // Plain async/await (no Unity coroutine, no yield-inside-try/catch) so a
+    // thrown exception here can't silently die the way it can in a coroutine —
+    // every failure path below is caught and logged explicitly.
+    private async Task AttemptChatReconnect()
+    {
+        if (isReconnectingChat)
+        {
+            // A retry loop is already running — don't stack a second one.
+            return;
+        }
+
+        isReconnectingChat = true;
+
+        try
+        {
+            while (!isQuitting)
+            {
+                chatReconnectAttempt++;
+                int delaySeconds = Math.Min(MaxReconnectDelaySeconds, (int)Math.Pow(2, Math.Min(chatReconnectAttempt, 6)));
+                Debug.LogWarning($"[TwitchOverlay] Chat reconnect attempt {chatReconnectAttempt} in {delaySeconds}s...");
+                await Task.Delay(delaySeconds * 1000);
+
+                if (isQuitting) break;
+
+                try
+                {
+                    if (client.IsConnected)
+                    {
+                        Debug.Log("[TwitchOverlay] Chat client reconnected on its own — stopping retry loop.");
+                        break;
+                    }
+
+                    await client.ConnectAsync();
+                    await Task.Delay(2000);
+
+                    if (client.IsConnected)
+                    {
+                        await client.JoinChannelAsync(channelName);
+                        await Task.Delay(1000);
+
+                        if (client.JoinedChannels != null && client.JoinedChannels.Count > 0)
+                        {
+                            isJoinedToChannel = true;
+                            Debug.Log($"[TwitchOverlay] ✓ Chat reconnected and rejoined channel after {chatReconnectAttempt} attempt(s).");
+                            break;
+                        }
+                    }
+
+                    Debug.LogWarning($"[TwitchOverlay] Chat reconnect attempt {chatReconnectAttempt} did not result in a joined channel — retrying.");
+                }
+                catch (Exception retryEx)
+                {
+                    Debug.LogError($"[TwitchOverlay] Chat reconnect attempt {chatReconnectAttempt} threw: {retryEx.Message}");
+                }
+            }
+        }
+        finally
+        {
+            isReconnectingChat = false;
+            chatReconnectAttempt = 0;
+        }
     }
 
     private async Task InitializeEventSub()
@@ -252,6 +362,7 @@ public class TwitchOverlayManager : MonoBehaviour
     private async Task OnEventSubConnected(object sender, WebsocketConnectedArgs e)
     {
         Debug.Log("[TwitchOverlay] EventSub WebSocket Connected!");
+        isEventSubConnected = true;
 
         if (!e.IsRequestedReconnect)
         {
@@ -322,14 +433,81 @@ public class TwitchOverlayManager : MonoBehaviour
 
     private Task OnEventSubDisconnected(object sender, EventArgs e)
     {
-        Debug.LogWarning("[TwitchOverlay] EventSub WebSocket Disconnected");
+        Debug.LogWarning("[TwitchOverlay] EventSub WebSocket Disconnected.");
+        isEventSubConnected = false;
+
+        if (!isQuitting)
+        {
+            _ = AttemptEventSubReconnect();
+        }
+
         return Task.CompletedTask;
     }
 
     private Task OnEventSubReconnected(object sender, EventArgs e)
     {
-        Debug.Log("[TwitchOverlay] EventSub WebSocket Reconnected!");
+        // Twitch requested this migration (e.g. server restart) and TwitchLib
+        // handled swapping to the new URL — the session carries over, so
+        // subscriptions are still valid and don't need recreating here.
+        Debug.Log("[TwitchOverlay] EventSub WebSocket Reconnected (session migrated).");
+        isEventSubConnected = true;
         return Task.CompletedTask;
+    }
+
+    // Mirrors AttemptChatReconnect(): plain async/await, exponential backoff.
+    // Unlike the chat client, we don't need to redo any "join" step here —
+    // once ConnectAsync() succeeds, OnEventSubConnected fires again with
+    // IsRequestedReconnect == false and recreates both subscriptions itself.
+    private async Task AttemptEventSubReconnect()
+    {
+        if (isReconnectingEventSub)
+        {
+            return;
+        }
+
+        isReconnectingEventSub = true;
+
+        try
+        {
+            while (!isQuitting)
+            {
+                eventSubReconnectAttempt++;
+                int delaySeconds = Math.Min(MaxReconnectDelaySeconds, (int)Math.Pow(2, Math.Min(eventSubReconnectAttempt, 6)));
+                Debug.LogWarning($"[TwitchOverlay] EventSub reconnect attempt {eventSubReconnectAttempt} in {delaySeconds}s...");
+                await Task.Delay(delaySeconds * 1000);
+
+                if (isQuitting) break;
+
+                if (isEventSubConnected)
+                {
+                    Debug.Log("[TwitchOverlay] EventSub reconnected on its own — stopping retry loop.");
+                    break;
+                }
+
+                try
+                {
+                    await eventSubClient.ConnectAsync();
+                    await Task.Delay(2000);
+
+                    if (isEventSubConnected)
+                    {
+                        Debug.Log($"[TwitchOverlay] ✓ EventSub reconnected and resubscribed after {eventSubReconnectAttempt} attempt(s).");
+                        break;
+                    }
+
+                    Debug.LogWarning($"[TwitchOverlay] EventSub reconnect attempt {eventSubReconnectAttempt} did not confirm connection — retrying.");
+                }
+                catch (Exception retryEx)
+                {
+                    Debug.LogError($"[TwitchOverlay] EventSub reconnect attempt {eventSubReconnectAttempt} threw: {retryEx.Message}");
+                }
+            }
+        }
+        finally
+        {
+            isReconnectingEventSub = false;
+            eventSubReconnectAttempt = 0;
+        }
     }
 
     private Task OnEventSubError(object sender, ErrorOccuredArgs e)
@@ -496,6 +674,8 @@ public class TwitchOverlayManager : MonoBehaviour
 
     private async void OnApplicationQuit()
     {
+        isQuitting = true;
+
         if (client != null)
         {
             try { await client.DisconnectAsync(); }

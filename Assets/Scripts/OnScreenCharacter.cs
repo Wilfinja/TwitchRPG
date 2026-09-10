@@ -56,7 +56,7 @@ public class OnScreenCharacter : MonoBehaviour
     [SerializeField] private float revealDuration = 8f;
 
     [Header("Chat Bubble")]
-    [SerializeField] private Vector3 chatBubbleOffset = new Vector3(0f, 1.8f, 0f);
+    [SerializeField] private Vector3 chatBubbleOffset = new Vector3(0f, 0.1f, 0f); // was 1.8f — guess, tune to taste
     private ChatBubble chatBubble;
 
     private bool nameRevealed = false;
@@ -468,6 +468,13 @@ public class OnScreenCharacter : MonoBehaviour
             Vector3 nameScale = nameContainer.transform.localScale;
             nameScale.x *= -1;
             nameContainer.transform.localScale = nameScale;
+        }
+
+        if (chatBubble != null)
+        {
+            Vector3 bubbleScale = chatBubble.transform.localScale;
+            bubbleScale.x *= -1;
+            chatBubble.transform.localScale = bubbleScale;
         }
     }
 
