@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-
+ 
 [Serializable]
 public enum ItemRarity
 {
@@ -12,7 +12,7 @@ public enum ItemRarity
     Legendary,
     Unique
 }
-
+ 
 [Serializable]
 public enum ItemType
 {
@@ -26,7 +26,7 @@ public enum ItemType
     Boots,
     Consumable
 }
-
+ 
 [Serializable]
 public enum WeaponCategory
 {
@@ -41,7 +41,7 @@ public enum WeaponCategory
     Greatsword,  // Two-handed
     Warhammer    // Two-handed
 }
-
+ 
 [Serializable]
 public enum CharacterClass
 {
@@ -52,11 +52,11 @@ public enum CharacterClass
     Ranger,
     Mage
 }
-
-
-
-
-
+ 
+ 
+ 
+ 
+ 
 // ===== ITEM ABILITY SYSTEM =====
 [Serializable]
 public class ItemAbility
@@ -67,7 +67,7 @@ public class ItemAbility
     public int manaCost;
     public int cooldownTurns;
 }
-
+ 
 [Serializable]
 public class CombatAbility
 {
@@ -76,16 +76,16 @@ public class CombatAbility
     [TextArea(3, 5)]
     public string description;
     public CharacterClass requiredClass;
-
+ 
     // Ability type
     public AbilityCategory category; // Buff, Heal, Damage
     public AbilityTargetType targetType;
-
+ 
     // Damage/Healing
     public DamageStat scalingStat;
     public float statMultiplier = 1f;
     public int baseDamage;
-
+ 
     // Resource costs (reuse existing ClassResources structure)
     public int sneakCost;
     public int sneakGain;
@@ -96,17 +96,17 @@ public class CombatAbility
     public int balanceGain;
     public int balanceRequirement;
     public BalanceRequirementType balanceRequirementType;
-
+ 
     // Targeting
     public bool canTargetAllies;
     public bool canTargetEnemies = true;
     public int maxTargetPosition = 1;
     public bool isAOE;
     public int aoeTargets = 1;
-
+ 
     public int cooldown;
 }
-
+ 
 [Serializable]
 public enum FighterStance
 {
@@ -116,7 +116,7 @@ public enum FighterStance
     Balanced,
     Reflective
 }
-
+ 
 [Serializable]
 public enum BoostableStat
 {
@@ -128,200 +128,227 @@ public enum BoostableStat
     Charisma,
     Intelligence
 }
-
+ 
 [Serializable]
 public class StatusEffect
 {
     // ── Core ─────────────────────────────────────────────────────────────────
     public string effectName;
     public int duration;
-
+ 
     // ── Proc Chance ──────────────────────────────────────────────────────────
     [Tooltip("Probability this effect is applied when triggered. 1.0 = always, 0.5 = 50% chance.")]
     [Range(0f, 1f)]
     public float applicationChance = 1f;
-
+ 
     [Tooltip("Mark TRUE for any effect that harms or restricts the target: " +
              "Stun, Silence, Bleed, Curse, Exposed, Marked, Enrage, Taunt, or any DoT. " +
              "Leave FALSE for beneficial effects: Barrier, Haste, stat buffs, Riposte, Lifesteal. " +
              "\n\nWhen true, the target's Status Resistance (derived from Willpower) is " +
              "rolled against AFTER the applicationChance roll. Both must pass for the effect to land.")]
     public bool isNegativeEffect = false;
-
+ 
     [Tooltip("Flat bonus added to the bearer's Status Resistance while this effect is active. " +
              "Use on buff abilities like 'Iron Will' or 'Fortify' to grant extra resist chance. " +
              "0.1 = +10% resistance. Stacks additively with other bonuses before the 75% cap.")]
     public float statusResistanceBonus = 0f;
-
+ 
     // ── Original Multipliers ─────────────────────────────────────────────────
     public float damageMultiplier = 1f;
     public float defenseMultiplier = 1f;
     public int damageOverTime;
-
+ 
     [Tooltip("Flat defense bonus added while active")]
     public int temporaryDefenseBonus;
-
+ 
     [Tooltip("Base defense amount before scaling")]
     public int baseDefenseAmount = 0;
-
+ 
     [Tooltip("Stat to scale defense bonus with")]
     public DamageStat defenseScalingStat = DamageStat.None;
-
+ 
     [Tooltip("Multiplier for defense scaling (e.g., 0.5 = +50% of stat)")]
     public float defenseScalingMultiplier = 0f;
-
+ 
     [Tooltip("If true, removed after 1 hit instead of after duration expires")]
     public bool consumedOnHit;
-
+ 
     [Tooltip("Which stat is being boosted")]
     public BoostableStat statBoostType;
-
+ 
     [Tooltip("Amount the stat is boosted")]
     public int statBoostAmount;
-
+ 
     [Tooltip("Percentage of damage dealt that heals the attacker (0.0-1.0)")]
     [Range(0f, 1f)]
     public float lifestealPercent = 0f;
-
+ 
     // ── Riposte ──────────────────────────────────────
     [Tooltip("Marks this effect as a Riposte. When the bearer takes damage, a counter-attack fires.")]
     public bool isRiposte = false;
-
+ 
     [Tooltip("Percent of incoming final damage (post-defense) reflected as counter damage. 1.0 = 100%.")]
     public float riposteDamagePercent = 0f;
-
+ 
     [Tooltip("Flat bonus damage added to the riposte counter.")]
     public int riposteFlatBonus = 0;
-
+ 
     [Tooltip("Stat used for additional riposte scaling. Looked up on the entity when the counter fires.")]
     public DamageStat riposteScalingStat = DamageStat.None;
-
+ 
     [Tooltip("Multiplier applied to the riposteScalingStat value.")]
     public float riposteScalingMultiplier = 0f;
-
+ 
     [Tooltip("If true, this Riposte effect is removed after the first successful counter-attack.")]
     public bool riposteConsumedOnUse = true;
-
+ 
     // ── Stun ─────────────────────────────────────────────────────────────────
     [Header("Stun")]
     [Tooltip("Entity skips their entire next turn. Action is wasted; cooldowns still tick.")]
     public bool isStun = false;
-
+ 
     // ── Silence ───────────────────────────────────────────────────────────────
     [Header("Silence")]
     [Tooltip("Entity cannot use class abilities. Auto-submit forces their default basic attack.")]
     public bool isSilence = false;
-
+ 
     // ── Bleed ────────────────────────────────────────────────────────────────
     [Header("Bleed")]
     [Tooltip("Damage-over-time that is paused (does not tick) on any turn the entity is healed.")]
     public bool isBleed = false;
-
+ 
     [Tooltip("Damage dealt per turn by the bleed. Separate from damageOverTime so both can coexist.")]
     public int bleedDamagePerTurn = 0;
-
+ 
     // ── Barrier ───────────────────────────────────────────────────────────────
     [Header("Barrier")]
     [Tooltip("Absorbs this much damage before any HP is lost. Depletes as it absorbs, then expires.")]
     public bool isBarrier = false;
-
+ 
     [Tooltip("Current remaining barrier HP. Set this equal to barrierMaxAmount when the effect is created.")]
     public int barrierCurrentAmount = 0;
-
+ 
     [Tooltip("Maximum barrier HP (used for display / reference).")]
     public int barrierMaxAmount = 0;
-
+ 
     // ── Marked ───────────────────────────────────────────────────────────────
     [Header("Marked")]
     [Tooltip("Target receives increased damage from ALL sources while Marked.")]
     public bool isMark = false;
-
+ 
     [Tooltip("Multiplier applied to ALL incoming damage (e.g., 1.25 = 25% more damage taken).")]
     [Range(1f, 3f)]
     public float markedDamageMultiplier = 1.25f;
-
+ 
     // ── Taunt ────────────────────────────────────────────────────────────────
     [Header("Taunt")]
     [Tooltip("Forces THIS entity to direct all attacks at the taunter for the duration.")]
     public bool isTaunt = false;
-
+ 
     [Tooltip("The entityName of the entity that must be targeted while this Taunt is active.")]
     public string tauntTargetEntityName = "";
-
+ 
     // ── Curse (Healing Reduction) ─────────────────────────────────────────────
     [Header("Curse")]
     [Tooltip("Reduces all healing received by this entity.")]
     public bool isCurse = false;
-
+ 
     [Tooltip("Fraction of healing that is negated. 0.5 = 50% of healing is lost.")]
     [Range(0f, 1f)]
     public float healingReductionPercent = 0.5f;
-
+ 
     // ── Exposed ───────────────────────────────────────────────────────────────
     [Header("Exposed")]
     [Tooltip("Flat defense reduction while this effect is active. Stacks with other reductions.")]
     public bool isExposed = false;
-
+ 
     [Tooltip("How many defense points are subtracted from the entity's total defense.")]
     public int exposedDefenseReduction = 0;
-
+ 
     // ── Enrage ────────────────────────────────────────────────────────────────
     [Header("Enrage")]
     [Tooltip("Entity deals more damage but is FORCED to attack the nearest/front target.")]
     public bool isEnrage = false;
-
+ 
     [Tooltip("Damage multiplier applied to all outgoing damage while enraged (e.g., 1.3 = +30% dmg).")]
     [Range(1f, 3f)]
     public float enrageDamageMultiplier = 1.3f;
-
+ 
     // ── Haste ─────────────────────────────────────────────────────────────────
     [Header("Haste")]
     [Tooltip("Entity acts twice in the same turn. Second action is a copy of the first.")]
     public bool isHaste = false;
-
+ 
     [Header("Primed Condition")]
-
+ 
     [Tooltip("Marks this StatusEffect as a Primed condition. " +
              "When the bearer receives a hit that meets the threshold, " +
              "all effects in primedEffects are applied to the bearer.")]
     public bool isPrimed = false;
-
+ 
     [Tooltip("How the detonation threshold is measured:\n" +
              "• FlatDamage        – hit must deal ≥ N final HP damage\n" +
              "• PercentMaxHealth  – hit must deal ≥ N% of the target's max HP\n" +
              "• PercentCurrentHealth – hit must deal ≥ N% of current HP at time of hit")]
     public PrimeThresholdType primeThresholdType = PrimeThresholdType.FlatDamage;
-
+ 
     [Tooltip("The numeric threshold value.\n" +
              "• FlatDamage:            e.g. 20  = must take 20+ damage\n" +
              "• PercentMaxHealth:      e.g. 15  = must take ≥ 15% of max HP\n" +
              "• PercentCurrentHealth:  e.g. 25  = must take ≥ 25% of current HP")]
     public float primeThreshold = 20f;
-
+ 
+    [Tooltip("If true, the threshold above is checked against TOTAL damage taken while this Primed " +
+             "effect has been active, instead of just the single hit that just landed. Applies to " +
+             "all three threshold types. If the effect is not consumed on trigger (see below), the " +
+             "accumulated total resets to 0 after each detonation so it has to build back up before " +
+             "detonating again.")]
+    public bool primeCumulativeDamage = false;
+ 
     [Tooltip("The effects that are applied to the target when the Primed condition detonates. " +
              "These go through full ApplyStatusEffect() logic, meaning:\n" +
              "• isNegativeEffect effects are subject to resistance rolls\n" +
              "• applicationChance rolls apply per-effect\n" +
-             "Any StatusEffect can be listed here: Bleed, Enrage, Stun, Silence, Curse, etc.")]
-    [System.NonSerialized]
+             "Any StatusEffect can be listed here: Bleed, Enrage, Stun, Silence, Curse, etc.\n\n" +
+             "Uses [SerializeReference] rather than a normal serialized list because StatusEffect " +
+             "nests itself here (a self-referencing type). Unity's default serializer can't persist " +
+             "that kind of field, which is why this list previously showed no way to add anything " +
+             "to it in the Inspector — SerializeReference is Unity's supported way to serialize " +
+             "self-referencing/polymorphic data like this (requires Unity 2019.3+).")]
+    [SerializeReference]
     public List<StatusEffect> primedEffects = new List<StatusEffect>();
-
+ 
     [Tooltip("If true, the Primed effect itself is removed after it detonates. " +
              "If false, it can keep detonating every qualifying hit for its full duration.")]
     public bool primedConsumedOnTrigger = true;
-
+ 
+    // ── Primed runtime tracking (NOT authored on templates/assets) ─────────────
+    // These hold live state for a StatusEffect instance that has actually been
+    // applied to an entity. Every fresh copy created when the effect is applied
+    // starts at these defaults, so there is nothing to configure here.
+    [System.NonSerialized]
+    [Tooltip("Runtime only. Running total of damage taken while primeCumulativeDamage is enabled. " +
+             "Not meant to be set in the Inspector.")]
+    public float primeAccumulatedDamage = 0f;
+ 
+    [System.NonSerialized]
+    [Tooltip("Runtime only. The bearer's HP at the moment this Primed effect was applied, used as " +
+             "the baseline for PercentCurrentHealth when primeCumulativeDamage is enabled. -1 means " +
+             "not yet captured. Not meant to be set in the Inspector.")]
+    public int primeHealthSnapshot = -1;
+ 
     [Header("Condition Indicator (Visual Only)")]
     [Tooltip("Short key used to pick an icon/emoji in the health bar and panel. " +
          "Built-in keys: dot, bleed, stun, silence, barrier, mark, taunt, " +
          "curse, exposed, enrage, haste, riposte, primed, defense, statboost, lifesteal, buff. " +
          "Leave empty to fall back to auto-detection from the effect's bool flags.")]
     public string iconKey = "";
-
+ 
     [Tooltip("Hex colour for this condition's icon background (e.g. \"#FF4444\" for red DoT). " +
              "Leave empty to use the default colour for the iconKey.")]
     public string colorHex = "";
 }
-
+ 
 public enum AbilityCategory
 {
     Damage,
@@ -329,7 +356,7 @@ public enum AbilityCategory
     Buff,
     Debuff
 }
-
+ 
 public enum AbilityTargetType
 {
     SingleEnemy,
@@ -340,7 +367,7 @@ public enum AbilityTargetType
     FrontEnemy,
     AOEEnemies
 }
-
+ 
 public enum DamageStat
 {
     None,
@@ -351,21 +378,21 @@ public enum DamageStat
     Charisma,
     Constitution
 }
-
+ 
 public enum BalanceRequirementType
 {
     None,
     Above,
     Below
 }
-
+ 
 public enum PrimeThresholdType
 {
     FlatDamage,
     PercentMaxHealth,
     PercentCurrentHealth,
 }
-
+ 
 [Serializable]
 public class CharacterStats
 {
@@ -375,13 +402,13 @@ public class CharacterStats
     public int willpower;
     public int charisma;
     public int intelligence;
-
+ 
     public int maxHealth;
     public int currentHealth;
     public int level;
     public int experience;
     public int unallocatedStatPoints;
-
+ 
     public CharacterStats()
     {
         strength = 1;
@@ -396,47 +423,47 @@ public class CharacterStats
         currentHealth = 100;
         unallocatedStatPoints = 0;
     }
-
+ 
     public void RecalculateHealth()
     {
         int oldMax = maxHealth;
         maxHealth = 50 + (constitution * 10) + (level * 5);
-
+ 
         if (maxHealth > oldMax)
         {
             currentHealth += (maxHealth - oldMax);
         }
-
+ 
         currentHealth = Mathf.Min(currentHealth, maxHealth);
     }
-
-
+ 
+ 
 }
-
+ 
 [Serializable]
 public class ClassResources
 {
     // Rogue
     public int sneak;
     public int maxSneak = 6;
-
+ 
     // Fighter
     public Dictionary<string, int> maneuverCooldowns = new Dictionary<string, int>();
     public string currentStance = "None";
-
+ 
     // Mage
     public int mana;
     public int maxMana = 100;
-
+ 
     // Cleric
     public int wrath;
     public int maxWrath = 100;
-
+ 
     // Ranger
     public int balance;
     public int maxBalance = 10;
     public int minBalance = -10;
-
+ 
     public void ResetForClass(CharacterClass charClass)
     {
         sneak = 0;
@@ -447,7 +474,7 @@ public class ClassResources
         balance = 0;
     }
 }
-
+ 
 [Serializable]
 public class RPGItem
 {
@@ -458,15 +485,15 @@ public class RPGItem
     public ItemRarity rarity;
     public int requiredLevel;
     public int price;
-
+ 
     public int maxManaBonus = 0;
     public int manaRegenBonus = 0;
     public float manaCostReduction = 0f;
-
+ 
     // WEAPON PROPERTIES
     public bool isTwoHanded = false;
     public WeaponCategory weaponCategory = WeaponCategory.None;
-
+ 
     // PERCENTAGE-BASED STAT BONUSES
     [Range(0f, 1f)] public float strengthBonusPercent;
     [Range(0f, 1f)] public float constitutionBonusPercent;
@@ -474,7 +501,7 @@ public class RPGItem
     [Range(0f, 1f)] public float willpowerBonusPercent;
     [Range(0f, 1f)] public float charismaBonusPercent;
     [Range(0f, 1f)] public float intelligenceBonusPercent;
-
+ 
     // FLAT-BASED STAT BONUSES
     public int strengthBonus;
     public int constitutionBonus;
@@ -482,24 +509,24 @@ public class RPGItem
     public int willpowerBonus;
     public int charismaBonus;
     public int intelligenceBonus;
-
+ 
     public List<ItemPassiveEffect> passives = new List<ItemPassiveEffect>();
     public AbilityData grantAbility;
-
+ 
     // FLAT COMBAT BONUSES
     public int damageBonus;
     public int defenseBonus;
     public int healAmount;
-
+ 
     // Class restrictions
     public List<CharacterClass> allowedClasses = new List<CharacterClass>();
-
+ 
     // Special properties
     public Dictionary<string, string> properties = new Dictionary<string, string>();
-
+ 
     // Abilities
     public List<ItemAbility> abilities = new List<ItemAbility>();
-
+ 
     public RPGItem()
     {
         itemId = Guid.NewGuid().ToString();
@@ -507,24 +534,24 @@ public class RPGItem
         properties = new Dictionary<string, string>();
         abilities = new List<ItemAbility>();
     }
-
+ 
     // Check if item has abilities
     public bool HasAbilities()
     {
         return abilities != null && abilities.Count > 0;
     }
-
+ 
     // Check if this weapon can be dual wielded by this class
     public bool CanDualWield(CharacterClass charClass)
     {
         if (itemType != ItemType.Weapon) return false;
         if (isTwoHanded) return false;
         if (weaponCategory != WeaponCategory.Dagger) return false;
-
+ 
         // Only Rogues and Rangers can dual wield daggers
         return charClass == CharacterClass.Rogue || charClass == CharacterClass.Ranger;
     }
-
+ 
     // Check if this item can go in offhand for this class
     public bool CanEquipInOffhand(CharacterClass charClass)
     {
@@ -533,32 +560,32 @@ public class RPGItem
         {
             return charClass == CharacterClass.Fighter || charClass == CharacterClass.Cleric;
         }
-
+ 
         // Trinkets: Mages only
         if (itemType == ItemType.Trinket)
         {
             return charClass == CharacterClass.Mage;
         }
-
+ 
         // Daggers: Rogues and Rangers can dual wield
         if (itemType == ItemType.Weapon && weaponCategory == WeaponCategory.Dagger)
         {
             return charClass == CharacterClass.Rogue || charClass == CharacterClass.Ranger;
         }
-
+ 
         return false;
     }
-
+ 
     // Check if this weapon MUST go in mainhand only
     public bool IsMainhandOnly()
     {
         if (itemType != ItemType.Weapon) return false;
         if (isTwoHanded) return true;
-
+ 
         // All weapons except daggers are mainhand-only
         return weaponCategory != WeaponCategory.Dagger;
     }
-
+ 
     // Helper method to get rarity multiplier
     public static float GetRarityPercentageBonus(ItemRarity rarity)
     {
@@ -573,7 +600,7 @@ public class RPGItem
             default: return 0.10f;
         }
     }
-
+ 
     public Color GetRarityColor()
     {
         switch (rarity)
@@ -588,7 +615,7 @@ public class RPGItem
         }
     }
 }
-
+ 
 [Serializable]
 public class EquippedItems
 {
@@ -599,7 +626,7 @@ public class EquippedItems
     public RPGItem mainHand;
     public RPGItem offHand;
     public RPGItem feet;
-
+ 
     public bool HasItem(string itemId)
     {
         return (head?.itemId == itemId) ||
@@ -610,7 +637,7 @@ public class EquippedItems
                (offHand?.itemId == itemId) ||
                (feet?.itemId == itemId);
     }
-
+ 
     public RPGItem GetEquippedItem(ItemType slot)
     {
         switch (slot)
@@ -628,7 +655,7 @@ public class EquippedItems
             default: return null;
         }
     }
-
+ 
     public void SetEquippedItem(ItemType slot, RPGItem item)
     {
         switch (slot)
@@ -646,7 +673,7 @@ public class EquippedItems
                 break;
         }
     }
-
+ 
     public CharacterStats CalculateTotalStats(CharacterStats baseStats)
     {
         CharacterStats total = new CharacterStats
@@ -661,14 +688,14 @@ public class EquippedItems
             experience = baseStats.experience,
             unallocatedStatPoints = baseStats.unallocatedStatPoints
         };
-
+ 
         float totalStrBonus = 0f;
         float totalConBonus = 0f;
         float totalDexBonus = 0f;
         float totalWilBonus = 0f;
         float totalChaBonus = 0f;
         float totalIntBonus = 0f;
-
+ 
         RPGItem[] allItems = { head, chest, legs, arms, mainHand, offHand, feet };
         foreach (var item in allItems)
         {
@@ -682,30 +709,30 @@ public class EquippedItems
                 totalIntBonus += item.intelligenceBonusPercent;
             }
         }
-
+ 
         if (totalStrBonus > 0)
             total.strength += Mathf.Max(1, Mathf.RoundToInt(baseStats.strength * totalStrBonus));
-
+ 
         if (totalConBonus > 0)
             total.constitution += Mathf.Max(1, Mathf.RoundToInt(baseStats.constitution * totalConBonus));
-
+ 
         if (totalDexBonus > 0)
             total.dexterity += Mathf.Max(1, Mathf.RoundToInt(baseStats.dexterity * totalDexBonus));
-
+ 
         if (totalWilBonus > 0)
             total.willpower += Mathf.Max(1, Mathf.RoundToInt(baseStats.willpower * totalWilBonus));
-
+ 
         if (totalChaBonus > 0)
             total.charisma += Mathf.Max(1, Mathf.RoundToInt(baseStats.charisma * totalChaBonus));
-
+ 
         if (totalIntBonus > 0)
             total.intelligence += Mathf.Max(1, Mathf.RoundToInt(baseStats.intelligence * totalIntBonus));
-
+ 
         total.RecalculateHealth();
-
+ 
         return total;
     }
-
+ 
     public int GetTotalMaxManaBonus()
     {
         int total = 0;
@@ -717,7 +744,7 @@ public class EquippedItems
         }
         return total;
     }
-
+ 
     public int GetTotalManaRegenBonus()
     {
         int total = 0;
@@ -729,7 +756,7 @@ public class EquippedItems
         }
         return total;
     }
-
+ 
     public float GetTotalManaCostReduction()
     {
         float total = 0f;
@@ -741,7 +768,7 @@ public class EquippedItems
         }
         return Mathf.Clamp(total, 0f, 0.75f); // Max 75% reduction
     }
-
+ 
     public int GetTotalDamageBonus()
     {
         int total = 0;
@@ -753,7 +780,7 @@ public class EquippedItems
         }
         return total;
     }
-
+ 
     public int GetTotalDefenseBonus()
     {
         int total = 0;
@@ -766,7 +793,7 @@ public class EquippedItems
         return total;
     }
 }
-
+ 
     [Serializable]
     public class ViewerData
     {
@@ -775,48 +802,48 @@ public class EquippedItems
         public string discordUserId = "";
         public int coins;
         public CharacterClass characterClass;
-
+ 
         public CharacterStats baseStats;
         public ClassResources classResources;
         public EquippedItems equipped;
         public List<RPGItem> inventory;
     public List<string> equippedAbilities = new List<string>(); //Max 4
     public string equippedItemAbility = null;
-
+ 
         public DateTime lastSeen;
         public float totalWatchTimeMinutes;
         public bool isInCombat;
         public bool isDead;
         public DateTime deathLockoutUntil;
         public bool isBanned;
-
+ 
     public bool isInExpedition;
     public int expeditionActionsPerformed;
-
+ 
     // PvP Stats
     public int pvpWins;
     public int pvpLosses;
-
+ 
     public List<TradeRecord> tradeHistory;
-
+ 
         public ViewerData(string userId, string name)
         {
             twitchUserId = userId;
             username = name;
             coins = 0;
             characterClass = CharacterClass.None;
-
+ 
             baseStats = new CharacterStats();
             classResources = new ClassResources();
             equipped = new EquippedItems();
             inventory = new List<RPGItem>();
-
+ 
             // ===== ADD THIS LINE =====
             tradeHistory = new List<TradeRecord>();
-
+ 
             equippedAbilities = new List<string>();
             equippedItemAbility = "";
-
+ 
             lastSeen = DateTime.Now;
             totalWatchTimeMinutes = 0;
             isInCombat = false;
@@ -824,19 +851,19 @@ public class EquippedItems
             deathLockoutUntil = DateTime.MinValue;
             isBanned = false;
         }
-
+ 
         public bool CanTakeAction()
     {
         if (isBanned) return false;
         if (isDead && DateTime.Now < deathLockoutUntil) return false;
         return true;
     }
-
+ 
     public void SetClass(CharacterClass newClass)
     {
         characterClass = newClass;
         classResources.ResetForClass(newClass);
-
+ 
         switch (newClass)
         {
             case CharacterClass.Rogue:
@@ -862,20 +889,20 @@ public class EquippedItems
                 baseStats.willpower += 3;
                 break;
         }
-
+ 
         baseStats.RecalculateHealth();
     }
-
+ 
     public CharacterStats GetTotalStats()
     {
         return equipped.CalculateTotalStats(baseStats);
     }
-
+ 
     public bool CanAfford(int cost)
     {
         return coins >= cost;
     }
-
+ 
     public bool AddItem(RPGItem item)
     {
         if (inventory.Count >= 50)
@@ -885,7 +912,7 @@ public class EquippedItems
         inventory.Add(item);
         return true;
     }
-
+ 
     public bool RemoveItem(string itemId)
     {
         RPGItem item = inventory.Find(i => i.itemId == itemId);
@@ -896,27 +923,27 @@ public class EquippedItems
         }
         return false;
     }
-
+ 
     public RPGItem FindItemInInventory(string itemId)
     {
         return inventory.Find(i => i.itemId == itemId);
     }
 }
-
+ 
 [Serializable]
 public class GameDatabase
 {
     public List<ViewerData> allViewers = new List<ViewerData>();
     public List<RPGItem> itemDatabase = new List<RPGItem>();
     public DateTime lastSaveTime;
-
+ 
     public GameDatabase()
     {
         allViewers = new List<ViewerData>();
         itemDatabase = new List<RPGItem>();
         lastSaveTime = DateTime.Now;
     }
-
+ 
     public ViewerData GetOrCreateViewer(string userId, string username)
     {
         ViewerData viewer = allViewers.Find(v => v.twitchUserId == userId);
@@ -932,7 +959,7 @@ public class GameDatabase
         }
         return viewer;
     }
-
+ 
     public RPGItem GetItemById(string itemId)
     {
         return itemDatabase.Find(i => i.itemId == itemId);

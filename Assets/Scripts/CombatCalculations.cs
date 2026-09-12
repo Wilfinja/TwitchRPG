@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using static AbilityData;
-
+ 
 /// <summary>
 /// Enhanced combat calculations with dual-stat scaling support
 /// FULLY BACKWARDS COMPATIBLE with existing abilities
@@ -11,33 +11,34 @@ public static class CombatCalculations
     public static void ExecuteAbility(CombatEntity caster, CombatEntity target, AbilityData ability)
     {
         Debug.Log($"[CombatCalc] ExecuteAbility called: {caster.entityName} → {ability.abilityName} → {target.entityName}");
-
-
+ 
+ 
         ConsumeUpfrontResources(caster, ability);
-
+ 
         int hitCount = CombatCalculations.CalculateHitCount(caster, ability);
         int totalDamage = 0;
-
+ 
         Debug.Log($"[CombatCalc] Hit count: {hitCount}, Category: {ability.category}");
-
+ 
         if (ability.category == AbilityCategory.Damage)
         {
             Debug.Log($"[CombatCalc] Starting damage loop...");
-
+ 
             if (ability.isMultiHit && ability.multiHitTargetMode != MultiHitTargetMode.SameTarget)
             {
                 for (int i = 0; i < hitCount; i++)
                 {
                     CombatEntity randomTarget = GetRandomTarget(ability);
-
+ 
                     if (randomTarget != null && !randomTarget.isDead)
                     {
                         int damage = CalculateDamage(caster, randomTarget, ability);
                         Debug.Log($"[CombatCalc] Hit {i + 1}/{hitCount}: {damage} damage to {randomTarget.entityName}");
-
+ 
                         randomTarget.TakeDamage(damage, caster);
                         CheckAndApplyLifesteal(caster, damage);
                         ConsumeSneakAfterDamage(caster, ability);
+                        ConsumeWrathAfterDamage(caster, ability);
                         totalDamage += damage;
                     }
                 }
@@ -48,19 +49,20 @@ public static class CombatCalculations
                 {
                     int damage = CalculateDamage(caster, target, ability);
                     Debug.Log($"[CombatCalc] Hit {i + 1}/{hitCount}: {damage} damage");
-
+ 
                     target.TakeDamage(damage, caster);
                     CheckAndApplyLifesteal(caster, damage);
                     ConsumeSneakAfterDamage(caster, ability);
+                    ConsumeWrathAfterDamage(caster, ability);
                     totalDamage += damage;
                 }
             }
-
+ 
             if (ability.consumeResourceAfterHits)
             {
                 ConsumeMultiHitResources(caster, ability, hitCount);
             }
-
+ 
             CombatLog.Instance?.AddEntry($"{caster.entityName} hit {hitCount} times for {totalDamage} total damage!");
             Debug.Log($"[CombatCalc] Total damage dealt: {totalDamage}");
         }
@@ -75,26 +77,26 @@ public static class CombatCalculations
             Debug.Log($"[CombatCalc] Executing buff...");
             ApplyBuff(caster, target, ability);
         }
-
+ 
         if (ability.grantsDefenseBoost)
         {
             ApplyDefenseBoost(caster, target, ability);
         }
-
+ 
         if (ability.grantsStatBoost)
         {
             ApplyStatBoost(caster, target, ability);
         }
-
+ 
         ApplyRiposte(caster, ability);
-
+ 
         if (ability.grantsLifesteal)
         {
             ApplyLifesteal(caster, target, ability);
         }
-
+ 
         GrantResources(caster, ability);
-
+ 
         foreach (StatusEffect effectTemplate in ability.appliesEffects)
         {
             // ── Proc-chance roll ──────────────────────────────────────────────
@@ -112,30 +114,30 @@ public static class CombatCalculations
                     continue;
                 }
             }
-
+ 
             StatusEffect newEffect = new StatusEffect
             {
                 effectName = effectTemplate.effectName,
                 duration = effectTemplate.duration,
                 applicationChance = effectTemplate.applicationChance,
-
+ 
                 isNegativeEffect = effectTemplate.isNegativeEffect,
                 statusResistanceBonus = effectTemplate.statusResistanceBonus,
-
+ 
                 damageMultiplier = effectTemplate.damageMultiplier,
                 defenseMultiplier = effectTemplate.defenseMultiplier,
                 damageOverTime = effectTemplate.damageOverTime,
                 temporaryDefenseBonus = effectTemplate.temporaryDefenseBonus,
-
+ 
                 baseDefenseAmount = effectTemplate.baseDefenseAmount,
                 defenseScalingStat = effectTemplate.defenseScalingStat,
                 defenseScalingMultiplier = effectTemplate.defenseScalingMultiplier,
-
+ 
                 consumedOnHit = effectTemplate.consumedOnHit,
                 statBoostType = effectTemplate.statBoostType,
                 statBoostAmount = effectTemplate.statBoostAmount,
                 lifestealPercent = effectTemplate.lifestealPercent,
-
+ 
                 // Riposte
                 isRiposte = effectTemplate.isRiposte,
                 riposteDamagePercent = effectTemplate.riposteDamagePercent,
@@ -143,7 +145,7 @@ public static class CombatCalculations
                 riposteScalingStat = effectTemplate.riposteScalingStat,
                 riposteScalingMultiplier = effectTemplate.riposteScalingMultiplier,
                 riposteConsumedOnUse = effectTemplate.riposteConsumedOnUse,
-
+ 
                 // New effect types
                 isStun = effectTemplate.isStun,
                 isSilence = effectTemplate.isSilence,
@@ -163,17 +165,18 @@ public static class CombatCalculations
                 isEnrage = effectTemplate.isEnrage,
                 enrageDamageMultiplier = effectTemplate.enrageDamageMultiplier,
                 isHaste = effectTemplate.isHaste,
-
+ 
                 // Primed status effect
                 isPrimed = effectTemplate.isPrimed,
                 primeThresholdType = effectTemplate.primeThresholdType,
                 primeThreshold = effectTemplate.primeThreshold,
+                primeCumulativeDamage = effectTemplate.primeCumulativeDamage,
                 primedEffects = effectTemplate.primedEffects,   // reference is fine; TriggerPrimed deep-copies on detonation
                 primedConsumedOnTrigger = effectTemplate.primedConsumedOnTrigger,
             };
-
+ 
             target.ApplyStatusEffect(newEffect);
-
+ 
             // Announce guaranteed procs with specific flavour
             if (effectTemplate.applicationChance >= 1f)
             {
@@ -207,13 +210,13 @@ public static class CombatCalculations
                 );
             }
         }
-
+ 
         // Update Ranger combo
         if (caster.characterClass == CharacterClass.Ranger)
         {
             UpdateRangerCombo(caster, ability);
         }
-
+ 
         if (ability.elementType != ElementType.None && caster.characterClass == CharacterClass.Mage)
         {
             MageChargeSystem chargeSystem = caster.GetComponent<MageChargeSystem>();
@@ -222,36 +225,56 @@ public static class CombatCalculations
                 chargeSystem.AddCharge(ability.elementType);
             }
         }
-
+ 
         Debug.Log($"[CombatCalc] ExecuteAbility complete!");
     }
-
+ 
     static int CalculateDamage(CombatEntity caster, CombatEntity target, AbilityData ability)
     {
         float totalDamage = 0f;
-
+ 
         // ── Primary stat scaling ───────────────────────────────────────────────────
         int primaryStatValue = GetStatValue(caster, ability.scalingStat);
         float primaryScaling = primaryStatValue * ability.statMultiplier;
         totalDamage += primaryScaling;
-
+ 
         // ── Secondary stat scaling (optional) ────────────────────────────────────
         if (ability.HasSecondaryScaling())
         {
             int secondaryStatValue = GetStatValue(caster, ability.secondaryScalingStat);
             float secondaryScaling = secondaryStatValue * ability.secondaryStatMultiplier;
             totalDamage += secondaryScaling;
-
+ 
             Debug.Log($"[Dual-Stat] {ability.abilityName}: " +
                      $"{primaryStatValue} {ability.scalingStat} × {ability.statMultiplier} = {primaryScaling:F1} + " +
                      $"{secondaryStatValue} {ability.secondaryScalingStat} × {ability.secondaryStatMultiplier} = {secondaryScaling:F1} " +
                      $"= {totalDamage:F1} total");
         }
-
+ 
         // ── Base damage ────────────────────────────────────────────────────────────
         totalDamage += ability.baseDamage;
         totalDamage += caster.damageBonus;
-
+ 
+        // ── Wrath Finisher scaling (Cleric) ───────────────────────────────────────
+        // wrath is read here, BEFORE ConsumeWrathAfterDamage spends it post-hit, so a
+        // full-bar dump still scales off the full amount that was stored.
+        if (ability.HasWrathScaling() && caster.characterClass == CharacterClass.Cleric)
+        {
+            int wrathUsed = caster.wrath;
+            int wrathStatValue = GetStatValue(caster, ability.wrathScalingStat);
+            float wrathDamage = wrathUsed * ability.wrathScale * wrathStatValue;
+ 
+            totalDamage += wrathDamage;
+ 
+            CombatLog.Instance?.AddEntry(
+                $"{caster.entityName} unleashes {wrathUsed} wrath! " +
+                $"{wrathUsed} × {ability.wrathScale:F3} × {wrathStatValue} {ability.wrathScalingStat} = {wrathDamage:F0} bonus damage"
+            );
+ 
+            Debug.Log($"[Wrath] {ability.abilityName}: {wrathUsed} wrath × {ability.wrathScale:F3} × " +
+                      $"{wrathStatValue} {ability.wrathScalingStat} = {wrathDamage:F1} damage");
+        }
+ 
         // ── Critical hit ──────────────────────────────────────────────────────────
         if (ability.canCrit)
         {
@@ -260,40 +283,40 @@ public static class CombatCalculations
             {
                 totalDamage *= 1.5f;
                 Debug.Log($"[Damage] CRITICAL HIT! {totalDamage} damage");
-
+ 
                 if (target != null && CombatVisualEffects.Instance != null)
                     CombatVisualEffects.Instance.PlayCriticalEffect(target.transform.position);
             }
         }
-
+ 
         // ── Sneak scaling (Rogue) ─────────────────────────────────────────────────
         if (ability.HasSneakScaling() && caster.characterClass == CharacterClass.Rogue)
         {
             int currentSneak = caster.sneakPoints;
             float sneakBonus = currentSneak * ability.sneakDamageMultiplier;
             float sneakMultiplier = 1f + sneakBonus;
-
+ 
             float damageBeforeSneak = totalDamage;
             totalDamage *= sneakMultiplier;
-
+ 
             CombatLog.Instance?.AddEntry(
                 $"{caster.entityName} uses {currentSneak} sneak! " +
                 $"Damage: {damageBeforeSneak:F0} × {sneakMultiplier:F2} = {totalDamage:F0}"
             );
         }
-
+ 
         // ── Ranger combo multiplier ───────────────────────────────────────────────
         if (caster.characterClass == CharacterClass.Ranger && caster.comboCounter > 0)
         {
             float comboBonus = 1f + (caster.comboCounter * 0.2f);
             totalDamage *= comboBonus;
         }
-
+ 
         // ── Status effect multipliers (damage buff/debuff) ────────────────────────
         foreach (StatusEffect effect in caster.activeEffects)
         {
             totalDamage *= effect.damageMultiplier;
-
+ 
             if (effect.isEnrage)
             {
                 totalDamage *= effect.enrageDamageMultiplier;
@@ -301,7 +324,7 @@ public static class CombatCalculations
                 break;
             }
         }
-
+ 
         // ── PASSIVE: Berserker — bonus stats from missing HP ─────────────────────
         // Berserker boosts the caster's stats directly. We apply those bonuses now
         // as a damage multiplier based on the primary scaling stat.
@@ -318,7 +341,7 @@ public static class CombatCalculations
                 Debug.Log($"[Berserker] {caster.entityName} +{berserkerBonus} {primaryBoostable} → +{additionalDamage:F1} damage");
             }
         }
-
+ 
         // ── PASSIVE: Executioner — bonus damage when target is low HP ────────────
         float executionerMult = PassiveEffectProcessor.GetExecutionerMultiplier(caster, target);
         if (executionerMult > 1f)
@@ -330,9 +353,9 @@ public static class CombatCalculations
                 $"⚔️ {caster.entityName}'s Executioner triggers! ×{executionerMult:F2} damage!"
             );
         }
-
+ 
         int rawDamage = Mathf.RoundToInt(totalDamage);
-
+ 
         // ── PASSIVE: Pinpoint — reduce effective enemy defense ────────────────────
         float pinpoint = PassiveEffectProcessor.GetPinpointPenetration(caster);
         int effectiveDefense = target.defense;
@@ -342,22 +365,22 @@ public static class CombatCalculations
             Debug.Log($"[Pinpoint] {caster.entityName} ignores {pinpoint * 100:F0}% of {target.entityName}'s defense " +
                       $"({target.defense} → {effectiveDefense})");
         }
-
+ 
         // Apply defense AFTER pinpoint reduction
         // NOTE: The actual defense subtraction still happens inside CombatEntity.TakeDamage().
         // Pinpoint works by passing the MODIFIED defense value into damage for logging purposes,
         // but the real integration point is to expose it so TakeDamage can use it.
         // See CombatEntityPatches.cs for where pinpoint is applied in TakeDamage.
         // We return the raw pre-defense damage here; defense is applied in TakeDamage.
-
+ 
         // ── PASSIVE: Lifesteal — heal caster for a fraction of damage ─────────────
         // Lifesteal is applied in ExecuteAbility via CheckAndApplyLifesteal(),
         // which already checks item lifesteal via PassiveEffectProcessor.GetItemLifestealPercent().
         // No change needed here.
-
+ 
         return rawDamage;
     }
-
+ 
     // ── Helper: Convert DamageStat to BoostableStat for Berserker lookup ─────────
     private static BoostableStat DamageStatToBoostable(DamageStat stat)
     {
@@ -372,19 +395,19 @@ public static class CombatCalculations
             default: return BoostableStat.None;
         }
     }
-
+ 
     // ═══════════════════════════════════════════════════════════════════════
     // ✅ ENHANCED: HEALING CALCULATION WITH DUAL-STAT SCALING
     // ═══════════════════════════════════════════════════════════════════════
     static int CalculateHealing(CombatEntity caster, AbilityData ability)
     {
         float totalHealing = 0f;
-
+ 
         // PRIMARY STAT SCALING
         int primaryStatValue = GetStatValue(caster, ability.scalingStat);
         float primaryScaling = primaryStatValue * ability.statMultiplier;
         totalHealing += primaryScaling;
-
+ 
         // ✅ NEW: SECONDARY STAT SCALING (optional)
         if (ability.HasSecondaryScaling())
         {
@@ -392,26 +415,26 @@ public static class CombatCalculations
             float secondaryScaling = secondaryStatValue * ability.secondaryStatMultiplier;
             totalHealing += secondaryScaling;
         }
-
+ 
         // Add base healing (stored in baseDamage field)
         totalHealing += ability.baseDamage;
-
+ 
         return Mathf.RoundToInt(totalHealing);
     }
-
+ 
     static void ApplyBuff(CombatEntity caster, CombatEntity target, AbilityData ability)
     {
         if (target != null && CombatVisualEffects.Instance != null)
         {
             CombatVisualEffects.Instance.PlayBuffEffect(target.transform.position);
         }
-
+ 
         Debug.Log($"[Buff] {caster.entityName} buffed {target.entityName}");
-
+ 
         // Buffs are handled through status effects in ability.appliesEffects
         CombatLog.Instance?.AddEntry($"{caster.entityName} buffed {target.entityName} with {ability.abilityName}!");
     }
-
+ 
     static int GetStatValue(CombatEntity entity, DamageStat stat)
     {
         switch (stat)
@@ -434,24 +457,24 @@ public static class CombatCalculations
                 return entity.strength;
         }
     }
-
+ 
     static void ConsumeSneakAfterDamage(CombatEntity caster, AbilityData ability)
     {
         if (caster.characterClass != CharacterClass.Rogue) return;
         if (!ability.HasSneakScaling()) return;
-
+ 
         int sneakBefore = caster.sneakPoints;
-
+ 
         if (ability.consumesAllSneak)
         {
             // Consume ALL sneak points
             caster.sneakPoints = 0;
             caster.UpdateClassResourceBar();
-
+ 
             CombatLog.Instance?.AddEntry(
                 $"{caster.entityName} consumed all {sneakBefore} sneak points!"
             );
-
+ 
             Debug.Log($"[Sneak Consumed] {ability.abilityName} consumed ALL sneak: {sneakBefore} → 0");
         }
         else if (ability.consumeSneakAmount > 0)
@@ -460,20 +483,59 @@ public static class CombatCalculations
             int consumed = Mathf.Min(ability.consumeSneakAmount, caster.sneakPoints);
             caster.sneakPoints -= consumed;
             caster.UpdateClassResourceBar();
-
+ 
             CombatLog.Instance?.AddEntry(
                 $"{caster.entityName} consumed {consumed} sneak points!"
             );
-
+ 
             Debug.Log($"[Sneak Consumed] {ability.abilityName} consumed {consumed} sneak: " +
                      $"{sneakBefore} → {caster.sneakPoints}");
         }
-
+ 
         // Clamp to valid range
         caster.sneakPoints = Mathf.Clamp(caster.sneakPoints, 0, 6);
         caster.UpdateClassResourceBar();
     }
-
+ 
+    static void ConsumeWrathAfterDamage(CombatEntity caster, AbilityData ability)
+    {
+        if (caster.characterClass != CharacterClass.Cleric) return;
+        if (!ability.HasWrathScaling()) return;
+ 
+        int wrathBefore = caster.wrath;
+ 
+        if (ability.consumesAllWrath)
+        {
+            // Consume ALL wrath
+            caster.wrath = 0;
+            caster.UpdateClassResourceBar();
+ 
+            CombatLog.Instance?.AddEntry(
+                $"{caster.entityName} consumed all {wrathBefore} wrath!"
+            );
+ 
+            Debug.Log($"[Wrath Consumed] {ability.abilityName} consumed ALL wrath: {wrathBefore} → 0");
+        }
+        else if (ability.consumeWrathAmount > 0)
+        {
+            // Consume specific amount
+            int consumed = Mathf.Min(ability.consumeWrathAmount, caster.wrath);
+            caster.wrath -= consumed;
+            caster.UpdateClassResourceBar();
+ 
+            CombatLog.Instance?.AddEntry(
+                $"{caster.entityName} consumed {consumed} wrath!"
+            );
+ 
+            Debug.Log($"[Wrath Consumed] {ability.abilityName} consumed {consumed} wrath: " +
+                     $"{wrathBefore} → {caster.wrath}");
+        }
+ 
+        // Clamp to valid range
+        caster.wrath = Mathf.Clamp(caster.wrath, 0, 100);
+        caster.UpdateClassResourceBar();
+    }
+ 
     static void ConsumeUpfrontResources(CombatEntity caster, AbilityData ability)
     {
         switch (caster.characterClass)
@@ -488,15 +550,15 @@ public static class CombatCalculations
                     caster.UpdateClassResourceBar();
                 }
                 break;
-
+ 
             case CharacterClass.Fighter:
                 // Fighter abilities may have cooldowns but no direct resource cost
                 // Stance changes are handled separately
                 break;
-
+ 
             case CharacterClass.Mage:
                 int manaCost = ability.manaCost;
-
+ 
                 if (caster.viewerData != null)
                 {
                     float reduction = caster.viewerData.equipped.GetTotalManaCostReduction();
@@ -504,26 +566,26 @@ public static class CombatCalculations
                     {
                         int reducedCost = Mathf.RoundToInt(manaCost * (1f - reduction));
                         int savedMana = manaCost - reducedCost;
-
+ 
                         CombatLog.Instance?.AddEntry(
                             $"{caster.entityName} saved {savedMana} mana ({reduction * 100:F0}% reduction)"
                         );
-
+ 
                         manaCost = reducedCost;
                     }
                 }
-
+ 
                 caster.mana -= manaCost;
                 caster.mana = Mathf.Clamp(caster.mana, 0, 100);
                 caster.UpdateClassResourceBar();
                 break;
-
+ 
             case CharacterClass.Cleric:
                 caster.wrath -= ability.wrathCost;
                 caster.wrath = Mathf.Clamp(caster.wrath, 0, 100);
                 caster.UpdateClassResourceBar();
                 break;
-
+ 
             case CharacterClass.Ranger:
                 caster.balance -= ability.balanceCost;
                 caster.balance = Mathf.Clamp(caster.balance, -10, 10);
@@ -531,7 +593,7 @@ public static class CombatCalculations
                 break;
         }
     }
-
+ 
     static void GrantResources(CombatEntity caster, AbilityData ability)
     {
         switch (caster.characterClass)
@@ -541,17 +603,17 @@ public static class CombatCalculations
                 caster.sneakPoints = Mathf.Clamp(caster.sneakPoints, 0, 6);
                 caster.UpdateClassResourceBar();
                 break;
-
+ 
             case CharacterClass.Mage:
                 // Mage gains mana per turn, not per ability
                 break;
-
+ 
             case CharacterClass.Cleric:
                 caster.wrath += ability.wrathGain;
                 caster.wrath = Mathf.Clamp(caster.wrath, 0, 100);
                 caster.UpdateClassResourceBar();
                 break;
-
+ 
             case CharacterClass.Ranger:
                 caster.balance += ability.balanceGain;
                 caster.balance = Mathf.Clamp(caster.balance, -10, 10);
@@ -559,27 +621,27 @@ public static class CombatCalculations
                 break;
         }
     }
-
+ 
     public static int CalculateHitCount(CombatEntity actor, AbilityData ability)
     {
         if (!ability.isMultiHit)
             return 1; // Single hit
-
+ 
         int hits = ability.baseHitCount;
-
+ 
         switch (ability.multiHitType)
         {
             case MultiHitType.None:
                 // Just use base count
                 break;
-
+ 
             case MultiHitType.PerSneakPoint:
                 if (actor.GetCharacterClass() == CharacterClass.Rogue)
                 {
                     hits = actor.sneakPoints;
                 }
                 break;
-
+ 
             case MultiHitType.PerBalancePoint:
                 if (actor.GetCharacterClass() == CharacterClass.Ranger)
                 {
@@ -587,7 +649,7 @@ public static class CombatCalculations
                     hits = absBalance / ability.resourcePerHit;
                 }
                 break;
-
+ 
             case MultiHitType.IfAggressive:
                 if (actor.GetCharacterClass() == CharacterClass.Fighter)
                 {
@@ -597,7 +659,7 @@ public static class CombatCalculations
                     }
                 }
                 break;
-
+ 
             case MultiHitType.PerWrathTier:
                 if (actor.GetCharacterClass() == CharacterClass.Cleric)
                 {
@@ -606,14 +668,14 @@ public static class CombatCalculations
                 }
                 break;
         }
-
+ 
         // Apply limits
         hits = Mathf.Max(hits, ability.baseHitCount); // Never below base
         hits = Mathf.Min(hits, ability.maxHitCount);   // Never above max
-
+ 
         return hits;
     }
-
+ 
     static void ConsumeMultiHitResources(CombatEntity caster, AbilityData ability, int hitCount)
     {
         switch (ability.multiHitType)
@@ -622,7 +684,7 @@ public static class CombatCalculations
                 caster.sneakPoints = 0; // Consume all sneak
                 caster.UpdateClassResourceBar();
                 break;
-
+ 
             case MultiHitType.PerBalancePoint:
                 // Shift balance toward neutral
                 int consumed = hitCount * ability.resourcePerHit;
@@ -637,85 +699,85 @@ public static class CombatCalculations
                     caster.UpdateClassResourceBar();
                 }
                 break;
-
+ 
                 // Others don't consume resources
         }
     }
-
+ 
     /// <summary>
     /// Check if caster has lifesteal and heal them based on damage dealt
     /// </summary>
     static void CheckAndApplyLifesteal(CombatEntity caster, int damageDealt)
     {
         if (caster == null || caster.isDead) return;
-
+ 
         float totalLifestealPercent = 0f;
-
+ 
         // 1) Lifesteal from active status effects (granted by abilities)
         foreach (StatusEffect effect in caster.activeEffects)
         {
             if (effect.lifestealPercent > 0f)
                 totalLifestealPercent += effect.lifestealPercent;
         }
-
+ 
         // 2) Always-on lifesteal from equipped item passives (highest wins)
-
+ 
         float itemLifesteal = PassiveEffectProcessor.GetItemLifestealPercent(caster);
-
+ 
         // Item lifesteal uses highest-wins, so only take it if it beats what we have
         // from effects. They don't stack — item lifesteal is its own separate source.
         // We add it on top because a player can have BOTH an item and an ability buff.
         totalLifestealPercent += itemLifesteal;
-
+ 
         if (totalLifestealPercent <= 0f) return;
-
+ 
         int healAmount = Mathf.RoundToInt(damageDealt * totalLifestealPercent);
         healAmount = Mathf.Max(1, healAmount);
-
+ 
         // Don't overheal
         int actualHeal = Mathf.Min(healAmount, caster.maxHealth - caster.currentHealth);
-
+ 
         if (actualHeal > 0)
         {
             // Heal without triggering Overcharge (lifesteal is self-to-self)
             caster.currentHealth = Mathf.Clamp(caster.currentHealth + actualHeal, 0, caster.maxHealth);
             caster.UpdateHealthBar();
-
+ 
             CombatVisualEffects.Instance?.ShowHealNumber(caster.transform.position, actualHeal);
             CombatLog.Instance?.AddEntry(
                 $"{caster.entityName} drained {actualHeal} HP! ({totalLifestealPercent * 100:F0}% lifesteal)"
             );
-
+ 
             Debug.Log($"[Lifesteal] {caster.entityName} healed {actualHeal} HP from {damageDealt} damage " +
                       $"({totalLifestealPercent * 100:F0}%)");
         }
     }
-
+ 
     /// <summary>
     /// Apply lifesteal buff to target
     /// </summary>
     static void ApplyLifesteal(CombatEntity caster, CombatEntity target, AbilityData ability)
     {
         if (!ability.grantsLifesteal || ability.lifestealPercent <= 0f) return;
-
+ 
         StatusEffect lifestealBuff = new StatusEffect
         {
             effectName = "Vampiric",
             duration = ability.lifestealDuration,
             lifestealPercent = ability.lifestealPercent
         };
-
+ 
         target.ApplyStatusEffect(lifestealBuff);
-
+ 
         if (CombatVisualEffects.Instance != null)
         {
             CombatVisualEffects.Instance.PlayBuffEffect(target.transform.position);
         }
-
+ 
         string durationText = ability.lifestealDuration == 1 ? "for 1 turn" : $"for {ability.lifestealDuration} turns";
         CombatLog.Instance?.AddEntry($"{target.entityName} gained {ability.lifestealPercent * 100:F0}% lifesteal {durationText}!");
     }
-
+ 
     /// <summary>
     /// If the ability grants a Riposte, build a StatusEffect and apply it to the
     /// caster so that CombatEntity.TakeDamage can fire the counter automatically.
@@ -724,12 +786,12 @@ public static class CombatCalculations
     static void ApplyRiposte(CombatEntity caster, AbilityData ability)
     {
         if (!ability.HasRiposte()) return;
-
+ 
         StatusEffect riposte = new StatusEffect
         {
             effectName = $"Riposte ({ability.abilityName})",
             duration = ability.riposteDuration,
-
+ 
             // Counter-attack payload – read by CombatEntity.TakeDamage
             isRiposte = true,
             riposteDamagePercent = ability.riposteDamagePercent,
@@ -737,28 +799,28 @@ public static class CombatCalculations
             riposteScalingStat = ability.riposteScalingStat,
             riposteScalingMultiplier = ability.riposteScalingMultiplier,
             riposteConsumedOnUse = ability.riposteConsumedOnUse,
-
+ 
             // Leave regular effect fields at neutral defaults
             damageMultiplier = 1f,
             defenseMultiplier = 1f,
         };
-
+ 
         caster.ApplyStatusEffect(riposte);
         CombatLog.Instance?.AddEntry($"⚔️ {caster.entityName} is ready to Riposte!");
         Debug.Log($"[CombatCalc] Riposte applied to {caster.entityName} " +
                   $"({ability.riposteDamagePercent * 100:F0}% reflect, {ability.riposteFlatBonus} flat, " +
                   $"{ability.riposteDuration} turn(s))");
     }
-
+ 
     /// <summary>
     /// Get a random target based on ability's target mode
     /// </summary>
     static CombatEntity GetRandomTarget(AbilityData ability)
     {
         List<CombatEntity> enemies = ExpeditionManager.Instance.GetAllEnemyEntities();
-
+ 
         if (enemies.Count == 0) return null;
-
+ 
         if (ability.multiHitTargetMode == MultiHitTargetMode.RandomInRange)
         {
             // Filter by position range
@@ -766,9 +828,9 @@ public static class CombatCalculations
                 e.position >= ability.minTargetPosition &&
                 e.position <= ability.maxTargetPosition
             );
-
+ 
             if (validTargets.Count == 0) return null;
-
+ 
             return validTargets[Random.Range(0, validTargets.Count)];
         }
         else // TrulyRandom
@@ -777,13 +839,13 @@ public static class CombatCalculations
             return enemies[Random.Range(0, enemies.Count)];
         }
     }
-
+ 
     static void UpdateRangerCombo(CombatEntity caster, AbilityData ability)
     {
         // Check if this is a melee or ranged ability
         bool isMelee = ability.balanceCost > 0; // Melee abilities use balance
         bool isRanged = ability.balanceGain > 0; // Ranged abilities gain balance
-
+ 
         if (isMelee && !caster.lastAttackWasMelee)
         {
             // Correctly alternated: ranged -> melee
@@ -802,44 +864,44 @@ public static class CombatCalculations
             caster.comboCounter = 0;
             caster.lastAttackWasMelee = isMelee;
         }
-
+ 
         if (caster.comboCounter > 0)
         {
             CombatLog.Instance?.AddEntry($"{caster.entityName} combo: {caster.comboCounter}x!");
         }
     }
-
+ 
     public static void RegenerateManaPerTurn(CombatEntity caster)
     {
         if (caster.characterClass != CharacterClass.Mage) return;
-
+ 
         // Mage regenerates mana based on INT
         int manaGain = Mathf.FloorToInt(caster.intelligence * 0.1f); // 10% of INT per turn
         caster.mana += manaGain;
         caster.mana = Mathf.Clamp(caster.mana, 0, 100);
         caster.UpdateClassResourceBar();
-
+ 
         if (manaGain > 0)
         {
             CombatLog.Instance?.AddEntry($"{caster.entityName} regenerated {manaGain} mana.");
         }
     }
-
+ 
     public static void GrantClericWrathFromDamage(CombatEntity cleric, int damageReceived)
     {
         if (cleric.characterClass != CharacterClass.Cleric) return;
-
+ 
         // Cleric gains wrath when allies are hit
         int wrathGain = Mathf.FloorToInt(damageReceived * 0.5f); // 50% of damage taken
         cleric.wrath += wrathGain;
         cleric.wrath = Mathf.Clamp(cleric.wrath, 0, 100);
-
+ 
         if (wrathGain > 0)
         {
             CombatLog.Instance?.AddEntry($"{cleric.entityName} gained {wrathGain} wrath.");
         }
     }
-
+ 
     /// <summary>
     /// Apply temporary defense boost (can scale with caster's stats)
     /// Example: Brace gives 0 base + 1.5x CON defense
@@ -847,20 +909,20 @@ public static class CombatCalculations
     static void ApplyDefenseBoost(CombatEntity caster, CombatEntity target, AbilityData ability)
     {
         int defenseAmount = ability.baseDefenseBoost;
-
+ 
         if (ability.DefenseBoostScales())
         {
             int statValue = GetStatValue(caster, ability.defenseScalingStat);
             int scaledBonus = Mathf.RoundToInt(statValue * ability.defenseScalingMultiplier);
             defenseAmount += scaledBonus;
-
+ 
             Debug.Log($"[CombatCalc] Defense scaling: {ability.baseDefenseBoost} base + " +
                       $"({statValue} {ability.defenseScalingStat} × {ability.defenseScalingMultiplier}) = {defenseAmount}");
         }
-
+ 
         // Ensure minimum of 1 if boost is granted
         defenseAmount = Mathf.Max(1, defenseAmount);
-
+ 
         StatusEffect defenseBoost = new StatusEffect
         {
             effectName = ability.defenseConsumedOnHit ? "Brace" : "Defense Up",
@@ -868,18 +930,18 @@ public static class CombatCalculations
             temporaryDefenseBonus = defenseAmount,
             consumedOnHit = ability.defenseConsumedOnHit
         };
-
+ 
         target.ApplyStatusEffect(defenseBoost);
-
+ 
         if (CombatVisualEffects.Instance != null)
         {
             CombatVisualEffects.Instance.PlayBuffEffect(target.transform.position);
         }
-
+ 
         string durationText = ability.defenseConsumedOnHit ? "vs next attack" : "for 1 turn";
         CombatLog.Instance?.AddEntry($"{target.entityName} gained +{defenseAmount} defense {durationText}!");
     }
-
+ 
     /// <summary>
     /// Apply temporary stat boost (can scale with caster's stats)
     /// Example: Battle Cry gives 5 base + 0.5x CHA strength boost
@@ -887,22 +949,22 @@ public static class CombatCalculations
     static void ApplyStatBoost(CombatEntity caster, CombatEntity target, AbilityData ability)
     {
         if (ability.statToBoost == BoostableStat.None) return;
-
+ 
         int boostAmount = ability.baseStatBoost;
-
+ 
         if (ability.StatBoostScales())
         {
             int statValue = GetStatValue(caster, ability.statBoostScalingStat);
             int scaledBonus = Mathf.RoundToInt(statValue * ability.statBoostScalingMultiplier);
             boostAmount += scaledBonus;
-
+ 
             Debug.Log($"[CombatCalc] Stat boost scaling: {ability.baseStatBoost} base + " +
                       $"({statValue} {ability.statBoostScalingStat} × {ability.statBoostScalingMultiplier}) = {boostAmount}");
         }
-
+ 
         // Ensure minimum of 1 if boost is granted
         boostAmount = Mathf.Max(1, boostAmount);
-
+ 
         StatusEffect statBoost = new StatusEffect
         {
             effectName = $"{ability.statToBoost} Boost",
@@ -910,9 +972,9 @@ public static class CombatCalculations
             statBoostType = ability.statToBoost,
             statBoostAmount = boostAmount
         };
-
+ 
         target.ApplyStatusEffect(statBoost);
-
+ 
         string durationText = ability.statBoostDuration == 1 ? "for 1 turn" : $"for {ability.statBoostDuration} turns";
         CombatLog.Instance?.AddEntry($"{target.entityName} gained +{boostAmount} {ability.statToBoost} {durationText}!");
     }

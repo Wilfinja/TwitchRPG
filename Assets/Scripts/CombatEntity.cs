@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering.VirtualTexturing;
-
+ 
 /// <summary>
 /// Combat component added to OnScreenCharacter during expeditions.
 /// Handles combat stats, health, damage, and turn-based actions.
@@ -15,7 +15,7 @@ public class CombatEntity : MonoBehaviour
     public string entityName;
     public bool isPlayer;
     public int position; // 1-4 for players, 1-6 for enemies
-
+ 
     [Header("Cached Combat Stats - DO NOT MODIFY DIRECTLY")]
     public int maxHealth;
     public int currentHealth;
@@ -27,7 +27,7 @@ public class CombatEntity : MonoBehaviour
     public int charisma;
     public int defense;
     public int damageBonus; // From equipment
-
+ 
     [Header("Combat State")]
     public bool isDead;
     public bool hasActedThisTurn;
@@ -35,7 +35,7 @@ public class CombatEntity : MonoBehaviour
     public bool wasHealedThisTurn = false;
     public string queuedAction;
     public bool actionConfirmed;
-
+ 
     [Header("Class & Resources")]
     public CharacterClass characterClass;
     public int sneakPoints; // Rogue: 0-6
@@ -45,37 +45,37 @@ public class CombatEntity : MonoBehaviour
     public int balance; // Ranger: -10 to +10
     public int comboCounter; // Ranger
     public bool lastAttackWasMelee; // Ranger combo tracking
-
+ 
     [Header("Status Effects")]
     public List<StatusEffect> activeEffects = new List<StatusEffect>();
-
+ 
     [Header("Visual References")]
     public GameObject healthBarObject;
     public Animator animator;
     public GameObject classResourceBarObject;
-
+ 
     [Header("Fighter Stance System")]
     public FighterStance currentStance = FighterStance.None;
-
+ 
     // Base stats (before stance modifiers)
     private int baseStrength;
     private int baseConstitution;
     private int baseDefense;
     private int baseMaxHealth;
-
+ 
     public Dictionary<string, object> passiveState = new Dictionary<string, object>();
-
+ 
     // Reference to the ViewerData (for syncing back after combat)
     public ViewerData viewerData;
-
+ 
     // Reference to OnScreenCharacter component
     private OnScreenCharacter onScreenChar;
-
+ 
     // Calculated Properties
     public float EvasionChance => Mathf.Floor(dexterity / 5f) * 0.01f; // 1% per 5 DEX
-
+ 
     #region Initialization
-
+ 
     /// <summary>
     /// Initialize as a player combatant - pulls stats from ViewerData and CACHES them
     /// </summary>
@@ -90,11 +90,11 @@ public class CombatEntity : MonoBehaviour
         wasHealedThisTurn = false;
         queuedAction = null;
         actionConfirmed = false;
-
+ 
         // Get viewer data from existing system
         viewerData = RPGManager.Instance.GetViewer(userId);
         onScreenChar = GetComponent<OnScreenCharacter>();
-
+ 
         if (viewerData != null)
         {
             // CACHE stats from ViewerData - these are locked for this combat
@@ -110,31 +110,31 @@ public class CombatEntity : MonoBehaviour
             defense = viewerData.equipped.GetTotalDefenseBonus();
             damageBonus = viewerData.equipped.GetTotalDamageBonus();
             characterClass = viewerData.characterClass;
-
+ 
             // Initialize class resources
             InitializeClassResources();
-
+ 
             Debug.Log($"[CombatEntity] Initialized player {entityName} - HP: {currentHealth}/{maxHealth}, DEF: {defense}, DMG: +{damageBonus}");
         }
         else
         {
             Debug.LogError($"[CombatEntity] Could not find ViewerData for {uid}!");
         }
-
+ 
         // Copy stats from ViewerData
         //strength = viewerData.baseStats.strength;
         //constitution = viewerData.baseStats.constitution;
         //defense = viewerData.equipped.GetTotalDefenseBonus();
-
+ 
         // Save base stats before any modifiers
         InitializeBaseStats();
-
+ 
         // Fighters start in no stance (could also start in Aggressive)
         if (characterClass == CharacterClass.Fighter)
         {
             currentStance = FighterStance.Aggressive;
         }
-
+ 
         if (characterClass == CharacterClass.Mage)
         {
             MageChargeSystem chargeSystem = gameObject.GetComponent<MageChargeSystem>();
@@ -144,10 +144,10 @@ public class CombatEntity : MonoBehaviour
             }
             Debug.Log($"[CombatEntity] Added MageChargeSystem to {entityName}");
         }
-
+ 
         animator = GetComponent<Animator>();
     }
-
+ 
     /// <summary>
     /// Initialize as an enemy - stats are set directly
     /// </summary>
@@ -159,7 +159,7 @@ public class CombatEntity : MonoBehaviour
         isDead = false;
         hasActedThisTurn = false;
         wasHealedThisTurn = false;
-
+ 
         maxHealth = hp;
         currentHealth = hp;
         strength = str;
@@ -170,12 +170,12 @@ public class CombatEntity : MonoBehaviour
         charisma = cha;
         defense = def;
         damageBonus = 0;
-
+ 
         animator = GetComponent<Animator>();
-
+ 
         Debug.Log($"[CombatEntity] Initialized enemy {entityName} - HP: {currentHealth}/{maxHealth}");
     }
-
+ 
     private void InitializeClassResources()
     {
         switch (characterClass)
@@ -200,15 +200,15 @@ public class CombatEntity : MonoBehaviour
                 break;
         }
     }
-
+ 
     #endregion
-
+ 
     #region Combat Actions
-
+ 
     public void TakeDamage(int damage, CombatEntity attacker)
     {
         if (isDead) return;
-
+ 
         // ── Evasion ───────────────────────────────────────────────────────────────
         if (Random.value < EvasionChance)
         {
@@ -216,7 +216,7 @@ public class CombatEntity : MonoBehaviour
             CombatLog.Instance?.AddEntry($"{entityName} evaded the attack!");
             return;
         }
-
+ 
         // ── Rogue sneak damage reduction ──────────────────────────────────────────
         if (characterClass == CharacterClass.Rogue && sneakPoints > 0)
         {
@@ -227,7 +227,7 @@ public class CombatEntity : MonoBehaviour
                 $"{entityName}'s sneak reduced damage by {reducedAmount} ({reductionPercent}%)!"
             );
         }
-
+ 
         // ── Marked: increase incoming damage ─────────────────────────────────────
         float markedMultiplier = GetMarkedDamageMultiplier();
         if (markedMultiplier > 1f)
@@ -235,12 +235,12 @@ public class CombatEntity : MonoBehaviour
             damage = Mathf.RoundToInt(damage * markedMultiplier);
             Debug.Log($"[Marked] {entityName} takes {markedMultiplier:F2}x damage → {damage}");
         }
-
+ 
         // ── Defense (with Exposed reduction) ─────────────────────────────────────
         int currentHealthBeforeHit = currentHealth;
         int totalDefense = defense + GetTemporaryDefenseBonus() - GetExposedDefenseReduction();
         totalDefense = Mathf.Max(0, totalDefense); // Defense can never go below 0
-
+ 
         // ── Barrier absorbs first ─────────────────────────────────────────────────
         int remainingDamage = AbsorbWithBarrier(damage);
         int barrierAbsorbed = damage - remainingDamage;
@@ -249,22 +249,22 @@ public class CombatEntity : MonoBehaviour
             CombatVisualEffects.Instance?.ShowBlockedDamage(transform.position, barrierAbsorbed);
             CombatLog.Instance?.AddEntry($"🛡 {entityName}'s barrier absorbed {barrierAbsorbed} damage!");
         }
-
+ 
         // ── Apply defense to remaining damage ─────────────────────────────────────
         float damageReduction = totalDefense / (totalDefense + 100f); // 100f forces float division
         int finalDamage = Mathf.Max(0, Mathf.RoundToInt(remainingDamage * (1f - damageReduction)));
         currentHealth -= finalDamage;
-
+ 
         // ── Visuals ───────────────────────────────────────────────────────────────
         CombatVisualEffects.Instance?.ShowDamageNumber(transform.position, finalDamage);
-
+ 
         // Show blocked damage visually
         if (totalDefense > 0 && remainingDamage > finalDamage)
         {
             int blocked = remainingDamage - finalDamage;
             CombatVisualEffects.Instance?.ShowBlockedDamage(transform.position, blocked);
         }
-
+ 
         if (finalDamage > 0)
         {
             if (totalDefense > 0 && remainingDamage > finalDamage)
@@ -287,48 +287,48 @@ public class CombatEntity : MonoBehaviour
                 $"{attacker.entityName} attacked {entityName} but {totalDefense} defense blocked all {remainingDamage} damage!"
             );
         }
-
+ 
         // ── Consume one-hit defense boosts ────────────────────────────────────────
         ConsumeOneHitDefenseBoosts();
-
+ 
         // ── Grant wrath to cleric allies ─────────────────────────────────────────
         if (isPlayer && finalDamage > 0)
             GrantWrathToClericAllies(finalDamage);
-
+ 
         // ── Hit animation ─────────────────────────────────────────────────────────
         if (animator != null)
         {
             animator?.SetTrigger("Hit");
         }
-
+ 
         // ── Riposte counter-attack ────────────────────────────────────────────────
         if (finalDamage > 0 && attacker != null && !attacker.isDead)
             TriggerRiposte(finalDamage, attacker);
-
+ 
         // ── Primed condition detonation ────────────────────────────────-──────-
         // Pass currentHealthBeforeHit so PercentCurrentHealth thresholds are
         // calculated against HP BEFORE this hit landed, which is the intuitive
         // design expectation ("was hit for 25% of their health").
         if (finalDamage > 0)
             TriggerPrimed(finalDamage, currentHealthBeforeHit);
-
+ 
         // Calculate current health percentage (0-100)
         int currentHpPercent = Mathf.RoundToInt((float)currentHealth / maxHealth * 100f);
-
+ 
         // Pass the percentage as the second argument
         PassiveEffectProcessor.OnHealthThreshold(this, currentHpPercent);
-
+ 
         // ── Death check ───────────────────────────────────────────────────────────
         if (currentHealth <= 0)
         {
             currentHealth = 0;
-
+ 
             if (PassiveEffectProcessor.OnDeath(this))
             {
                 // Death was prevented (Phoenix triggered)!
                 return;
             }
-
+ 
             Die();
             PassiveEffectProcessor.OnKill(attacker, this);
         }
@@ -337,20 +337,20 @@ public class CombatEntity : MonoBehaviour
             UpdateHealthBar();
             SyncToViewerData();
         }
-
+ 
         //Fire passive hooks after all damage is resolved
         PassiveEffectProcessor.OnTakeDamage(this, attacker, finalDamage);
         if (attacker != null && !attacker.isDead)
             PassiveEffectProcessor.OnDealDamage(attacker, this, finalDamage);
     }
-
+ 
     public void Heal(int amount, CombatEntity healer)
     {
         // Store pre-heal HP so Overcharge can calculate excess
         passiveState["preHealHP"] = currentHealth;
-
+ 
         if (isDead) return;
-
+ 
         // Curse reduces healing
         float curseMod = GetHealingReductionMultiplier();
         if (curseMod < 1f)
@@ -360,26 +360,26 @@ public class CombatEntity : MonoBehaviour
             if (reducedBy > 0)
                 CombatLog.Instance?.AddEntry($"🖤 {entityName}'s curse reduced healing by {reducedBy}!");
         }
-
+ 
         int healAmount = Mathf.Min(amount, maxHealth - currentHealth);
         currentHealth += healAmount;
-
+ 
         wasHealedThisTurn = true;
-
+ 
         CombatVisualEffects.Instance?.ShowHealNumber(transform.position, healAmount);
         CombatLog.Instance?.AddEntry($"{healer.entityName} healed {entityName} for {healAmount} HP!");
-
+ 
         // Fire OnHeal passives — passes raw amount so Overcharge can find excess
         PassiveEffectProcessor.OnHeal(this, healer, amount);
-
+ 
         UpdateHealthBar();
         SyncToViewerData();
     }
-
+ 
     public void Die()
     {
         if (isDead) return; // Prevent double-death
-
+ 
         // Give Phoenix (and any future OnDeath passives) a chance to prevent death
         // before we commit the death state
         if (isPlayer && PassiveEffectProcessor.OnDeath(this))
@@ -389,11 +389,11 @@ public class CombatEntity : MonoBehaviour
             UpdateHealthBar();
             return;
         }
-
+ 
         isDead = true;
         animator?.SetTrigger("Death");
         CombatLog.Instance?.AddEntry($"💀 {entityName} has been defeated!");
-
+ 
         if (isPlayer)
         {
             if (viewerData != null)
@@ -402,38 +402,38 @@ public class CombatEntity : MonoBehaviour
                 viewerData.deathLockoutUntil = System.DateTime.Now.AddMinutes(30);
                 viewerData.baseStats.currentHealth = 0;
                 RPGManager.Instance.SaveGameData();
-
+ 
                 Debug.Log($"[CombatEntity] {entityName} died - 30min lockout applied");
             }
-
+ 
             ExpeditionManager.Instance?.OnPlayerDeath(userId);
         }
         else
         {
             ExpeditionManager.Instance?.OnEnemyDeath(this);
         }
-
+ 
         StartCoroutine(FadeOutAfterDeath());
     }
-
+ 
     private System.Collections.IEnumerator FadeOutAfterDeath()
     {
         yield return new WaitForSeconds(1.5f);
-
+ 
         // Always destroy the health bar regardless of player/enemy
         if (healthBarObject != null)
         {
             Destroy(healthBarObject);
             healthBarObject = null;
         }
-
+ 
         // Also destroy class resource bar if present
         if (classResourceBarObject != null)
         {
             Destroy(classResourceBarObject);
             classResourceBarObject = null;
         }
-
+ 
         if (!isPlayer)
         {
             gameObject.SetActive(false);
@@ -449,52 +449,52 @@ public class CombatEntity : MonoBehaviour
             }
         }
     }
-
+ 
     #endregion
-
+ 
     #region Turn Management
-
+ 
     public void ResetTurn()
     {
         hasActedThisTurn = false;
         wasHealedThisTurn = false;
         queuedAction = null;
         actionConfirmed = false;
-
+ 
         // ADD THIS — tick cooldowns at the start of each new player turn
         TickDownCooldowns();
-
+ 
         animator.Play("Idle");
     }
-
+ 
     public void RegenerateManaIfMage()
     {
         if (!isPlayer) return;
-
+ 
         if (characterClass == CharacterClass.Mage)
         {
             // Base regen: 10% of INT
             int baseRegen = Mathf.FloorToInt(intelligence * 0.1f);
-
+ 
             // ✅ NEW: Add equipment bonus
             int equipmentBonus = 0;
             if (viewerData != null)
             {
                 equipmentBonus = viewerData.equipped.GetTotalManaRegenBonus();
             }
-
+ 
             int totalRegen = baseRegen + equipmentBonus;
-
+ 
             // Apply max mana cap
             int maxMana = 100;
             if (viewerData != null)
             {
                 maxMana += viewerData.equipped.GetTotalMaxManaBonus();
             }
-
+ 
             mana += totalRegen;
             mana = Mathf.Clamp(mana, 0, maxMana);
-
+ 
             if (totalRegen > 0)
             {
                 CombatLog.Instance?.AddEntry(
@@ -503,13 +503,13 @@ public class CombatEntity : MonoBehaviour
             }
         }
     }
-
+ 
     public void ProcessStatusEffects()
     {
         for (int i = activeEffects.Count - 1; i >= 0; i--)
         {
             StatusEffect effect = activeEffects[i];
-
+ 
             // ── Original: Flat damage-over-time ───────────────────────────────────
             if (effect.damageOverTime > 0)
             {
@@ -518,7 +518,7 @@ public class CombatEntity : MonoBehaviour
                     $"{entityName} takes {effect.damageOverTime} damage from {effect.effectName}"
                 );
             }
-
+ 
             // ── Bleed DoT (paused when healed this turn) ──────────────────────────
             if (effect.isBleed && effect.bleedDamagePerTurn > 0)
             {
@@ -538,7 +538,7 @@ public class CombatEntity : MonoBehaviour
                     );
                 }
             }
-
+ 
             // ── Barrier: remove if fully depleted ─────────────────────────────────
             if (effect.isBarrier && effect.barrierCurrentAmount <= 0)
             {
@@ -547,7 +547,7 @@ public class CombatEntity : MonoBehaviour
                 RefreshConditionIcons();
                 continue;
             }
-
+ 
             // ── Tick duration ─────────────────────────────────────────────────────
             effect.duration--;
             if (effect.duration <= 0)
@@ -557,11 +557,11 @@ public class CombatEntity : MonoBehaviour
             }
         }
     }
-
+ 
     #endregion
-
+ 
     #region Helper Methods
-
+ 
     public void UpdateHealthBar()
     {
         if (healthBarObject != null)
@@ -570,14 +570,14 @@ public class CombatEntity : MonoBehaviour
             healthBar?.UpdateHealth(currentHealth, maxHealth);
         }
     }
-
+ 
     public void RefreshConditionIcons()
     {
         if (healthBarObject == null) return;
         CombatHealthBar bar = healthBarObject.GetComponent<CombatHealthBar>();
         bar?.RefreshConditions(activeEffects);
     }
-
+ 
     /// <summary>
     /// Shows the position number on this entity's health bar UI.
     /// Called when combat starts so viewers know which panel button to press.
@@ -587,7 +587,7 @@ public class CombatEntity : MonoBehaviour
         if (healthBarObject != null)
             healthBarObject.GetComponent<CombatHealthBar>()?.ShowPositionText();
     }
-
+ 
     /// <summary>
     /// Hides the position number on this entity's health bar UI.
     /// Called when combat ends to avoid confusing viewers out of combat.
@@ -597,25 +597,25 @@ public class CombatEntity : MonoBehaviour
         if (healthBarObject != null)
             healthBarObject.GetComponent<CombatHealthBar>()?.HidePositionText();
     }
-
+ 
     public bool IsAbilityOnCooldown(string commandName)
     {
         if (string.IsNullOrEmpty(commandName)) return false;
         return abilityCooldowns.ContainsKey(commandName) && abilityCooldowns[commandName] > 0;
     }
-
+ 
     public int GetRemainingCooldown(string commandName)
     {
         if (string.IsNullOrEmpty(commandName)) return 0;
         return abilityCooldowns.ContainsKey(commandName) ? abilityCooldowns[commandName] : 0;
     }
-
+ 
     public void SetAbilityCooldown(string commandName, int turns)
     {
         if (string.IsNullOrEmpty(commandName) || turns <= 0) return;
         abilityCooldowns[commandName] = turns;
     }
-
+ 
     public void TickDownCooldowns()
     {
         var keys = new List<string>(abilityCooldowns.Keys);
@@ -625,7 +625,7 @@ public class CombatEntity : MonoBehaviour
                 abilityCooldowns[key]--;
         }
     }
-
+ 
     /// <summary>
     /// Sync combat health back to ViewerData (called after each action)
     /// </summary>
@@ -636,7 +636,7 @@ public class CombatEntity : MonoBehaviour
             viewerData.baseStats.currentHealth = currentHealth;
         }
     }
-
+ 
     /// <summary>
     /// Sync all combat data back to ViewerData (called at end of expedition)
     /// </summary>
@@ -650,18 +650,18 @@ public class CombatEntity : MonoBehaviour
             viewerData.baseStats.currentHealth = viewerData.baseStats.maxHealth > 0
                 ? viewerData.baseStats.maxHealth
                 : maxHealth;
-
+ 
             viewerData.classResources.sneak = sneakPoints;
             viewerData.classResources.mana = mana;
             viewerData.classResources.wrath = wrath;
             viewerData.classResources.balance = balance;
             viewerData.classResources.currentStance = currentStance.ToString();
-
+ 
             RPGManager.Instance.SaveGameData();
             Debug.Log($"[CombatEntity] Synced all combat data for {entityName} back to ViewerData (HP restored to max)");
         }
     }
-
+ 
     /// <summary>
     /// Attempts to apply a status effect. Negative effects are first checked
     /// against the target's Status Resistance before being added.
@@ -672,11 +672,11 @@ public class CombatEntity : MonoBehaviour
         if (effect.isNegativeEffect)
         {
             float resistance = GetStatusResistance();
-
+ 
             if (resistance > 0f)
             {
                 float resistRoll = Random.value; // 0.0 – 1.0
-
+ 
                 if (resistRoll < resistance)
                 {
                     // Effect was resisted – log and bail out
@@ -695,15 +695,23 @@ public class CombatEntity : MonoBehaviour
                 }
             }
         }
-
-
-
+ 
+        // ── Primed cumulative tracking setup ────────────────────────────────────
+        // A fresh copy of the effect always starts at 0/-1 by field default, but we
+        // set these explicitly here too in case the same StatusEffect instance is
+        // ever re-applied (e.g. a re-prime) so its tracking restarts cleanly.
+        if (effect.isPrimed && effect.primeCumulativeDamage)
+        {
+            effect.primeAccumulatedDamage = 0f;
+            effect.primeHealthSnapshot = currentHealth;
+        }
+ 
         // ── Effect applied ─────────────────────────────────────────────────────
         activeEffects.Add(effect);
         CombatLog.Instance?.AddEntry($"{entityName} is now affected by {effect.effectName}!");
         RefreshConditionIcons();
     }
-
+ 
     /// <summary>
     /// Calculates this entity's chance to fully resist a negative status effect.
     ///
@@ -725,7 +733,7 @@ public class CombatEntity : MonoBehaviour
         // Use GetBoostedWillpower() so Cleric's wrath bonus counts
         int effectiveWillpower = GetBoostedWillpower();
         float baseResistance = effectiveWillpower * 0.005f; // 0.5% per WIL point
-
+ 
         // Bonus resistance from active status effects
         // (allows abilities like "Fortify" or "Iron Will" to grant extra resist)
         float bonusResistance = 0f;
@@ -733,18 +741,18 @@ public class CombatEntity : MonoBehaviour
         {
             bonusResistance += effect.statusResistanceBonus;
         }
-
+ 
         float totalResistance = baseResistance + bonusResistance;
-
+ 
         // Hard cap at 75%
         return Mathf.Clamp(totalResistance, 0f, 0.75f);
     }
-
+ 
     public CharacterClass GetCharacterClass()
     {
         return characterClass;
     }
-
+ 
     /// <summary>
     /// Grant wrath to all cleric allies when this player takes damage
     /// </summary>
@@ -752,7 +760,7 @@ public class CombatEntity : MonoBehaviour
     {
         var allPlayers = ExpeditionManager.Instance?.GetAllPlayerEntities();
         if (allPlayers == null) return;
-
+ 
         foreach (var player in allPlayers)
         {
             if (player.GetCharacterClass() == CharacterClass.Cleric && !player.isDead)
@@ -760,7 +768,7 @@ public class CombatEntity : MonoBehaviour
                 int wrathGain = Mathf.FloorToInt(damageReceived * 0.5f); // 50% of damage taken
                 player.wrath += wrathGain;
                 player.wrath = Mathf.Clamp(player.wrath, 0, 100);
-
+ 
                 if (wrathGain > 0)
                 {
                     CombatLog.Instance?.AddEntry($"{player.entityName} gained {wrathGain} wrath");
@@ -768,7 +776,7 @@ public class CombatEntity : MonoBehaviour
             }
         }
     }
-
+ 
     #endregion
     public void InitializeBaseStats()
     {
@@ -776,10 +784,10 @@ public class CombatEntity : MonoBehaviour
         baseConstitution = constitution;
         baseDefense = defense;
         baseMaxHealth = maxHealth;
-
+ 
         Debug.Log($"[CombatEntity] Base stats saved - STR: {baseStrength}, CON: {baseConstitution}, DEF: {baseDefense}, MaxHP: {baseMaxHealth}");
     }
-
+ 
     /// <summary>
     /// Absorbs incoming damage through any active Barrier effects.
     /// Returns the damage that was NOT absorbed (passes through to HP).
@@ -787,31 +795,31 @@ public class CombatEntity : MonoBehaviour
     public int AbsorbWithBarrier(int incomingDamage)
     {
         int remaining = incomingDamage;
-
+ 
         for (int i = activeEffects.Count - 1; i >= 0; i--)
         {
             StatusEffect effect = activeEffects[i];
             if (!effect.isBarrier || effect.barrierCurrentAmount <= 0) continue;
-
+ 
             int absorbed = Mathf.Min(remaining, effect.barrierCurrentAmount);
             effect.barrierCurrentAmount -= absorbed;
             remaining -= absorbed;
-
+ 
             Debug.Log($"[Barrier] {entityName}: absorbed {absorbed}, barrier remaining: {effect.barrierCurrentAmount}");
-
+ 
             if (effect.barrierCurrentAmount <= 0)
             {
                 CombatLog.Instance?.AddEntry($"{entityName}'s {effect.effectName} barrier was shattered!");
                 activeEffects.RemoveAt(i);
                 RefreshConditionIcons();
             }
-
+ 
             if (remaining <= 0) break;
         }
-
+ 
         return remaining;
     }
-
+ 
     /// <summary>
     /// Returns the combined damage multiplier from all Mark effects (multiplicative).
     /// </summary>
@@ -825,7 +833,7 @@ public class CombatEntity : MonoBehaviour
         }
         return multiplier;
     }
-
+ 
     /// <summary>
     /// Returns the total flat defense reduction from all Exposed effects.
     /// </summary>
@@ -839,7 +847,7 @@ public class CombatEntity : MonoBehaviour
         }
         return total;
     }
-
+ 
     /// <summary>
     /// Returns the healing multiplier after applying all Curse effects (multiplicative).
     /// 1.0 = full healing, 0.5 = 50% healing, 0.0 = no healing.
@@ -854,7 +862,7 @@ public class CombatEntity : MonoBehaviour
         }
         return Mathf.Clamp(multiplier, 0f, 1f);
     }
-
+ 
     /// <summary>
     /// Returns true if this entity is currently stunned.
     /// </summary>
@@ -864,7 +872,7 @@ public class CombatEntity : MonoBehaviour
             if (effect.isStun) return true;
         return false;
     }
-
+ 
     /// <summary>
     /// Returns true if this entity is currently silenced (cannot use abilities).
     /// </summary>
@@ -874,7 +882,7 @@ public class CombatEntity : MonoBehaviour
             if (effect.isSilence) return true;
         return false;
     }
-
+ 
     /// <summary>
     /// Returns true if this entity has a Haste buff (acts twice this turn).
     /// </summary>
@@ -884,7 +892,7 @@ public class CombatEntity : MonoBehaviour
             if (effect.isHaste) return true;
         return false;
     }
-
+ 
     /// <summary>
     /// Returns true if this entity is enraged (forced targeting applies).
     /// </summary>
@@ -894,7 +902,7 @@ public class CombatEntity : MonoBehaviour
             if (effect.isEnrage) return true;
         return false;
     }
-
+ 
     /// <summary>
     /// Returns the entityName of the taunt target, or null if not taunted.
     /// </summary>
@@ -905,20 +913,20 @@ public class CombatEntity : MonoBehaviour
                 return effect.tauntTargetEntityName;
         return null;
     }
-
+ 
     public void RecalculateStatsWithStance()
     {
         Debug.Log($"[Stance] Recalculating stats. Old - STR: {strength}, CON: {constitution}, DEF: {defense}, MaxHP: {maxHealth}");
-
+ 
         // Reset to base stats
         strength = baseStrength;
         constitution = baseConstitution;
         defense = baseDefense;
         maxHealth = baseMaxHealth;
-
+ 
         // Store old health for percentage calculation
         float healthPercent = maxHealth > 0 ? (float)currentHealth / maxHealth : 1f;
-
+ 
         // Apply stance bonuses
         switch (currentStance)
         {
@@ -926,53 +934,53 @@ public class CombatEntity : MonoBehaviour
                 strength = Mathf.RoundToInt(baseStrength * 1.1f); // +10% STR
                 Debug.Log($"[Stance] Aggressive: STR {baseStrength} → {strength}");
                 break;
-
+ 
             case FighterStance.Defensive:
                 constitution = Mathf.RoundToInt(baseConstitution * 1.1f); // +10% CON
-
+ 
                 // ✅ FIX: Calculate maxHealth change based on CON difference
                 int conDifference = constitution - baseConstitution;
                 maxHealth = baseMaxHealth + (conDifference * 10);
-
+ 
                 // Maintain health percentage (so current health scales with new max)
                 currentHealth = Mathf.RoundToInt(maxHealth * healthPercent);
-
+ 
                 Debug.Log($"[Stance] Defensive: CON {baseConstitution} → {constitution}, MaxHP {baseMaxHealth} → {maxHealth}, CurrentHP: {currentHealth}");
                 break;
-
+ 
             case FighterStance.Reflective:
                 defense = baseDefense + 10; // +10 flat DEF
                 Debug.Log($"[Stance] Reflective: DEF {baseDefense} → {defense}");
                 break;
-
+ 
             case FighterStance.None:
                 Debug.Log($"[Stance] No stance - using base stats");
                 break;
         }
-
+ 
         Debug.Log($"[Stance] Final - STR: {strength}, CON: {constitution}, DEF: {defense}, MaxHP: {maxHealth}, CurrentHP: {currentHealth}");
-
+ 
         UpdateHealthBar();
     }
-
+ 
     public bool ChangeStance(FighterStance newStance)
     {
         if (characterClass != CharacterClass.Fighter)
             return false;
-
+ 
         FighterStance oldStance = currentStance;
         currentStance = newStance;
         RecalculateStatsWithStance();
-
+ 
         UpdateClassResourceBar();
-
+ 
         CombatLog.Instance?.AddEntry(
             $"{entityName} shifts to {GetStanceName(newStance)} Stance!"
         );
-
+ 
         return true;
     }
-
+ 
     private string GetStanceName(FighterStance stance)
     {
         switch (stance)
@@ -983,11 +991,11 @@ public class CombatEntity : MonoBehaviour
             default: return "None";
         }
     }
-
+ 
     public int GetBoostedWillpower()
     {
         int baseWillpower = willpower;
-
+ 
         // Cleric: Willpower bonus at high wrath
         if (characterClass == CharacterClass.Cleric)
         {
@@ -1000,15 +1008,15 @@ public class CombatEntity : MonoBehaviour
                 return Mathf.RoundToInt(baseWillpower * 1.25f); // +25%
             }
         }
-
+ 
         return baseWillpower;
     }
-
+ 
     public string GetCurrentStanceBonusText()
     {
         if (characterClass != CharacterClass.Fighter)
             return "";
-
+ 
         switch (currentStance)
         {
             case FighterStance.Aggressive:
@@ -1021,40 +1029,40 @@ public class CombatEntity : MonoBehaviour
                 return "No Stance";
         }
     }
-
+ 
     public void UpdateClassResourceBar()
     {
         if (classResourceBarObject == null) return;
-
+ 
         ClassResourceBar resourceBar = classResourceBarObject.GetComponent<ClassResourceBar>();
         if (resourceBar == null) return;
-
+ 
         Debug.Log($"Refreshing UI for {entityName}");
-
+ 
         switch (characterClass)
         {
             case CharacterClass.Mage:
                 resourceBar.UpdateMana(mana, 100);
                 break;
-
+ 
             case CharacterClass.Rogue:
                 resourceBar.UpdateSneak(sneakPoints, 6);
                 break;
-
+ 
             case CharacterClass.Cleric:
                 resourceBar.UpdateWrath(wrath, 100);
                 break;
-
+ 
             case CharacterClass.Fighter:
                 resourceBar.UpdateStance(currentStance);
                 break;
-
+ 
             case CharacterClass.Ranger:
                 resourceBar.UpdateBalance(balance, -10, 10);
                 break;
         }
     }
-
+ 
     /// <summary>
     /// Get total temporary defense from all active buffs
     /// </summary>
@@ -1064,7 +1072,7 @@ public class CombatEntity : MonoBehaviour
     int GetTemporaryDefenseBonus()
     {
         int bonus = 0;
-
+ 
         foreach (StatusEffect effect in activeEffects)
         {
             // ✅ Check if effect has dynamic scaling
@@ -1074,9 +1082,9 @@ public class CombatEntity : MonoBehaviour
                 int statValue = GetStatValueForDefense(effect.defenseScalingStat);
                 int scaledBonus = Mathf.RoundToInt(statValue * effect.defenseScalingMultiplier);
                 int totalDefense = effect.baseDefenseAmount + scaledBonus;
-
+ 
                 bonus += totalDefense;
-
+ 
                 Debug.Log($"[Defense] {entityName}'s {effect.effectName}: {effect.baseDefenseAmount} base + " +
                          $"({statValue} {effect.defenseScalingStat} × {effect.defenseScalingMultiplier}) = {totalDefense}");
             }
@@ -1086,10 +1094,10 @@ public class CombatEntity : MonoBehaviour
                 bonus += effect.temporaryDefenseBonus;
             }
         }
-
+ 
         return bonus;
     }
-
+ 
     /// <summary>
     /// Get stat value for defense scaling calculation
     /// </summary>
@@ -1106,7 +1114,7 @@ public class CombatEntity : MonoBehaviour
             default: return 0;
         }
     }
-
+ 
     /// <summary>
     /// Remove defense buffs that are consumed on hit
     /// </summary>
@@ -1123,23 +1131,23 @@ public class CombatEntity : MonoBehaviour
             }
         }
     }
-
+ 
     public int GetSneakDamageReduction()
     {
         if (characterClass != CharacterClass.Rogue) return 0;
-
+ 
         // 10% reduction per sneak point
         int reductionPercent = sneakPoints * 10;
         return Mathf.Clamp(reductionPercent, 0, 60); // Max 60%
     }
-
+ 
     /// <summary>
     /// Get a stat value with temporary boosts applied
     /// </summary>
     public int GetBoostedStat(BoostableStat stat)
     {
         int baseValue = 0;
-
+ 
         // Get base stat value
         switch (stat)
         {
@@ -1165,7 +1173,7 @@ public class CombatEntity : MonoBehaviour
             default:
                 return 0;
         }
-
+ 
         // Add temporary boosts from status effects
         int bonus = 0;
         foreach (StatusEffect effect in activeEffects)
@@ -1175,18 +1183,18 @@ public class CombatEntity : MonoBehaviour
                 bonus += effect.statBoostAmount;
             }
         }
-
+ 
         int totalValue = baseValue + bonus;
-
+ 
         // Debug log if boosted
         if (bonus > 0)
         {
             Debug.Log($"[CombatEntity] {entityName} {stat}: {baseValue} + {bonus} = {totalValue}");
         }
-
+ 
         return totalValue;
     }
-
+ 
     /// <summary>
     /// Scans active effects for any Riposte buff. When found, calculates and
     /// deals a counter-attack to <paramref name="attacker"/>.
@@ -1199,39 +1207,39 @@ public class CombatEntity : MonoBehaviour
         {
             StatusEffect effect = activeEffects[i];
             if (!effect.isRiposte) continue;
-
+ 
             // ── Calculate counter damage ──────────────────────────────────────────
             float counterDamage = 0f;
-
+ 
             // 1) Reflect portion of incoming damage
             counterDamage += finalDamageReceived * effect.riposteDamagePercent;
-
+ 
             // 2) Flat bonus
             counterDamage += effect.riposteFlatBonus;
-
+ 
             // 3) Stat scaling (e.g. DEX for a fencer-style Fighter)
             if (effect.riposteScalingStat != DamageStat.None && effect.riposteScalingMultiplier > 0f)
             {
                 int statValue = GetStatValueForRiposte(effect.riposteScalingStat);
                 counterDamage += statValue * effect.riposteScalingMultiplier;
             }
-
+ 
             int finalCounter = Mathf.Max(1, Mathf.RoundToInt(counterDamage));
-
+ 
             // ── Apply counter to the attacker ────────────────────────────────────
             // Use a raw health deduction so we don't re-trigger Riposte chains.
             int counterAfterDefense = Mathf.Max(0, finalCounter - attacker.defense);
             attacker.currentHealth -= counterAfterDefense;
-
+ 
             CombatVisualEffects.Instance?.ShowDamageNumber(attacker.transform.position, counterAfterDefense);
             CombatLog.Instance?.AddEntry(
                 $"⚔️ {entityName} RIPOSTES {attacker.entityName} for {counterAfterDefense} damage!"
             );
             Debug.Log($"[Riposte] {entityName} countered {attacker.entityName} " +
                       $"(raw: {finalCounter}, after def: {counterAfterDefense})");
-
+ 
             attacker.animator?.SetTrigger("Hit");
-
+ 
             if (attacker.currentHealth <= 0)
             {
                 attacker.currentHealth = 0;
@@ -1241,7 +1249,7 @@ public class CombatEntity : MonoBehaviour
             {
                 attacker.UpdateHealthBar();
             }
-
+ 
             // ── Consume if needed ─────────────────────────────────────────────────
             if (effect.riposteConsumedOnUse)
             {
@@ -1249,13 +1257,13 @@ public class CombatEntity : MonoBehaviour
                 activeEffects.RemoveAt(i);
                 RefreshConditionIcons();
             }
-
+ 
             // Only one Riposte triggers per hit (the first one found).
             // Remove this break if you want stacked Ripostes to all fire.
             break;
         }
     }
-
+ 
     /// <summary>
     /// Returns the raw stat value from this entity for Riposte scaling.
     /// Mirrors CombatCalculations.GetStatValue but accessible on the entity.
@@ -1273,7 +1281,7 @@ public class CombatEntity : MonoBehaviour
             default: return 0;
         }
     }
-
+ 
     private void TriggerPrimed(int finalDamage, int healthBeforeHit)
     {
         for (int i = activeEffects.Count - 1; i >= 0; i--)
@@ -1281,19 +1289,27 @@ public class CombatEntity : MonoBehaviour
             StatusEffect effect = activeEffects[i];
             if (!effect.isPrimed) continue;
             if (effect.primedEffects == null || effect.primedEffects.Count == 0) continue;
-
+ 
+            // ── Track cumulative damage while primed (if enabled) ───────────────
+            // Runs every qualifying hit regardless of whether THIS hit alone would
+            // meet the threshold, so a string of smaller hits can add up over time.
+            if (effect.primeCumulativeDamage)
+                effect.primeAccumulatedDamage += finalDamage;
+ 
             // ── Check if the threshold is met ─────────────────────────────────
             if (!IsPrimeThresholdMet(effect, finalDamage, healthBeforeHit))
                 continue;
-
+ 
             // ── Threshold met: detonate ────────────────────────────────────────
             CombatLog.Instance?.AddEntry(
                 $"💥 {entityName}'s {effect.effectName} detonates! " +
-                $"(took {finalDamage} damage, threshold: {FormatPrimeThreshold(effect)})"
+                $"({FormatPrimeProgress(effect, finalDamage)}, threshold: {FormatPrimeThreshold(effect)})"
             );
             Debug.Log($"[Primed] {entityName} detonated '{effect.effectName}' " +
-                      $"finalDamage={finalDamage}, threshold={effect.primeThreshold} ({effect.primeThresholdType})");
-
+                      $"finalDamage={finalDamage}, accumulated={effect.primeAccumulatedDamage}, " +
+                      $"threshold={effect.primeThreshold} ({effect.primeThresholdType}, " +
+                      $"cumulative={effect.primeCumulativeDamage})");
+ 
             // Apply each primed effect individually through the full pipeline
             foreach (StatusEffect primedEffectTemplate in effect.primedEffects)
             {
@@ -1305,7 +1321,7 @@ public class CombatEntity : MonoBehaviour
                     applicationChance = primedEffectTemplate.applicationChance,
                     isNegativeEffect = primedEffectTemplate.isNegativeEffect,
                     statusResistanceBonus = primedEffectTemplate.statusResistanceBonus,
-
+ 
                     damageMultiplier = primedEffectTemplate.damageMultiplier,
                     defenseMultiplier = primedEffectTemplate.defenseMultiplier,
                     damageOverTime = primedEffectTemplate.damageOverTime,
@@ -1314,14 +1330,14 @@ public class CombatEntity : MonoBehaviour
                     statBoostType = primedEffectTemplate.statBoostType,
                     statBoostAmount = primedEffectTemplate.statBoostAmount,
                     lifestealPercent = primedEffectTemplate.lifestealPercent,
-
+ 
                     isRiposte = primedEffectTemplate.isRiposte,
                     riposteDamagePercent = primedEffectTemplate.riposteDamagePercent,
                     riposteFlatBonus = primedEffectTemplate.riposteFlatBonus,
                     riposteScalingStat = primedEffectTemplate.riposteScalingStat,
                     riposteScalingMultiplier = primedEffectTemplate.riposteScalingMultiplier,
                     riposteConsumedOnUse = primedEffectTemplate.riposteConsumedOnUse,
-
+ 
                     isStun = primedEffectTemplate.isStun,
                     isSilence = primedEffectTemplate.isSilence,
                     isBleed = primedEffectTemplate.isBleed,
@@ -1340,15 +1356,19 @@ public class CombatEntity : MonoBehaviour
                     isEnrage = primedEffectTemplate.isEnrage,
                     enrageDamageMultiplier = primedEffectTemplate.enrageDamageMultiplier,
                     isHaste = primedEffectTemplate.isHaste,
-
+ 
                     // Nested primes are allowed but proc-chance and resist still apply
                     isPrimed = primedEffectTemplate.isPrimed,
                     primeThresholdType = primedEffectTemplate.primeThresholdType,
                     primeThreshold = primedEffectTemplate.primeThreshold,
+                    primeCumulativeDamage = primedEffectTemplate.primeCumulativeDamage,
                     primedEffects = primedEffectTemplate.primedEffects,            //new List<StatusEffect>(),
                     primedConsumedOnTrigger = primedEffectTemplate.primedConsumedOnTrigger,
+                    // primeAccumulatedDamage / primeHealthSnapshot intentionally left at their
+                    // defaults (0 / -1) — this is a brand new live instance, not a re-use of
+                    // the template's runtime state.
                 };
-
+ 
                 // applicationChance roll for each payload effect
                 if (newEffect.applicationChance < 1f && Random.value > newEffect.applicationChance)
                 {
@@ -1357,64 +1377,96 @@ public class CombatEntity : MonoBehaviour
                     );
                     continue;
                 }
-
+ 
                 // Goes through ApplyStatusEffect which handles resistance for negative effects
                 ApplyStatusEffect(newEffect);
-
+ 
                 CombatLog.Instance?.AddEntry($"  ↳ {entityName} is now {newEffect.effectName}!");
                 Debug.Log($"[Primed] Applied payload '{newEffect.effectName}' to {entityName}");
             }
-
-            // ── Consume the Primed effect if configured ────────────────────────
+ 
+            // ── Consume the Primed effect if configured, otherwise reset for next cycle ──
             if (effect.primedConsumedOnTrigger)
             {
                 CombatLog.Instance?.AddEntry($"  ↳ {effect.effectName} was consumed.");
                 activeEffects.RemoveAt(i);
                 RefreshConditionIcons();
             }
+            else if (effect.primeCumulativeDamage)
+            {
+                // Not consumed — reset the running total so this Primed effect has to
+                // build back up to the threshold again before it can detonate a second
+                // time, instead of re-detonating on every subsequent hit forever.
+                effect.primeAccumulatedDamage = 0f;
+            }
         }
     }
-
+ 
     /// <summary>
-    /// Returns true if the given Primed effect's threshold is met by
-    /// <paramref name="finalDamage"/>.
+    /// Returns true if the given Primed effect's threshold is met. When the effect's
+    /// primeCumulativeDamage flag is set, the threshold is checked against the total
+    /// damage accumulated while primed (effect.primeAccumulatedDamage); otherwise it's
+    /// checked against just the single hit that just landed (finalDamage), matching the
+    /// original per-hit behavior.
     /// </summary>
     private bool IsPrimeThresholdMet(StatusEffect effect, int finalDamage, int healthBeforeHit)
     {
+        float damageToCheck = effect.primeCumulativeDamage ? effect.primeAccumulatedDamage : finalDamage;
+ 
         switch (effect.primeThresholdType)
         {
             case PrimeThresholdType.FlatDamage:
-                return finalDamage >= effect.primeThreshold;
-
+                return damageToCheck >= effect.primeThreshold;
+ 
             case PrimeThresholdType.PercentMaxHealth:
                 // threshold is expressed as a whole-number percentage (e.g. 15 = 15%)
-                float percentOfMax = (float)finalDamage / maxHealth * 100f;
+                float percentOfMax = damageToCheck / maxHealth * 100f;
                 return percentOfMax >= effect.primeThreshold;
-
+ 
             case PrimeThresholdType.PercentCurrentHealth:
+                // Non-cumulative: measured against HP right before this hit.
+                // Cumulative: measured against HP at the moment the Primed effect was
+                // applied (captured in ApplyStatusEffect), since "healthBeforeHit" would
+                // otherwise shrink hit-by-hit and make the percentage a moving target.
+                int baseline = effect.primeCumulativeDamage
+                    ? (effect.primeHealthSnapshot > 0 ? effect.primeHealthSnapshot : healthBeforeHit)
+                    : healthBeforeHit;
+ 
                 // Guard against division by zero on near-dead entities
-                if (healthBeforeHit <= 0) return false;
-                float percentOfCurrent = (float)finalDamage / healthBeforeHit * 100f;
+                if (baseline <= 0) return false;
+                float percentOfCurrent = damageToCheck / baseline * 100f;
                 return percentOfCurrent >= effect.primeThreshold;
-
+ 
             default:
                 return false;
         }
     }
-
+ 
+    /// <summary>
+    /// Formats how much damage triggered detonation, for the CombatLog line.
+    /// </summary>
+    private string FormatPrimeProgress(StatusEffect effect, int finalDamage)
+    {
+        return effect.primeCumulativeDamage
+            ? $"took {effect.primeAccumulatedDamage:F0} cumulative damage while primed"
+            : $"took {finalDamage} damage";
+    }
+ 
     /// <summary>
     /// Formats the Prime threshold for human-readable log output.
     /// </summary>
     private string FormatPrimeThreshold(StatusEffect effect)
     {
+        string cumulativeSuffix = effect.primeCumulativeDamage ? " cumulative" : "";
+ 
         switch (effect.primeThresholdType)
         {
             case PrimeThresholdType.FlatDamage:
-                return $"{effect.primeThreshold} flat dmg";
+                return $"{effect.primeThreshold}{cumulativeSuffix} flat dmg";
             case PrimeThresholdType.PercentMaxHealth:
-                return $"{effect.primeThreshold}% max HP";
+                return $"{effect.primeThreshold}%{cumulativeSuffix} max HP";
             case PrimeThresholdType.PercentCurrentHealth:
-                return $"{effect.primeThreshold}% current HP";
+                return $"{effect.primeThreshold}%{cumulativeSuffix} current HP";
             default:
                 return effect.primeThreshold.ToString();
         }
