@@ -2666,6 +2666,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0bcbaa4bb620d1b40a1c90afbf6d6bfd, type: 2}
   rangerAbilities:
   - {fileID: 11400000, guid: a374b354d622e4b478d909cac6eda5a5, type: 2}
+  - {fileID: 11400000, guid: f1df887fc5b500b4b9244d913a303609, type: 2}
+  - {fileID: 11400000, guid: 0c82427e12044494a9f113483158b890, type: 2}
+  - {fileID: 11400000, guid: a21a03bf36a224c45860acc8c7677b72, type: 2}
   enemyAbilities:
   - {fileID: 11400000, guid: 8980e86ef2a766e4f8671e36079d348e, type: 2}
   - {fileID: 11400000, guid: 57b0e2e9ecefc2c4fbce106d2297d5ca, type: 2}
