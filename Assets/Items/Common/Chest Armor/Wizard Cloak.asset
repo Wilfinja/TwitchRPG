@@ -22,16 +22,24 @@ MonoBehaviour:
   isTwoHanded: 0
   strengthBonusPercent: 0
   constitutionBonusPercent: 0
-  dexterityBonusPercent: 0
+  dexterityBonusPercent: 0.05
   willpowerBonusPercent: 0
   charismaBonusPercent: 0
   intelligenceBonusPercent: 0.15
+  strengthBonus: 0
+  constitutionBonus: 0
+  dexterityBonus: 1
+  willpowerBonus: 0
+  charismaBonus: 0
+  intelligenceBonus: 1
   damageBonus: 0
-  defenseBonus: 0
+  defenseBonus: 5
   healAmount: 0
   maxManaBonus: 10
   manaRegenBonus: 5
   manaCostReduction: 0
+  passives: []
+  grantAbility: {fileID: 0}
   allowedClasses: 05000000
   abilities: []
   properties: []

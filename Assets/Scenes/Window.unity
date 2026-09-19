@@ -471,6 +471,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: bbca549d2df7219499e012138c4f2b68, type: 2}
   - {fileID: 11400000, guid: 2c9d6be4388fd704a9afc4ee86571fd6, type: 2}
   - {fileID: 11400000, guid: ddaf39462c9857b40b4558f201d8c00a, type: 2}
+  - {fileID: 11400000, guid: 25f4cd4b36a4e0c4dadffb7a2461b82b, type: 2}
 --- !u!1 &310242708
 GameObject:
   m_ObjectHideFlags: 0
@@ -2664,6 +2665,14 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8ea5a2b6a0d7ccb448ae6040e110074e, type: 2}
   - {fileID: 11400000, guid: 506650a0b9de25d4d8cd130052f616c3, type: 2}
   - {fileID: 11400000, guid: 0bcbaa4bb620d1b40a1c90afbf6d6bfd, type: 2}
+  - {fileID: 11400000, guid: e7ec777f8953c1d418176b8dfd66936a, type: 2}
+  - {fileID: 11400000, guid: 8ecc329809f60344eb851de4b6057b80, type: 2}
+  - {fileID: 11400000, guid: 528101abb9c86e04f8b17b70fecbbf3f, type: 2}
+  - {fileID: 11400000, guid: 0bcbaa4bb620d1b40a1c90afbf6d6bfd, type: 2}
+  - {fileID: 11400000, guid: f5302c81e561dcc4988343aff78c8c98, type: 2}
+  - {fileID: 11400000, guid: 080af493592a0ff4395b7ee91c329449, type: 2}
+  - {fileID: 11400000, guid: 272047ffb935ec344bc6d3a8655320bf, type: 2}
+  - {fileID: 11400000, guid: 65ea8b53c156c3e4eaffec01bbf0ee64, type: 2}
   rangerAbilities:
   - {fileID: 11400000, guid: a374b354d622e4b478d909cac6eda5a5, type: 2}
   - {fileID: 11400000, guid: f1df887fc5b500b4b9244d913a303609, type: 2}
