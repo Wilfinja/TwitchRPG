@@ -27,12 +27,20 @@ MonoBehaviour:
   willpowerBonusPercent: 0
   charismaBonusPercent: 0
   intelligenceBonusPercent: 0
+  strengthBonus: 1
+  constitutionBonus: 0
+  dexterityBonus: 0
+  willpowerBonus: 0
+  charismaBonus: 0
+  intelligenceBonus: 0
   damageBonus: 10
   defenseBonus: 0
   healAmount: 0
   maxManaBonus: 0
   manaRegenBonus: 0
   manaCostReduction: 0
+  passives: []
+  grantAbility: {fileID: 0}
   allowedClasses: 
   abilities: []
   properties: []

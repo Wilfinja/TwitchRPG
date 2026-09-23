@@ -33,7 +33,7 @@ MonoBehaviour:
   willpowerBonus: 0
   charismaBonus: 0
   intelligenceBonus: 0
-  damageBonus: 0
+  damageBonus: 10
   defenseBonus: 0
   healAmount: 0
   maxManaBonus: 0

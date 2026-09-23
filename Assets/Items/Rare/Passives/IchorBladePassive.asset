@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: IchorBladePassive
   m_EditorClassIdentifier: Assembly-CSharp::PassiveImbued
   passiveName: Ichor Blade Passive
-  description: The Ichor Blade passive has a 50% to Ichor. (Bleed 20 hp each turn,
+  description: The Ichor Blade passive has a 25% to Ichor. (Bleed 20 hp each turn,
     and healing is reduced by 50%)
   trigger: 2
-  procChance: 0.5
+  procChance: 0.25
   effectToApply:
     effectName: Ichored
-    duration: 0
+    duration: 2
     applicationChance: 1
     isNegativeEffect: 0
     statusResistanceBonus: 0
@@ -61,4 +61,11 @@ MonoBehaviour:
     isPrimed: 0
     primeThresholdType: 0
     primeThreshold: 20
+    primeCumulativeDamage: 0
+    primedEffects: []
     primedConsumedOnTrigger: 1
+    iconKey: 
+    colorHex: 
+  references:
+    version: 2
+    RefIds: []

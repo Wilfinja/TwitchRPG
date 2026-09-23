@@ -33,7 +33,7 @@ MonoBehaviour:
   charismaBonus: 0
   intelligenceBonus: 0
   damageBonus: 0
-  defenseBonus: 15
+  defenseBonus: 18
   healAmount: 0
   maxManaBonus: 0
   manaRegenBonus: 0

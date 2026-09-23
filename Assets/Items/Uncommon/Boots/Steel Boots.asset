@@ -27,9 +27,9 @@ MonoBehaviour:
   charismaBonusPercent: 0
   intelligenceBonusPercent: 0
   strengthBonus: 0
-  constitutionBonus: 0
+  constitutionBonus: 2
   dexterityBonus: 0
-  willpowerBonus: 0
+  willpowerBonus: 1
   charismaBonus: 0
   intelligenceBonus: 0
   damageBonus: 0
