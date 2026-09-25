@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Wrathful Flame
+  m_Name: Acid Blast
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Wrathful Flame
-  commandName: wrathfulflame
-  description: The Cleric uses up all of their wrath and burns all enemies for Wil
-    x Wrath / 50 damage..
-  requiredClass: 2
-  levelRequired: 30
+  abilityName: Acid Blast
+  commandName: acidblast
+  description: 'The Mage targets three enemies, range 1-3, dealing 1x Int damge and
+    the targets are then Exposed. Charge: Acid. Exposed: '
+  requiredClass: 5
+  levelRequired: 10
   category: 0
-  targetType: 3
-  scalingStat: 0
+  targetType: 6
+  scalingStat: 3
   statMultiplier: 1
   useSecondaryScaling: 0
   secondaryScalingStat: 0
@@ -38,7 +38,7 @@ MonoBehaviour:
   maxHitCount: 5
   consumeResourceAfterHits: 0
   multiHitTargetMode: 0
-  elementType: 0
+  elementType: 5
   grantsDefenseBoost: 0
   baseDefenseBoost: 0
   defenseScalingStat: 0
@@ -68,19 +68,67 @@ MonoBehaviour:
   balanceGain: 0
   balanceRequirement: 0
   balanceRequirementType: 0
-  wrathScaling: 1
-  wrathScalingStat: 4
-  wrathScale: 1
-  consumesAllWrath: 1
+  wrathScaling: 0
+  wrathScalingStat: 0
+  wrathScale: 0
+  consumesAllWrath: 0
   consumeWrathAmount: 0
   canTargetAllies: 0
   canTargetEnemies: 1
-  maxTargetPosition: 1
+  maxTargetPosition: 3
   minTargetPosition: 1
-  isAOE: 0
-  aoETargets: 1
-  cooldown: 0
-  appliesEffects: []
+  isAOE: 1
+  aoETargets: 3
+  cooldown: 2
+  appliesEffects:
+  - effectName: Exposed
+    duration: 2
+    applicationChance: 0.95
+    isNegativeEffect: 1
+    statusResistanceBonus: 0
+    damageMultiplier: 1
+    defenseMultiplier: 1
+    damageOverTime: 0
+    temporaryDefenseBonus: 0
+    baseDefenseAmount: 0
+    defenseScalingStat: 0
+    defenseScalingMultiplier: 0
+    consumedOnHit: 0
+    statBoostType: 0
+    statBoostAmount: 0
+    lifestealPercent: 0
+    isRiposte: 0
+    riposteDamagePercent: 0
+    riposteFlatBonus: 0
+    riposteScalingStat: 0
+    riposteScalingMultiplier: 0
+    riposteConsumedOnUse: 0
+    isStun: 0
+    isSilence: 0
+    isBleed: 0
+    bleedDamagePerTurn: 0
+    isBarrier: 0
+    barrierCurrentAmount: 0
+    barrierMaxAmount: 0
+    isMark: 0
+    markedDamageMultiplier: 1.15
+    isTaunt: 0
+    tauntTargetEntityName: 
+    isCurse: 0
+    healingReductionPercent: 0
+    isExposed: 1
+    exposedDefenseReduction: 35
+    isEnrage: 0
+    enrageDamageMultiplier: 0
+    isHaste: 0
+    isPrimed: 0
+    primeThresholdType: 0
+    primeThreshold: 0
+    primeCumulativeDamage: 0
+    primedEffects: []
+    primedConsumedOnTrigger: 0
+    iconKey: 
+    colorHex: 
   shiftPosition: 0
   positionShift: 0
   grantsLifesteal: 0

@@ -17,7 +17,7 @@ MonoBehaviour:
   description: The mage deals .75x INT + .5 WIL damage and inflicts the BLIND condition
     for 2 turns.
   requiredClass: 5
-  levelRequired: 3
+  levelRequired: 5
   category: 0
   targetType: 0
   scalingStat: 3
@@ -68,6 +68,11 @@ MonoBehaviour:
   balanceGain: 0
   balanceRequirement: 0
   balanceRequirementType: 0
+  wrathScaling: 0
+  wrathScalingStat: 0
+  wrathScale: 0
+  consumesAllWrath: 0
+  consumeWrathAmount: 0
   canTargetAllies: 0
   canTargetEnemies: 1
   maxTargetPosition: 2
@@ -78,10 +83,16 @@ MonoBehaviour:
   appliesEffects:
   - effectName: Blind
     duration: 2
+    applicationChance: 1
+    isNegativeEffect: 0
+    statusResistanceBonus: 0
     damageMultiplier: 0.75
     defenseMultiplier: 1
     damageOverTime: 0
     temporaryDefenseBonus: 0
+    baseDefenseAmount: 0
+    defenseScalingStat: 0
+    defenseScalingMultiplier: 0
     consumedOnHit: 0
     statBoostType: 0
     statBoostAmount: 0
@@ -92,6 +103,32 @@ MonoBehaviour:
     riposteScalingStat: 0
     riposteScalingMultiplier: 0
     riposteConsumedOnUse: 1
+    isStun: 0
+    isSilence: 0
+    isBleed: 0
+    bleedDamagePerTurn: 0
+    isBarrier: 0
+    barrierCurrentAmount: 0
+    barrierMaxAmount: 0
+    isMark: 0
+    markedDamageMultiplier: 1.25
+    isTaunt: 0
+    tauntTargetEntityName: 
+    isCurse: 0
+    healingReductionPercent: 0.5
+    isExposed: 0
+    exposedDefenseReduction: 0
+    isEnrage: 0
+    enrageDamageMultiplier: 1.3
+    isHaste: 0
+    isPrimed: 0
+    primeThresholdType: 0
+    primeThreshold: 20
+    primeCumulativeDamage: 0
+    primedEffects: []
+    primedConsumedOnTrigger: 1
+    iconKey: 
+    colorHex: 
   shiftPosition: 0
   positionShift: 0
   grantsLifesteal: 0
@@ -101,3 +138,7 @@ MonoBehaviour:
   particleEffect: {fileID: 0}
   projectilePrefab: {fileID: 0}
   projectileSpeed: 0.3
+  zoomToCenter: 1
+  references:
+    version: 2
+    RefIds: []

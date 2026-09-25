@@ -10,18 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Wrathful Flame
+  m_Name: Frost Shield
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Wrathful Flame
-  commandName: wrathfulflame
-  description: The Cleric uses up all of their wrath and burns all enemies for Wil
-    x Wrath / 50 damage..
-  requiredClass: 2
-  levelRequired: 30
-  category: 0
-  targetType: 3
+  abilityName: Frost Shield
+  commandName: frostshield
+  description: The Mage increases their defense by 20 for the next hit.
+  requiredClass: 5
+  levelRequired: 1
+  category: 2
+  targetType: 2
   scalingStat: 0
-  statMultiplier: 1
+  statMultiplier: 0
   useSecondaryScaling: 0
   secondaryScalingStat: 0
   secondaryStatMultiplier: 0
@@ -38,12 +37,12 @@ MonoBehaviour:
   maxHitCount: 5
   consumeResourceAfterHits: 0
   multiHitTargetMode: 0
-  elementType: 0
+  elementType: 2
   grantsDefenseBoost: 0
   baseDefenseBoost: 0
-  defenseScalingStat: 0
-  defenseScalingMultiplier: 0
-  defenseConsumedOnHit: 0
+  defenseScalingStat: 3
+  defenseScalingMultiplier: 2
+  defenseConsumedOnHit: 1
   grantsStatBoost: 0
   statToBoost: 0
   baseStatBoost: 0
@@ -61,32 +60,80 @@ MonoBehaviour:
   sneakGain: 0
   requiresStance: 0
   requiredStance: 0
-  manaCost: 0
+  manaCost: 25
   wrathCost: 0
   wrathGain: 0
   balanceCost: 0
   balanceGain: 0
   balanceRequirement: 0
   balanceRequirementType: 0
-  wrathScaling: 1
-  wrathScalingStat: 4
-  wrathScale: 1
-  consumesAllWrath: 1
+  wrathScaling: 0
+  wrathScalingStat: 0
+  wrathScale: 0
+  consumesAllWrath: 0
   consumeWrathAmount: 0
   canTargetAllies: 0
-  canTargetEnemies: 1
+  canTargetEnemies: 0
   maxTargetPosition: 1
   minTargetPosition: 1
   isAOE: 0
   aoETargets: 1
-  cooldown: 0
-  appliesEffects: []
+  cooldown: 3
+  appliesEffects:
+  - effectName: Frosted
+    duration: 2
+    applicationChance: 1
+    isNegativeEffect: 0
+    statusResistanceBonus: 0
+    damageMultiplier: 1
+    defenseMultiplier: 1
+    damageOverTime: 0
+    temporaryDefenseBonus: 0
+    baseDefenseAmount: 0
+    defenseScalingStat: 0
+    defenseScalingMultiplier: 0
+    consumedOnHit: 0
+    statBoostType: 0
+    statBoostAmount: 0
+    lifestealPercent: 0
+    isRiposte: 0
+    riposteDamagePercent: 0
+    riposteFlatBonus: 0
+    riposteScalingStat: 0
+    riposteScalingMultiplier: 0
+    riposteConsumedOnUse: 0
+    isStun: 0
+    isSilence: 0
+    isBleed: 0
+    bleedDamagePerTurn: 0
+    isBarrier: 1
+    barrierCurrentAmount: 40
+    barrierMaxAmount: 40
+    isMark: 0
+    markedDamageMultiplier: 0
+    isTaunt: 0
+    tauntTargetEntityName: 
+    isCurse: 0
+    healingReductionPercent: 0
+    isExposed: 0
+    exposedDefenseReduction: 0
+    isEnrage: 0
+    enrageDamageMultiplier: 0
+    isHaste: 0
+    isPrimed: 0
+    primeThresholdType: 0
+    primeThreshold: 0
+    primeCumulativeDamage: 0
+    primedEffects: []
+    primedConsumedOnTrigger: 0
+    iconKey: 
+    colorHex: 
   shiftPosition: 0
   positionShift: 0
   grantsLifesteal: 0
   lifestealPercent: 0
   lifestealDuration: 1
-  animationTrigger: Attack
+  animationTrigger: SelfBuff
   particleEffect: {fileID: 0}
   projectilePrefab: {fileID: 0}
   projectileSpeed: 0.3

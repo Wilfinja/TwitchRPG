@@ -14,14 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
   abilityName: Lightning Lance
   commandName: lightninglance
-  description: The mage launches a lance made from lightning, dealing .75x INT damage
-    to the first three enemies.
+  description: The Mage throws a lance of lightning at three enemies dealing 1.15x
+    Int damage, Range 3-4. Charge Lightning.
   requiredClass: 5
-  levelRequired: 3
+  levelRequired: 5
   category: 0
   targetType: 6
   scalingStat: 3
-  statMultiplier: 0.75
+  statMultiplier: 1.15
   useSecondaryScaling: 0
   secondaryScalingStat: 0
   secondaryStatMultiplier: 0
@@ -37,6 +37,7 @@ MonoBehaviour:
   resourcePerHit: 1
   maxHitCount: 5
   consumeResourceAfterHits: 0
+  multiHitTargetMode: 0
   elementType: 4
   grantsDefenseBoost: 0
   baseDefenseBoost: 0
@@ -49,6 +50,13 @@ MonoBehaviour:
   statBoostScalingStat: 0
   statBoostScalingMultiplier: 0
   statBoostDuration: 1
+  grantsRiposte: 0
+  riposteDamagePercent: 0.5
+  riposteFlatBonus: 0
+  riposteScalingStat: 0
+  riposteScalingMultiplier: 0
+  riposteDuration: 1
+  riposteConsumedOnUse: 1
   sneakCost: 0
   sneakGain: 0
   requiresStance: 0
@@ -60,15 +68,29 @@ MonoBehaviour:
   balanceGain: 0
   balanceRequirement: 0
   balanceRequirementType: 0
+  wrathScaling: 0
+  wrathScalingStat: 0
+  wrathScale: 0
+  consumesAllWrath: 0
+  consumeWrathAmount: 0
   canTargetAllies: 0
   canTargetEnemies: 1
-  maxTargetPosition: 2
-  minTargetPosition: 2
+  maxTargetPosition: 4
+  minTargetPosition: 3
   isAOE: 1
   aoETargets: 3
-  cooldown: 0
+  cooldown: 3
   appliesEffects: []
   shiftPosition: 0
   positionShift: 0
+  grantsLifesteal: 0
+  lifestealPercent: 0
+  lifestealDuration: 1
   animationTrigger: Attack
   particleEffect: {fileID: 0}
+  projectilePrefab: {fileID: 0}
+  projectileSpeed: 0.3
+  zoomToCenter: 1
+  references:
+    version: 2
+    RefIds: []

@@ -1661,6 +1661,7 @@ MonoBehaviour:
   sinnaPrefab: {fileID: 669381813418491618, guid: b805602e3186b1942b74785d948d87d5, type: 3}
   wilfPrefab: {fileID: 5280709436454871458, guid: 16bf5548e5dcbbb4aa36b6d48284c3e6, type: 3}
   geordiePrefab: {fileID: 6419752010794691202, guid: ec16cdbfb4f0d2c448a4d671e5e3ad5e, type: 3}
+  zebraPrefab: {fileID: 7852466279638095106, guid: 43228f19f0fd3544c9e4a69e4713d9fb, type: 3}
   spawnYPosition: -10.5
   spawnSpacing: 15
   idleRangeX: 8

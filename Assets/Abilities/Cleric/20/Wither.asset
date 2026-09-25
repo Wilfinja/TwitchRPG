@@ -43,9 +43,9 @@ MonoBehaviour:
   defenseScalingStat: 0
   defenseScalingMultiplier: 0
   defenseConsumedOnHit: 0
-  grantsStatBoost: 1
+  grantsStatBoost: 0
   statToBoost: 2
-  baseStatBoost: 0
+  baseStatBoost: -2
   statBoostScalingStat: 4
   statBoostScalingMultiplier: -1.5
   statBoostDuration: 3
@@ -68,7 +68,10 @@ MonoBehaviour:
   balanceRequirement: 0
   balanceRequirementType: 0
   wrathScaling: 0
+  wrathScalingStat: 0
   wrathScale: 0
+  consumesAllWrath: 0
+  consumeWrathAmount: 0
   canTargetAllies: 0
   canTargetEnemies: 1
   maxTargetPosition: 4
@@ -76,7 +79,55 @@ MonoBehaviour:
   isAOE: 0
   aoETargets: 1
   cooldown: 4
-  appliesEffects: []
+  appliesEffects:
+  - effectName: Withered
+    duration: 2
+    applicationChance: 0.9
+    isNegativeEffect: 1
+    statusResistanceBonus: 0
+    damageMultiplier: 0.8
+    defenseMultiplier: 0.8
+    damageOverTime: 0
+    temporaryDefenseBonus: 0
+    baseDefenseAmount: 0
+    defenseScalingStat: 0
+    defenseScalingMultiplier: 0
+    consumedOnHit: 0
+    statBoostType: 0
+    statBoostAmount: 0
+    lifestealPercent: 0
+    isRiposte: 0
+    riposteDamagePercent: 0
+    riposteFlatBonus: 0
+    riposteScalingStat: 0
+    riposteScalingMultiplier: 0
+    riposteConsumedOnUse: 0
+    isStun: 0
+    isSilence: 0
+    isBleed: 0
+    bleedDamagePerTurn: 0
+    isBarrier: 0
+    barrierCurrentAmount: 0
+    barrierMaxAmount: 0
+    isMark: 0
+    markedDamageMultiplier: 0
+    isTaunt: 0
+    tauntTargetEntityName: 
+    isCurse: 0
+    healingReductionPercent: 0
+    isExposed: 0
+    exposedDefenseReduction: 0
+    isEnrage: 0
+    enrageDamageMultiplier: 0
+    isHaste: 0
+    isPrimed: 0
+    primeThresholdType: 0
+    primeThreshold: 0
+    primeCumulativeDamage: 0
+    primedEffects: []
+    primedConsumedOnTrigger: 0
+    iconKey: 
+    colorHex: 
   shiftPosition: 0
   positionShift: 0
   grantsLifesteal: 0
@@ -87,3 +138,6 @@ MonoBehaviour:
   projectilePrefab: {fileID: 0}
   projectileSpeed: 0.3
   zoomToCenter: 1
+  references:
+    version: 2
+    RefIds: []
