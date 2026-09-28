@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Acid Blast
+  m_Name: Hand
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Acid Blast
-  commandName: acidblast
-  description: 'The Mage targets three enemies, range 1-3, dealing 1x Int damge and
-    the targets are then Exposed. Charge: Acid. Exposed: '
+  abilityName: Hand
+  commandName: hand
+  description: 'The Mage summons a hand to stop two enemies from acting. This is
+    a 75% chance to stun. Charge: Holy'
   requiredClass: 5
-  levelRequired: 10
-  category: 0
+  levelRequired: 35
+  category: 3
   targetType: 6
-  scalingStat: 3
+  scalingStat: 0
   statMultiplier: 1
   useSecondaryScaling: 0
   secondaryScalingStat: 0
@@ -38,7 +38,7 @@ MonoBehaviour:
   maxHitCount: 5
   consumeResourceAfterHits: 0
   multiHitTargetMode: 0
-  elementType: 5
+  elementType: 7
   grantsDefenseBoost: 0
   baseDefenseBoost: 0
   defenseScalingStat: 0
@@ -61,7 +61,7 @@ MonoBehaviour:
   sneakGain: 0
   requiresStance: 0
   requiredStance: 0
-  manaCost: 25
+  manaCost: 35
   wrathCost: 0
   wrathGain: 0
   balanceCost: 0
@@ -77,14 +77,14 @@ MonoBehaviour:
   canTargetEnemies: 1
   maxTargetPosition: 3
   minTargetPosition: 1
-  isAOE: 1
-  aoETargets: 3
-  cooldown: 2
+  isAOE: 0
+  aoETargets: 1
+  cooldown: 4
   appliesEffects:
-  - effectName: Exposed
+  - effectName: Handed
     duration: 2
-    applicationChance: 0.95
-    isNegativeEffect: 1
+    applicationChance: 0.75
+    isNegativeEffect: 0
     statusResistanceBonus: 0
     damageMultiplier: 1
     defenseMultiplier: 1
@@ -103,7 +103,7 @@ MonoBehaviour:
     riposteScalingStat: 0
     riposteScalingMultiplier: 0
     riposteConsumedOnUse: 0
-    isStun: 0
+    isStun: 1
     isSilence: 0
     isBleed: 0
     bleedDamagePerTurn: 0
@@ -111,13 +111,13 @@ MonoBehaviour:
     barrierCurrentAmount: 0
     barrierMaxAmount: 0
     isMark: 0
-    markedDamageMultiplier: 1.15
+    markedDamageMultiplier: 0
     isTaunt: 0
     tauntTargetEntityName: 
     isCurse: 0
     healingReductionPercent: 0
-    isExposed: 1
-    exposedDefenseReduction: 35
+    isExposed: 0
+    exposedDefenseReduction: 0
     isEnrage: 0
     enrageDamageMultiplier: 0
     isHaste: 0

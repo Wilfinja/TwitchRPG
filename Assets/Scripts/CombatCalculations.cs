@@ -667,6 +667,15 @@ public static class CombatCalculations
                     hits = actor.wrath / 25;
                 }
                 break;
+
+            case MultiHitType.PerIntelligence:
+                {
+                    // 1 hit per resourcePerHit INT (e.g. 3 => INT 15 = 5 hits).
+                    // Uses the boosted value so INT buffs count as "current" intelligence.
+                    int divisor = Mathf.Max(1, ability.resourcePerHit);
+                    hits = actor.GetBoostedStat(BoostableStat.Intelligence) / divisor;
+                }
+                break;
         }
  
         // Apply limits

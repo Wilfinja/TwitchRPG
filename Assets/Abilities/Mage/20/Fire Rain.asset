@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 044e0a79d51ea534cbc535628873bde7, type: 3}
-  m_Name: Acid Blast
+  m_Name: Fire Rain
   m_EditorClassIdentifier: Assembly-CSharp::AbilityData
-  abilityName: Acid Blast
-  commandName: acidblast
-  description: 'The Mage targets three enemies, range 1-3, dealing 1x Int damge and
-    the targets are then Exposed. Charge: Acid. Exposed: '
+  abilityName: Fire Rain
+  commandName: firerain
+  description: 'The Mage blasts 3 enemies at random, dealing 1.2x Int damage and
+    having a 35% chance to inflict burn. Charge: Fire'
   requiredClass: 5
-  levelRequired: 10
+  levelRequired: 20
   category: 0
-  targetType: 6
+  targetType: 0
   scalingStat: 3
-  statMultiplier: 1
+  statMultiplier: 1.2
   useSecondaryScaling: 0
   secondaryScalingStat: 0
   secondaryStatMultiplier: 0
@@ -31,14 +31,14 @@ MonoBehaviour:
   consumeSneakAmount: 0
   baseDamage: 0
   canCrit: 0
-  isMultiHit: 0
-  baseHitCount: 1
+  isMultiHit: 1
+  baseHitCount: 3
   multiHitType: 0
-  resourcePerHit: 1
-  maxHitCount: 5
+  resourcePerHit: 25
+  maxHitCount: 3
   consumeResourceAfterHits: 0
-  multiHitTargetMode: 0
-  elementType: 5
+  multiHitTargetMode: 1
+  elementType: 1
   grantsDefenseBoost: 0
   baseDefenseBoost: 0
   defenseScalingStat: 0
@@ -61,7 +61,7 @@ MonoBehaviour:
   sneakGain: 0
   requiresStance: 0
   requiredStance: 0
-  manaCost: 25
+  manaCost: 35
   wrathCost: 0
   wrathGain: 0
   balanceCost: 0
@@ -75,15 +75,15 @@ MonoBehaviour:
   consumeWrathAmount: 0
   canTargetAllies: 0
   canTargetEnemies: 1
-  maxTargetPosition: 3
+  maxTargetPosition: 6
   minTargetPosition: 1
-  isAOE: 1
-  aoETargets: 3
-  cooldown: 2
+  isAOE: 0
+  aoETargets: 1
+  cooldown: 4
   appliesEffects:
-  - effectName: Exposed
+  - effectName: Burn
     duration: 2
-    applicationChance: 0.95
+    applicationChance: 0.35
     isNegativeEffect: 1
     statusResistanceBonus: 0
     damageMultiplier: 1
@@ -105,19 +105,19 @@ MonoBehaviour:
     riposteConsumedOnUse: 0
     isStun: 0
     isSilence: 0
-    isBleed: 0
-    bleedDamagePerTurn: 0
+    isBleed: 1
+    bleedDamagePerTurn: 15
     isBarrier: 0
     barrierCurrentAmount: 0
     barrierMaxAmount: 0
     isMark: 0
-    markedDamageMultiplier: 1.15
+    markedDamageMultiplier: 0
     isTaunt: 0
     tauntTargetEntityName: 
     isCurse: 0
     healingReductionPercent: 0
-    isExposed: 1
-    exposedDefenseReduction: 35
+    isExposed: 0
+    exposedDefenseReduction: 0
     isEnrage: 0
     enrageDamageMultiplier: 0
     isHaste: 0

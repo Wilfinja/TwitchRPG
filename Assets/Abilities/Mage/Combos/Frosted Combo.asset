@@ -10,25 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 69818cd6aff5a3d4eae2e3bc48a52f86, type: 3}
-  m_Name: FireCombo
+  m_Name: Frosted Combo
   m_EditorClassIdentifier: Assembly-CSharp::MageComboData
-  comboName: Fire Combo
-  description: '4 fire charges means applied burn! '
-  requiredCharges: 01000000010000000100000001000000
-  effectType: 4
-  basePower: 5
+  comboName: Frosted Combo
+  description: 
+  requiredCharges: 02000000020000000200000002000000
+  effectType: 3
+  basePower: 0
   scalingStat: 3
-  statMultiplier: 0
+  statMultiplier: 1
   targetType: 0
-  targetCount: 4
+  targetCount: 1
   appliedEffects:
-  - effectName: Burn
+  - effectName: Frosted
     duration: 2
     applicationChance: 1
     isNegativeEffect: 1
     statusResistanceBonus: 0
     damageMultiplier: 1
-    defenseMultiplier: 1
+    defenseMultiplier: 0.75
     damageOverTime: 0
     temporaryDefenseBonus: 0
     baseDefenseAmount: 0
@@ -43,37 +43,37 @@ MonoBehaviour:
     riposteFlatBonus: 0
     riposteScalingStat: 0
     riposteScalingMultiplier: 0
-    riposteConsumedOnUse: 1
+    riposteConsumedOnUse: 0
     isStun: 0
     isSilence: 0
-    isBleed: 1
-    bleedDamagePerTurn: 10
+    isBleed: 0
+    bleedDamagePerTurn: 0
     isBarrier: 0
     barrierCurrentAmount: 0
     barrierMaxAmount: 0
     isMark: 0
-    markedDamageMultiplier: 1.25
+    markedDamageMultiplier: 0
     isTaunt: 0
     tauntTargetEntityName: 
     isCurse: 0
-    healingReductionPercent: 0.5
+    healingReductionPercent: 0
     isExposed: 0
     exposedDefenseReduction: 0
     isEnrage: 0
-    enrageDamageMultiplier: 1.3
+    enrageDamageMultiplier: 0
     isHaste: 0
     isPrimed: 0
     primeThresholdType: 0
-    primeThreshold: 20
+    primeThreshold: 0
     primeCumulativeDamage: 0
     primedEffects: []
-    primedConsumedOnTrigger: 1
+    primedConsumedOnTrigger: 0
     iconKey: 
     colorHex: 
   grantsDefenseBoost: 0
   defenseBoostAmount: 0
   defenseBoostDuration: 1
-  particleEffect: {fileID: 6294508013172393196, guid: 043176b6a68be2b43b073aaaa4782c7d, type: 3}
+  particleEffect: {fileID: 0}
   comboColor: {r: 1, g: 1, b: 1, a: 1}
   references:
     version: 2

@@ -201,6 +201,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MageComboDatabase
   allCombos:
   - {fileID: 11400000, guid: 729c5f6d1735f9449a3bc07455096d32, type: 2}
+  - {fileID: 11400000, guid: dd322c8fc1b7f3d44a53ea0e72ef7848, type: 2}
+  - {fileID: 11400000, guid: 9f74ae7dc62b1ca4bae9ec2e2be8621c, type: 2}
+  - {fileID: 11400000, guid: 21ca3223e3eb1034f983c1fc33859071, type: 2}
 --- !u!4 &112329017
 Transform:
   m_ObjectHideFlags: 0
@@ -2658,7 +2661,25 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8fd51a715cdcfcf49ae06f83d9f45531, type: 2}
   - {fileID: 11400000, guid: 81504be1c2bb8844ca3dd169a9c834d5, type: 2}
   - {fileID: 11400000, guid: 29c2888e5f7abd44796abefbf8fa38fe, type: 2}
+  - {fileID: 11400000, guid: b49d4b8415d53a449a5c9a2ab72d5435, type: 2}
   - {fileID: 11400000, guid: 869b953e0f5738248b9fc13b829d8350, type: 2}
+  - {fileID: 11400000, guid: 252ef8cfb043d66408ce6e42668aff4c, type: 2}
+  - {fileID: 11400000, guid: 1f04acc85d7b231458585ad348b06bd1, type: 2}
+  - {fileID: 11400000, guid: 672c9aeed45375c4e8c2d0a973807a1d, type: 2}
+  - {fileID: 11400000, guid: a5c069b2899043543a7dd5fedfc5b542, type: 2}
+  - {fileID: 11400000, guid: 46232520213bd0a4180ee20933cfad97, type: 2}
+  - {fileID: 11400000, guid: 964c0403c817774498a4f47884962d9c, type: 2}
+  - {fileID: 11400000, guid: f9acb348a910e6f4290892e4706e0566, type: 2}
+  - {fileID: 11400000, guid: b0d63299b3671db45aeef90e1ad8310e, type: 2}
+  - {fileID: 11400000, guid: c156c4e232ed7614d9cc4e4e6e964084, type: 2}
+  - {fileID: 11400000, guid: 82aee818ecdfbf34884508bfaa7ba6af, type: 2}
+  - {fileID: 11400000, guid: 93828452067cd0d46b6f72c66369b7fd, type: 2}
+  - {fileID: 11400000, guid: c75229dd967cb254cabac12f5b7cb8ff, type: 2}
+  - {fileID: 11400000, guid: ff6033de339c6f0478ba7b64ff907d92, type: 2}
+  - {fileID: 11400000, guid: ef50a6e0e8037084a80e0f3f91590da3, type: 2}
+  - {fileID: 11400000, guid: b10b4c2ee7222844a987554c57eaa535, type: 2}
+  - {fileID: 11400000, guid: 77b57e3faa2fa2b4b8d007a081878bf5, type: 2}
+  - {fileID: 11400000, guid: e80c72a1b7f1b5f498b152c66d0e7489, type: 2}
   clericAbilities:
   - {fileID: 11400000, guid: 2e0d244cc58e01e4381f4409cafa6cba, type: 2}
   - {fileID: 11400000, guid: 5dc3fe3e29184a94bb2c571ad15064e8, type: 2}

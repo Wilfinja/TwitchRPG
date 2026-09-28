@@ -61,7 +61,8 @@ public class AbilityData : ScriptableObject
     [Tooltip("Additional hits based on class resource")]
     public MultiHitType multiHitType = MultiHitType.None;
  
-    [Tooltip("Resource-to-hit conversion (e.g., 1 sneak = 1 hit)")]
+    [Tooltip("Resource-to-hit conversion (e.g., 1 sneak = 1 hit). " +
+             "For PerIntelligence this is the INT divisor: hits = current INT / this (3 = 1 hit per 3 INT).")]
     public int resourcePerHit = 1;
  
     [Tooltip("Maximum total hits allowed")]
@@ -221,7 +222,8 @@ public class AbilityData : ScriptableObject
         PerSneakPoint,     // Rogue: 1 hit per sneak point
         PerBalancePoint,   // Ranger: 1 hit per +2 balance (until neutral)
         IfAggressive,      // Fighter: +1 hit if in Aggressive stance
-        PerWrathTier       // Cleric: Hits based on wrath level
+        PerWrathTier,      // Cleric: Hits based on wrath level
+        PerIntelligence    // Mage: Hits = current (boosted) INT / resourcePerHit. APPENDED LAST - do not reorder.
     }
  
     public enum MultiHitTargetMode
@@ -382,6 +384,26 @@ public class AbilityData : ScriptableObject
             }
         }
  
+        // Validate Intelligence multi-hit
+        if (isMultiHit && multiHitType == MultiHitType.PerIntelligence)
+        {
+            if (resourcePerHit <= 0)
+            {
+                Debug.LogWarning($"[{abilityName}] PerIntelligence uses resourcePerHit as the INT divisor - it must be at least 1!");
+            }
+
+            if (maxHitCount <= baseHitCount)
+            {
+                Debug.LogWarning($"[{abilityName}] maxHitCount ({maxHitCount}) is not above baseHitCount, so INT scaling can never add hits. " +
+                                 "Raise maxHitCount.");
+            }
+
+            if (multiHitTargetMode == MultiHitTargetMode.SameTarget)
+            {
+                Debug.LogWarning($"[{abilityName}] PerIntelligence is set to SameTarget. Use TrulyRandom or RandomInRange for random-enemy hits.");
+            }
+        }
+
         // Validate defense boost
         if (grantsDefenseBoost)
         {

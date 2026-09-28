@@ -6,4 +6,5 @@
   <Project Path="KinoBloom.Runtime.csproj" />
   <Project Path="CFXR.WelcomeScreen.csproj" />
   <Project Path="ToonyColorsPro.Demo.Editor.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
 </Solution>

@@ -16,9 +16,9 @@ MonoBehaviour:
   commandName: warp
   description: 'The Mage changes the enemy, lowering defense and attack damage by
     75% for 1 turn. Charge: Shadow'
-  requiredClass: 0
+  requiredClass: 5
   levelRequired: 10
-  category: 0
+  category: 3
   targetType: 0
   scalingStat: 0
   statMultiplier: 1
@@ -38,7 +38,7 @@ MonoBehaviour:
   maxHitCount: 5
   consumeResourceAfterHits: 0
   multiHitTargetMode: 0
-  elementType: 0
+  elementType: 6
   grantsDefenseBoost: 0
   baseDefenseBoost: 0
   defenseScalingStat: 0
@@ -61,7 +61,7 @@ MonoBehaviour:
   sneakGain: 0
   requiresStance: 0
   requiredStance: 0
-  manaCost: 0
+  manaCost: 15
   wrathCost: 0
   wrathGain: 0
   balanceCost: 0
@@ -79,8 +79,56 @@ MonoBehaviour:
   minTargetPosition: 1
   isAOE: 0
   aoETargets: 1
-  cooldown: 0
-  appliesEffects: []
+  cooldown: 2
+  appliesEffects:
+  - effectName: Warped
+    duration: 1
+    applicationChance: 1
+    isNegativeEffect: 1
+    statusResistanceBonus: 0
+    damageMultiplier: 0.25
+    defenseMultiplier: 0.25
+    damageOverTime: 0
+    temporaryDefenseBonus: 0
+    baseDefenseAmount: 0
+    defenseScalingStat: 0
+    defenseScalingMultiplier: 0
+    consumedOnHit: 0
+    statBoostType: 0
+    statBoostAmount: 0
+    lifestealPercent: 0
+    isRiposte: 0
+    riposteDamagePercent: 0
+    riposteFlatBonus: 0
+    riposteScalingStat: 0
+    riposteScalingMultiplier: 0
+    riposteConsumedOnUse: 0
+    isStun: 0
+    isSilence: 0
+    isBleed: 0
+    bleedDamagePerTurn: 0
+    isBarrier: 0
+    barrierCurrentAmount: 0
+    barrierMaxAmount: 0
+    isMark: 0
+    markedDamageMultiplier: 0
+    isTaunt: 0
+    tauntTargetEntityName: 
+    isCurse: 0
+    healingReductionPercent: 0
+    isExposed: 0
+    exposedDefenseReduction: 0
+    isEnrage: 0
+    enrageDamageMultiplier: 0
+    isHaste: 0
+    isPrimed: 0
+    primeThresholdType: 0
+    primeThreshold: 0
+    primeCumulativeDamage: 0
+    primedEffects: []
+    primedConsumedOnTrigger: 0
+    iconKey: 
+    colorHex: 
   shiftPosition: 0
   positionShift: 0
   grantsLifesteal: 0
