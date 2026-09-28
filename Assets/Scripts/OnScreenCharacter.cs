@@ -38,6 +38,8 @@ public class OnScreenCharacter : MonoBehaviour
     [SerializeField] private string runAnimationName = "Run";
     [SerializeField] private string collectAnimationName = "Collect";
     [SerializeField] private float collectAnimationDuration = 0.5f;
+    [Tooltip("Optional animator state played while cheering during a raid. Leave blank (or use a name the Animator lacks) to just hop.")]
+    [SerializeField] private string cheerAnimationName = "";
 
     private Animator animator;
     private Rigidbody2D rb;
@@ -566,6 +568,74 @@ public class OnScreenCharacter : MonoBehaviour
     public CharacterClass GetCharacterClass()
     {
         return characterClass;
+    }
+
+    // ==================== RAID CELEBRATION ====================
+
+    private Coroutine cheerRoutine;
+
+    /// <summary>
+    /// Hop in place a few times (optionally playing a cheer animation) after
+    /// an initial delay so a crowd of characters ripples instead of moving in
+    /// lockstep. Purely visual: it never touches stats, coins or combat state,
+    /// and it bails out cleanly if the character gets pulled into combat.
+    /// </summary>
+    public void PlayRaidCheer(float delay, float duration, float hopHeight, int hops)
+    {
+        if (isInCombat) return;
+
+        if (cheerRoutine != null) StopCoroutine(cheerRoutine);
+        cheerRoutine = StartCoroutine(RaidCheerRoutine(delay, duration, hopHeight, hops));
+    }
+
+    private IEnumerator RaidCheerRoutine(float delay, float duration, float hopHeight, int hops)
+    {
+        if (delay > 0f) yield return new WaitForSeconds(delay);
+
+        if (isInCombat)
+        {
+            cheerRoutine = null;
+            yield break;
+        }
+
+        float baseY = transform.position.y;
+
+        // Only play the cheer state if this prefab's Animator actually has it,
+        // otherwise Animator.Play just logs a warning per character.
+        bool playedCheer = false;
+        if (!string.IsNullOrEmpty(cheerAnimationName) && animator != null &&
+            animator.runtimeAnimatorController != null &&
+            animator.HasState(0, Animator.StringToHash(cheerAnimationName)))
+        {
+            PlayAnimation(cheerAnimationName);
+            playedCheer = true;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            if (isInCombat) break;
+
+            // |sin| gives `hops` bouncy arcs across the duration.
+            float t = elapsed / duration;
+            float arc = Mathf.Abs(Mathf.Sin(t * Mathf.PI * hops));
+            Vector3 pos = transform.position;
+            pos.y = baseY + arc * hopHeight;
+            transform.position = pos;
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        if (!isInCombat)
+        {
+            Vector3 pos = transform.position;
+            pos.y = baseY;
+            transform.position = pos;
+        }
+
+        if (playedCheer) PlayAnimation(idleAnimationName);
+        cheerRoutine = null;
     }
 
     public void ShowChatMessage(string message)

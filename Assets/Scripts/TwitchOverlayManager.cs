@@ -29,6 +29,7 @@ public class TwitchOverlayManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private CoinSpawner coinSpawner;
     [SerializeField] private ParticleEffectManager particleManager;
+    [SerializeField] private RaidCelebration raidCelebration;
 
     private TwitchClient client;
     private EventSubWebsocketClient eventSubClient;
@@ -241,6 +242,7 @@ public class TwitchOverlayManager : MonoBehaviour
             // Subscribe to the events we want
             eventSubClient.ChannelCheer += OnChannelCheer;
             eventSubClient.ChannelPointsCustomRewardRedemptionAdd += OnChannelPointsRedeemed;
+            eventSubClient.ChannelRaid += OnChannelRaid;
 
             await eventSubClient.ConnectAsync();
             Debug.Log("[TwitchOverlay] EventSub WebSocket: ConnectAsync called.");
@@ -322,6 +324,15 @@ public class TwitchOverlayManager : MonoBehaviour
                 {
                     try  // ✅ ADD: Wrap in try-catch
                     {
+                        // Broadcaster-only: !testraid [viewers] fires the raid celebration without a real raid
+                        if (isBroadcaster && command == "testraid")
+                        {
+                            int fakeViewers = 10;
+                            if (args.Length > 0) int.TryParse(args[0], out fakeViewers);
+                            TriggerRaidCelebration("TestRaider", Mathf.Max(1, fakeViewers));
+                            return;
+                        }
+
                         // Try RPG commands first
                         string rpgResponse = rpgCommands.HandleRPGCommand(command, userId, username, args);
                         if (rpgResponse != null)
@@ -421,6 +432,24 @@ public class TwitchOverlayManager : MonoBehaviour
             if (pointsResponse.Subscriptions != null && pointsResponse.Subscriptions.Length > 0)
             {
                 Debug.Log($"[TwitchOverlay] ✓ Subscribed to channel points (Status: {pointsResponse.Subscriptions[0].Status})");
+            }
+
+            // Subscribe to incoming raids (someone raiding THIS channel).
+            // Uses to_broadcaster_user_id; the from_ side is the raider.
+            var raidResponse = await twitchApi.Helix.EventSub.CreateEventSubSubscriptionAsync(
+                type: "channel.raid",
+                version: "1",
+                condition: new Dictionary<string, string>
+                {
+                    { "to_broadcaster_user_id", channelId }
+                },
+                method: EventSubTransportMethod.Websocket,
+                websocketSessionId: sessionId
+            );
+
+            if (raidResponse.Subscriptions != null && raidResponse.Subscriptions.Length > 0)
+            {
+                Debug.Log($"[TwitchOverlay] ✓ Subscribed to channel.raid (Status: {raidResponse.Subscriptions[0].Status})");
             }
 
             Debug.Log("[TwitchOverlay] All EventSub subscriptions created successfully!");
@@ -572,6 +601,52 @@ public class TwitchOverlayManager : MonoBehaviour
         }
 
         return Task.CompletedTask;
+    }
+
+    private Task OnChannelRaid(object sender, ChannelRaidArgs e)
+    {
+        var eventData = e?.Payload?.Event;
+        if (eventData == null)
+        {
+            Debug.LogError("[TwitchOverlay] Raid: args, Payload or Payload.Event is NULL");
+            return Task.CompletedTask;
+        }
+
+        string raiderName = eventData.FromBroadcasterUserName ?? "Someone";
+        int viewers = eventData.Viewers;
+
+        Debug.Log($"[TwitchOverlay] Raid → From:{raiderName} Viewers:{viewers}");
+
+        UnityMainThreadDispatcher.Instance().Enqueue(() => TriggerRaidCelebration(raiderName, viewers));
+
+        return Task.CompletedTask;
+    }
+
+    private void TriggerRaidCelebration(string raiderName, int viewers)
+    {
+        try
+        {
+            if (raidCelebration != null)
+            {
+                raidCelebration.Play(raiderName, viewers);
+            }
+            else
+            {
+                Debug.LogWarning("[TwitchOverlay] Raid received but no RaidCelebration is assigned on TwitchOverlayManager.");
+                OnScreenNotification.Instance?.ShowSuccess($"RAID! {raiderName} brings {viewers} raiders!");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[TwitchOverlay] Raid celebration failed: {ex.Message}\n{ex.StackTrace}");
+        }
+    }
+
+    // Right-click the component header in the Inspector (Play mode) to test without a real raid.
+    [ContextMenu("Simulate Raid (25 viewers)")]
+    public void SimulateRaid()
+    {
+        TriggerRaidCelebration("TestRaider", 25);
     }
 
     private Task OnChannelPointsRedeemed(
